@@ -44,7 +44,7 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     for row in c.execute("SELECT tg_id, tg_username, occupation, location FROM people"):
         values = {key: value for (key,value) in zip((i[0] for i in c.description), row)}
-        user_list.append("{username}: {occupation} in {location}".format(
+        user_list.append("@{username} ({location}): {occupation}".format(
             username=values["tg_username"], occupation=values["occupation"], location=values["location"]))
 
     conn.close()
@@ -89,7 +89,7 @@ async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     from_user = update.message.from_user
     c.execute("INSERT OR REPLACE INTO people (tg_id, tg_username, occupation, location) VALUES(?, ?, ?, ?)",
-              (from_user.id, from_user.username, user_data["location"], user_data["occupation"]))
+              (from_user.id, from_user.username, user_data["occupation"], user_data["location"]))
 
     conn.commit()
     conn.close()
