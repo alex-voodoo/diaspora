@@ -47,6 +47,9 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         user_list.append("@{username} ({location}): {occupation}".format(
             username=values["tg_username"], occupation=values["occupation"], location=values["location"]))
 
+    if len(user_list) == 1:
+        user_list = ["Nobody has enrolled so far :-( ."]
+
     conn.close()
 
     await update.message.reply_text("\n".join(user_list))
@@ -101,7 +104,18 @@ async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
 async def retire(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Remove the user from the directory"""
-    await update.message.reply_text("ONE CANNOT LEAVE!!!!!")
+
+    conn = sqlite3.connect("people.db")
+    c = conn.cursor()
+
+    from_user = update.message.from_user
+    c.execute("DELETE FROM people WHERE tg_id=?",
+              (from_user.id,))
+
+    conn.commit()
+    conn.close()
+
+    await update.message.reply_text("Okay.", reply_markup=hello_markup)
 
 
 main_commands = {"Who": who, "Enroll": enroll, "Retire": retire}
