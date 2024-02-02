@@ -27,7 +27,7 @@ from secret import BOT_TOKEN, DEVELOPER_CHAT_ID
 
 # Configure logging
 # Set higher logging level for httpx to avoid all GET and POST requests being logged.
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
+logging.basicConfig(format="[%(asctime)s] %(levelname)s %(name)s: %(message)s", level=logging.INFO)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
