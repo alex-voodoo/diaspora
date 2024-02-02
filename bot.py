@@ -16,6 +16,7 @@ Usage:
 import html
 import json
 import logging
+import sqlite3
 import traceback
 
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
@@ -35,7 +36,20 @@ TYPING_OCCUPATION, TYPING_LOCATION = range(2)
 
 async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show the current registry"""
-    await update.message.reply_text("HERE IS WHO IS HERE IS WHO IS")
+
+    conn = sqlite3.connect("people.db")
+    c = conn.cursor()
+
+    user_list = ["Here is the directory:"]
+
+    for row in c.execute("SELECT tg_id, tg_username, occupation, location FROM people"):
+        values = {key: value for (key,value) in zip((i[0] for i in c.description), row)}
+        user_list.append("{username}: {occupation} in {location}".format(
+            username=values["tg_username"], occupation=values["occupation"], location=values["location"]))
+
+    conn.close()
+
+    await update.message.reply_text("\n".join(user_list))
 
 
 async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -70,7 +84,17 @@ async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                                     "We will store that!".format(user_data["occupation"], user_data["location"]),
                                     reply_markup=hello_markup)
 
-    # store user_data and then call clear() on it
+    conn = sqlite3.connect("people.db")
+    c = conn.cursor()
+
+    from_user = update.message.from_user
+    c.execute("INSERT OR REPLACE INTO people (tg_id, tg_username, occupation, location) VALUES(?, ?, ?, ?)",
+              (from_user.id, from_user.username, user_data["location"], user_data["occupation"]))
+
+    conn.commit()
+    conn.close()
+
+    user_data.clear()
 
     return ConversationHandler.END
 
@@ -91,6 +115,8 @@ hello_markup = ReplyKeyboardMarkup([[command, ] for command in main_commands.key
 
 async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Welcome the user and show them the selection of options"""
+
+    logger.info("Welcoming user {}".format(update.effective_chat.id))
 
     await update.message.reply_text("Hi!  This is the service registry for the chat!  Use the buttons below to browse "
                                     "the directory and to add or remove yourself!", reply_markup=hello_markup)
