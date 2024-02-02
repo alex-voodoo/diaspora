@@ -104,11 +104,7 @@ async def retire(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("ONE CANNOT LEAVE!!!!!")
 
 
-async def annoy(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await context.bot.wrong_method_name()  # type: ignore[attr-defined]
-
-
-main_commands = {"Who": who, "Enroll": enroll, "Retire": retire, "Annoy the developer": annoy}
+main_commands = {"Who": who, "Enroll": enroll, "Retire": retire}
 
 hello_markup = ReplyKeyboardMarkup([[command, ] for command in main_commands.keys()])
 
