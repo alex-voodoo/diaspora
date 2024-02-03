@@ -160,6 +160,24 @@ main_commands = {"Who": who, "Enroll": enroll, "Retire": retire}
 
 hello_markup = ReplyKeyboardMarkup([[command, ] for command in main_commands.keys()])
 
+
+async def delete_message(context: ContextTypes.DEFAULT_TYPE) -> None:
+    job = context.job
+
+    await context.bot.deleteMessage(message_id=job.data.message_id, chat_id=job.data.chat.id)
+
+
+async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Welcome the user and show them the selection of options"""
+
+    posted_message = await update.message.reply_text(
+        "Hi!  I keep records on users who would like to offer something to others, and provide that information to "
+        "everyone in this chat.\n\nTo see what I can do, start a private conversation with me.\n\nI will delete this "
+        "message in a minute to keep this chat clean of my messages.")
+
+    context.job_queue.run_once(delete_message, 60, data=posted_message)
+
+
 async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Welcome the user and show them the selection of options"""
 
@@ -227,6 +245,7 @@ def main() -> None:
     application = Application.builder().token(BOT_TOKEN).build()
 
     application.add_handler(CommandHandler("start", hello))
+    application.add_handler(CommandHandler("help", show_help))
 
     # Add conversation handler that questions the user about his profile
     conv_handler = ConversationHandler(entry_points=[MessageHandler(filters.Regex("^Enroll$"), enroll)],
