@@ -34,6 +34,8 @@ logger = logging.getLogger(__name__)
 
 TYPING_OCCUPATION, TYPING_LOCATION = range(2)
 
+DELETE_MESSAGE_TIMEOUT = 60
+
 
 class LogTime:
     """Time measuring context manager, logs time elapsed while executing the context
@@ -55,6 +57,27 @@ class LogTime:
     def __exit__(self, exc_type, exc_val, exc_tb):
         elapsed = (time.perf_counter() - self.started_at) * 1000
         logger.info("{name} took {elapsed} ms".format(name=self.name, elapsed=elapsed))
+
+
+async def delete_message(context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Delete the message contained in the data of the context job
+
+    This function is called with a delay and is intended to delete a message sent by the bot earlier, and also delete
+    the message that the former one was sent in reply to.  It is used to clean automatically the messages that users
+    send to the bot in the chat: the intended way to use it is communicating via private messages.
+
+    Use `self_destructing_reply()` as a wrapper for this function."""
+
+    for message_to_delete in (context.job.data, context.job.data.reply_to_message):
+        await context.bot.deleteMessage(message_id=message_to_delete.message_id, chat_id=message_to_delete.chat.id)
+
+
+async def self_destructing_reply(update, context, message_body):
+    """Replies to the message contained in the update, then schedules the reply to be deleted"""
+
+    posted_message = await update.message.reply_text(message_body)
+
+    context.job_queue.run_once(delete_message, DELETE_MESSAGE_TIMEOUT, data=posted_message)
 
 
 async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -161,21 +184,16 @@ main_commands = {"Who": who, "Enroll": enroll, "Retire": retire}
 hello_markup = ReplyKeyboardMarkup([[command, ] for command in main_commands.keys()])
 
 
-async def delete_message(context: ContextTypes.DEFAULT_TYPE) -> None:
-    job = context.job
-
-    await context.bot.deleteMessage(message_id=job.data.message_id, chat_id=job.data.chat.id)
-
-
 async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Welcome the user and show them the selection of options"""
+    """Show the self-destructing help message"""
 
-    posted_message = await update.message.reply_text(
-        "Hi!  I keep records on users who would like to offer something to others, and provide that information to "
-        "everyone in this chat.\n\nTo see what I can do, start a private conversation with me.\n\nI will delete this "
-        "message in a minute to keep this chat clean of my messages.")
-
-    context.job_queue.run_once(delete_message, 60, data=posted_message)
+    await self_destructing_reply(update, context,
+                                 "Hi!  I keep records on users who would like to offer something to others, "
+                                 "and provide that information to everyone in this chat.\n"
+                                 "\n"
+                                 "To see what I can do, start a private conversation with me.\n"
+                                 "\n"
+                                 "I will delete this message in a minute to keep this chat clean of my messages.")
 
 
 async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
