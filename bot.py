@@ -234,7 +234,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
         await update.message.reply_text("Let's talk private!")
         return
 
-    await update.message.reply_text("It seems like I screed up.  Please use the commands below.",
+    await update.message.reply_text("It seems like I screwed up.  Please use the commands below.",
                                     reply_markup=hello_markup)
 
 
