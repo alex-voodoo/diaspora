@@ -152,7 +152,7 @@ hello_markup = ReplyKeyboardMarkup([[command, ] for command in main_commands.key
 async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Welcome the user and show them the selection of options"""
 
-    logger.info("Welcoming user {}".format(update.effective_chat.id))
+    logger.info("Welcoming user {}".format(update.message.from_user.username))
 
     await update.message.reply_text("Hi!  This is the service registry for the chat!  Use the buttons below to browse "
                                     "the directory and to add or remove yourself!", reply_markup=hello_markup)
