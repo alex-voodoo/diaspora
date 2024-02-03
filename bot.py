@@ -60,6 +60,10 @@ class LogTime:
 async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show the current registry"""
 
+    if update.effective_message.chat_id != update.message.from_user.id:
+        await update.message.reply_text("Let's talk private!")
+        return
+
     user_list = ["Here is the directory:"]
 
     with LogTime("Reading all people from the DB"):
@@ -81,6 +85,10 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation and ask user for input"""
+
+    if update.effective_message.chat_id != update.message.from_user.id:
+        await update.message.reply_text("Let's talk private!")
+        return ConversationHandler.END
 
     await update.message.reply_text("Enrolling!  Let us begin with the most important question: What do you do?  "
                                     "Please give a short and simple answer, like \"Teach how to surf\" or \"Help with "
@@ -130,6 +138,10 @@ async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 async def retire(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Remove the user from the directory"""
 
+    if update.effective_message.chat_id != update.message.from_user.id:
+        await update.message.reply_text("Let's talk private!")
+        return
+
     with LogTime("Deleting personal data from the DB"):
         conn = sqlite3.connect("people.db")
         c = conn.cursor()
@@ -141,16 +153,19 @@ async def retire(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         conn.commit()
         conn.close()
 
-    await update.message.reply_text("Okay.", reply_markup=hello_markup)
+    await update.message.reply_text("I am sorry to see you go.", reply_markup=hello_markup)
 
 
 main_commands = {"Who": who, "Enroll": enroll, "Retire": retire}
 
 hello_markup = ReplyKeyboardMarkup([[command, ] for command in main_commands.keys()])
 
-
 async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Welcome the user and show them the selection of options"""
+
+    if update.effective_message.chat_id != update.message.from_user.id:
+        await update.message.reply_text("Let's talk private!")
+        return
 
     logger.info("Welcoming user {}".format(update.message.from_user.username))
 
@@ -160,6 +175,10 @@ async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle the message.  If it is a recognised command, execute it.  Otherwise, show help."""
+
+    if update.effective_message.chat_id != update.message.from_user.id:
+        await update.message.reply_text("Let's talk private!")
+        return
 
     if update.message.text in main_commands:
         await main_commands[update.message.text](update, context)
@@ -192,6 +211,11 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 
     # Finally, send the message
     await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID, text=error_message, parse_mode=ParseMode.HTML)
+
+    if update.effective_message.chat_id != update.message.from_user.id:
+        await update.message.reply_text("Let's talk private!")
+        return
+
     await update.message.reply_text("It seems like I screed up.  Please use the commands below.",
                                     reply_markup=hello_markup)
 
