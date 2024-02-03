@@ -17,6 +17,7 @@ import html
 import json
 import logging
 import sqlite3
+import time
 import traceback
 
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
@@ -27,30 +28,53 @@ from secret import BOT_TOKEN, DEVELOPER_CHAT_ID
 
 # Configure logging
 # Set higher logging level for httpx to avoid all GET and POST requests being logged.
-logging.basicConfig(format="[%(asctime)s] %(levelname)s %(name)s: %(message)s", level=logging.INFO)
+logging.basicConfig(format="[%(asctime)s] %(levelname)s %(message)s", level=logging.INFO)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 TYPING_OCCUPATION, TYPING_LOCATION = range(2)
 
 
+class LogTime:
+    """Time measuring context manager, logs time elapsed while executing the context
+
+    Usage:
+
+        with LogTime("<task>"):
+            ...
+
+    The above will log: "<task> took X ms".
+    """
+
+    def __init__(self, name):
+        self.name = name
+
+    def __enter__(self):
+        self.started_at = time.perf_counter()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        elapsed = (time.perf_counter() - self.started_at) * 1000
+        logger.info("{name} took {elapsed} ms".format(name=self.name, elapsed=elapsed))
+
+
 async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show the current registry"""
 
-    conn = sqlite3.connect("people.db")
-    c = conn.cursor()
-
     user_list = ["Here is the directory:"]
 
-    for row in c.execute("SELECT tg_id, tg_username, occupation, location FROM people"):
-        values = {key: value for (key,value) in zip((i[0] for i in c.description), row)}
-        user_list.append("@{username} ({location}): {occupation}".format(
-            username=values["tg_username"], occupation=values["occupation"], location=values["location"]))
+    with LogTime("Reading all people from the DB"):
+        conn = sqlite3.connect("people.db")
+        c = conn.cursor()
 
-    if len(user_list) == 1:
-        user_list = ["Nobody has enrolled so far :-( ."]
+        for row in c.execute("SELECT tg_id, tg_username, occupation, location FROM people"):
+            values = {key: value for (key,value) in zip((i[0] for i in c.description), row)}
+            user_list.append("@{username} ({location}): {occupation}".format(
+                username=values["tg_username"], occupation=values["occupation"], location=values["location"]))
 
-    conn.close()
+        if len(user_list) == 1:
+            user_list = ["Nobody has enrolled so far :-( ."]
+
+        conn.close()
 
     await update.message.reply_text("\n".join(user_list))
 
@@ -87,15 +111,16 @@ async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                                     "We will store that!".format(user_data["occupation"], user_data["location"]),
                                     reply_markup=hello_markup)
 
-    conn = sqlite3.connect("people.db")
-    c = conn.cursor()
+    with LogTime("Updating personal data in the DB"):
+        conn = sqlite3.connect("people.db")
+        c = conn.cursor()
 
-    from_user = update.message.from_user
-    c.execute("INSERT OR REPLACE INTO people (tg_id, tg_username, occupation, location) VALUES(?, ?, ?, ?)",
-              (from_user.id, from_user.username, user_data["occupation"], user_data["location"]))
+        from_user = update.message.from_user
+        c.execute("INSERT OR REPLACE INTO people (tg_id, tg_username, occupation, location) VALUES(?, ?, ?, ?)",
+                  (from_user.id, from_user.username, user_data["occupation"], user_data["location"]))
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+        conn.close()
 
     user_data.clear()
 
@@ -105,15 +130,16 @@ async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 async def retire(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Remove the user from the directory"""
 
-    conn = sqlite3.connect("people.db")
-    c = conn.cursor()
+    with LogTime("Deleting personal data from the DB"):
+        conn = sqlite3.connect("people.db")
+        c = conn.cursor()
 
-    from_user = update.message.from_user
-    c.execute("DELETE FROM people WHERE tg_id=?",
-              (from_user.id,))
+        from_user = update.message.from_user
+        c.execute("DELETE FROM people WHERE tg_id=?",
+                  (from_user.id,))
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+        conn.close()
 
     await update.message.reply_text("Okay.", reply_markup=hello_markup)
 
