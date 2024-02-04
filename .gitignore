@@ -1,3 +1,5 @@
 .idea
+people.db
+__pycache__
 secret.py
 venv
