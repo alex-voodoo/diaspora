@@ -224,7 +224,8 @@ async def message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await main_commands[update.message.text](update, context)
         return
 
-    if not await talking_private(update, context):
+    if update.effective_message.chat_id != update.message.from_user.id:
+        # Skip silently everything from the chat that is not a command
         return
 
     await update.message.reply_text("I could not parse that.  Here are the things that I do understand.",
