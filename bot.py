@@ -80,11 +80,25 @@ async def self_destructing_reply(update, context, message_body):
     context.job_queue.run_once(delete_message, DELETE_MESSAGE_TIMEOUT, data=posted_message)
 
 
+async def talking_private(update, context) -> bool:
+    """Helper for handlers that require private conversation
+
+    Most features of the bot should not be accessed from the chat, instead users should talk to the bot directly via
+    private conversation.  This function checks if the update came from the private conversation, and if that is not the
+    case, sends a self-destructing reply that suggests talking private.  The caller can simply return if this returned
+    false.
+    """
+
+    if update.effective_message.chat_id != update.message.from_user.id:
+        await self_destructing_reply(update, context, "Let's talk private!")
+        return False
+    return True
+
+
 async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show the current registry"""
 
-    if update.effective_message.chat_id != update.message.from_user.id:
-        await update.message.reply_text("Let's talk private!")
+    if not await talking_private(update, context):
         return
 
     user_list = ["Here is the directory:"]
@@ -109,8 +123,7 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation and ask user for input"""
 
-    if update.effective_message.chat_id != update.message.from_user.id:
-        await update.message.reply_text("Let's talk private!")
+    if not await talking_private(update, context):
         return ConversationHandler.END
 
     await update.message.reply_text("Enrolling!  Let us begin with the most important question: What do you do?  "
@@ -161,8 +174,7 @@ async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 async def retire(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Remove the user from the directory"""
 
-    if update.effective_message.chat_id != update.message.from_user.id:
-        await update.message.reply_text("Let's talk private!")
+    if not await talking_private(update, context):
         return
 
     with LogTime("Deleting personal data from the DB"):
@@ -199,8 +211,7 @@ async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Welcome the user and show them the selection of options"""
 
-    if update.effective_message.chat_id != update.message.from_user.id:
-        await update.message.reply_text("Let's talk private!")
+    if not await talking_private(update, context):
         return
 
     logger.info("Welcoming user {username} (chat ID {chat_id})".format(
@@ -213,12 +224,11 @@ async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle the message.  If it is a recognised command, execute it.  Otherwise, show help."""
 
-    if update.effective_message.chat_id != update.message.from_user.id:
-        await update.message.reply_text("Let's talk private!")
-        return
-
     if update.message.text in main_commands:
         await main_commands[update.message.text](update, context)
+        return
+
+    if not await talking_private(update, context):
         return
 
     await update.message.reply_text("I could not parse that.  Here are the things that I do understand.",
@@ -249,8 +259,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     # Finally, send the message
     await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID, text=error_message, parse_mode=ParseMode.HTML)
 
-    if update.effective_message.chat_id != update.message.from_user.id:
-        await update.message.reply_text("Let's talk private!")
+    if not await talking_private(update, context):
         return
 
     await update.message.reply_text("It seems like I screwed up.  Please use the commands below.",
