@@ -151,8 +151,7 @@ async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     user_data = context.user_data
     user_data['location'] = update.message.text
 
-    await update.message.reply_text("So your occupation is: \"{}\", and you are based in {}.  "
-                                    "We will store that!".format(user_data["occupation"], user_data["location"]),
+    await update.message.reply_text("We are done, you are now in the registry!",
                                     reply_markup=hello_markup)
 
     with LogTime("Updating personal data in the DB"):
