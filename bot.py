@@ -19,6 +19,7 @@ import logging
 import sqlite3
 import time
 import traceback
+from sqlite3 import Connection
 
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.constants import ParseMode
@@ -36,7 +37,7 @@ TYPING_OCCUPATION, TYPING_LOCATION = range(2)
 
 DELETE_MESSAGE_TIMEOUT = 60
 
-conn = None
+db_connection : Connection
 
 class LogTime:
     """Time measuring context manager, logs time elapsed while executing the context
@@ -105,8 +106,8 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_list = ["Here is the directory:"]
 
     with LogTime("Reading all people from the DB"):
-        global conn
-        c = conn.cursor()
+        global db_connection
+        c = db_connection.cursor()
 
         for row in c.execute("SELECT tg_id, tg_username, occupation, location FROM people"):
             values = {key: value for (key,value) in zip((i[0] for i in c.description), row)}
@@ -154,14 +155,14 @@ async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                                     reply_markup=hello_markup)
 
     with LogTime("Updating personal data in the DB"):
-        global conn
-        c = conn.cursor()
+        global db_connection
+        c = db_connection.cursor()
 
         from_user = update.message.from_user
         c.execute("INSERT OR REPLACE INTO people (tg_id, tg_username, occupation, location) VALUES(?, ?, ?, ?)",
                   (from_user.id, from_user.username, user_data["occupation"], user_data["location"]))
 
-        conn.commit()
+        db_connection.commit()
 
     user_data.clear()
 
@@ -175,14 +176,14 @@ async def retire(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
 
     with LogTime("Deleting personal data from the DB"):
-        global conn
-        c = conn.cursor()
+        global db_connection
+        c = db_connection.cursor()
 
         from_user = update.message.from_user
         c.execute("DELETE FROM people WHERE tg_id=?",
                   (from_user.id,))
 
-        conn.commit()
+        db_connection.commit()
 
     await update.message.reply_text("I am sorry to see you go.", reply_markup=hello_markup)
 
@@ -266,8 +267,8 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 def main() -> None:
     """Run the bot"""
 
-    global conn
-    conn = sqlite3.connect("people.db")
+    global db_connection
+    db_connection = sqlite3.connect("people.db")
 
     # Create the Application and pass it your bot's token.
     application = Application.builder().token(BOT_TOKEN).build()
@@ -289,7 +290,7 @@ def main() -> None:
     # Run the bot until the user presses Ctrl-C
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
-    conn.close()
+    db_connection.close()
 
 if __name__ == "__main__":
     main()
