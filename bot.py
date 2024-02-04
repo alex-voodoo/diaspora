@@ -203,7 +203,8 @@ async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text("Let's talk private!")
         return
 
-    logger.info("Welcoming user {}".format(update.message.from_user.username))
+    logger.info("Welcoming user {username} (chat ID {chat_id})".format(
+        username=update.message.from_user.username, chat_id=update.message.from_user.id))
 
     await update.message.reply_text("Hi!  This is the service registry for the chat!  Use the buttons below to browse "
                                     "the directory and to add or remove yourself!", reply_markup=hello_markup)
