@@ -34,7 +34,7 @@ logging.basicConfig(format="[%(asctime)s] %(levelname)s %(message)s", level=logg
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
-TYPING_OCCUPATION, TYPING_LOCATION = range(2)
+TYPING_OCCUPATION, TYPING_LOCATION, CONFIRMING_LEGALITY = range(3)
 
 DELETE_MESSAGE_TIMEOUT = 60
 
@@ -42,9 +42,15 @@ db_connection : Connection
 
 COMMAND_START, COMMAND_HELP, COMMAND_WHO, COMMAND_ENROLL, COMMAND_RETIRE = ("start", "help", "who", "enroll", "retire")
 
-buttons = {"Who": COMMAND_WHO, "Enroll": COMMAND_ENROLL, "Update": COMMAND_ENROLL, "Retire": COMMAND_RETIRE}
+command_buttons = {"Who": COMMAND_WHO, "Enroll": COMMAND_ENROLL, "Update": COMMAND_ENROLL, "Retire": COMMAND_RETIRE}
 button_who, button_enroll, button_update, button_retire = (
-    InlineKeyboardButton(text, callback_data=command) for text, command in buttons.items()
+    InlineKeyboardButton(text, callback_data=command) for text, command in command_buttons.items()
+)
+
+RESPONSE_YES, RESPONSE_NO = ("yes", "no")
+response_buttons = {"Yes": RESPONSE_YES, "No": RESPONSE_NO}
+response_button_yes, response_button_no = (
+    InlineKeyboardButton(text, callback_data=command) for text, command in response_buttons.items()
 )
 
 
@@ -68,6 +74,18 @@ class LogTime:
     def __exit__(self, exc_type, exc_val, exc_tb):
         elapsed = (time.perf_counter() - self.started_at) * 1000
         logger.info("{name} took {elapsed} ms".format(name=self.name, elapsed=elapsed))
+
+
+def delete_user_record(tg_id):
+    """Deletes the user record from the DB"""
+
+    with LogTime("Deleting personal data from the DB"):
+        global db_connection
+        c = db_connection.cursor()
+
+        c.execute("DELETE FROM people WHERE tg_id=?", (tg_id, ))
+
+        db_connection.commit()
 
 
 async def delete_message(context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -158,7 +176,7 @@ async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     query = update.callback_query
     await query.answer()
 
-    await query.edit_message_text("Enrolling!  Let us begin with the most important question: What do you do?  "
+    await query.edit_message_text("Enrolling!  Let us begin with the most important question: What do you do?\n"
                                     "Please give a short and simple answer, like \"Teach how to surf\" or \"Help with "
                                     "the immigrations\".")
 
@@ -171,32 +189,53 @@ async def received_occupation(update: Update, context: ContextTypes.DEFAULT_TYPE
     user_data = context.user_data
     user_data['occupation'] = update.message.text
 
-    await update.message.reply_text("Cool!  Now please tell me where are you based.  "
+    await update.message.reply_text("Now please tell me where are you based.\n"
                                     "Just the name of the place, like \"A Coruña\"")
 
     return TYPING_LOCATION
 
 
 async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Store info provided by user and ask for the next category"""
+    """Store info provided by user and ask for the legality"""
 
     user_data = context.user_data
     user_data['location'] = update.message.text
 
-    with LogTime("Updating personal data in the DB"):
-        global db_connection
-        c = db_connection.cursor()
+    await update.message.reply_text("Finally, please confirm that what you do does not violate any laws.\n"
+                                    "Is your service legal?",
+                                    reply_markup=InlineKeyboardMarkup(((response_button_yes, response_button_no), )))
 
-        from_user = update.message.from_user
-        c.execute("INSERT OR REPLACE INTO people (tg_id, tg_username, occupation, location) VALUES(?, ?, ?, ?)",
-                  (from_user.id, from_user.username, user_data["occupation"], user_data["location"]))
+    return CONFIRMING_LEGALITY
 
-        db_connection.commit()
+
+async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Complete the enrollment"""
+
+    query = update.callback_query
+    await query.answer()
+
+    user_data = context.user_data
+
+    if update.callback_query.data == RESPONSE_YES:
+        with LogTime("Updating personal data in the DB"):
+            global db_connection
+            c = db_connection.cursor()
+
+            from_user = update.callback_query.from_user
+            c.execute("INSERT OR REPLACE INTO people (tg_id, tg_username, occupation, location) VALUES(?, ?, ?, ?)",
+                      (from_user.id, from_user.username, user_data["occupation"], user_data["location"]))
+
+            db_connection.commit()
+
+        await update.callback_query.message.reply_text("We are done, you are now in the registry!",
+                                        reply_markup=InlineKeyboardMarkup(((button_who, button_enroll, button_retire), )))
+    elif update.callback_query.data == RESPONSE_NO:
+        delete_user_record(update.callback_query.from_user.id)
+
+        await update.callback_query.message.reply_text("I am sorry.  We cannot register services that do not comply local regulations.",
+                                        reply_markup=InlineKeyboardMarkup(((button_who, button_enroll, button_retire), )))
 
     user_data.clear()
-
-    await update.message.reply_text("We are done, you are now in the registry!",
-                                    reply_markup=InlineKeyboardMarkup(((button_who, button_enroll, button_retire), )))
 
     return ConversationHandler.END
 
@@ -206,16 +245,7 @@ async def retire(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     logger.info("Retire!")
 
-    with LogTime("Deleting personal data from the DB"):
-        global db_connection
-        c = db_connection.cursor()
-
-        from_user = update.callback_query.from_user
-        c.execute("DELETE FROM people WHERE tg_id=?",
-                  (from_user.id,))
-
-        db_connection.commit()
-
+    delete_user_record(update.callback_query.from_user.id)
 
     query = update.callback_query
     await query.answer()
@@ -294,7 +324,8 @@ def main() -> None:
     # Add conversation handler that questions the user about his profile
     conv_handler = ConversationHandler(entry_points=[CallbackQueryHandler(enroll, pattern=COMMAND_ENROLL)],
                                        states={TYPING_OCCUPATION: [MessageHandler(filters.TEXT, received_occupation)],
-                                               TYPING_LOCATION: [MessageHandler(filters.TEXT, received_location)], },
+                                               TYPING_LOCATION: [MessageHandler(filters.TEXT, received_location)],
+                                               CONFIRMING_LEGALITY: [CallbackQueryHandler(confirm_legality)]},
                                        fallbacks=[], )
 
     application.add_handler(conv_handler)
