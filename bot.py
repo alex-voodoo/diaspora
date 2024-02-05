@@ -21,9 +21,10 @@ import time
 import traceback
 from sqlite3 import Connection
 
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.constants import ParseMode
-from telegram.ext import (Application, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters, )
+from telegram.ext import (Application, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters,
+                          CallbackQueryHandler, )
 
 from secret import BOT_TOKEN, DEVELOPER_CHAT_ID
 
@@ -38,6 +39,14 @@ TYPING_OCCUPATION, TYPING_LOCATION = range(2)
 DELETE_MESSAGE_TIMEOUT = 60
 
 db_connection : Connection
+
+COMMAND_START, COMMAND_HELP, COMMAND_WHO, COMMAND_ENROLL, COMMAND_RETIRE = ("start", "help", "who", "enroll", "retire")
+
+buttons = {"Who": COMMAND_WHO, "Enroll": COMMAND_ENROLL, "Update": COMMAND_ENROLL, "Retire": COMMAND_RETIRE}
+button_who, button_enroll, button_update, button_retire = (
+    InlineKeyboardButton(text, callback_data=command) for text, command in buttons.items()
+)
+
 
 class LogTime:
     """Time measuring context manager, logs time elapsed while executing the context
@@ -77,6 +86,10 @@ async def delete_message(context: ContextTypes.DEFAULT_TYPE) -> None:
 async def self_destructing_reply(update, context, message_body):
     """Replies to the message contained in the update, then schedules the reply to be deleted"""
 
+    if update.effective_message.chat_id == update.message.from_user.id:
+        logger.error("Cannot delete messages in private chats!")
+        return
+
     posted_message = await update.message.reply_text(message_body)
 
     context.job_queue.run_once(delete_message, DELETE_MESSAGE_TIMEOUT, data=posted_message)
@@ -97,11 +110,27 @@ async def talking_private(update, context) -> bool:
     return True
 
 
-async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Show the current registry"""
+async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Welcome the user and show them the selection of options"""
 
     if not await talking_private(update, context):
         return
+
+    logger.info("Welcoming user {username} (chat ID {chat_id})".format(
+        username=update.message.from_user.username, chat_id=update.message.from_user.id))
+
+    await update.message.reply_text("Hi!  This is the service registry for the chat!  Use the buttons below to browse "
+                                    "the directory and to add or remove yourself!",
+                                    reply_markup=InlineKeyboardMarkup(((button_who, button_enroll, button_retire), )))
+
+
+async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Show the current registry"""
+
+    logger.info("Who!")
+
+    query = update.callback_query
+    await query.answer()
 
     user_list = ["Here is the directory:"]
 
@@ -117,18 +146,21 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if len(user_list) == 1:
             user_list = ["Nobody has enrolled so far :-( ."]
 
-    await update.message.reply_text("\n".join(user_list))
+    await query.edit_message_text(text="\n".join(user_list),
+                                  reply_markup=InlineKeyboardMarkup(((button_enroll, button_retire), )))
 
 
 async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation and ask user for input"""
 
-    if not await talking_private(update, context):
-        return ConversationHandler.END
+    logger.info("Enroll!")
 
-    await update.message.reply_text("Enrolling!  Let us begin with the most important question: What do you do?  "
+    query = update.callback_query
+    await query.answer()
+
+    await query.edit_message_text("Enrolling!  Let us begin with the most important question: What do you do?  "
                                     "Please give a short and simple answer, like \"Teach how to surf\" or \"Help with "
-                                    "the immigrations\".", reply_markup=ReplyKeyboardRemove(), )
+                                    "the immigrations\".")
 
     return TYPING_OCCUPATION
 
@@ -151,9 +183,6 @@ async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     user_data = context.user_data
     user_data['location'] = update.message.text
 
-    await update.message.reply_text("We are done, you are now in the registry!",
-                                    reply_markup=hello_markup)
-
     with LogTime("Updating personal data in the DB"):
         global db_connection
         c = db_connection.cursor()
@@ -166,71 +195,55 @@ async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     user_data.clear()
 
+    await update.message.reply_text("We are done, you are now in the registry!",
+                                    reply_markup=InlineKeyboardMarkup(((button_who, button_enroll, button_retire), )))
+
     return ConversationHandler.END
 
 
 async def retire(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Remove the user from the directory"""
 
-    if not await talking_private(update, context):
-        return
+    logger.info("Retire!")
 
     with LogTime("Deleting personal data from the DB"):
         global db_connection
         c = db_connection.cursor()
 
-        from_user = update.message.from_user
+        from_user = update.callback_query.from_user
         c.execute("DELETE FROM people WHERE tg_id=?",
                   (from_user.id,))
 
         db_connection.commit()
 
-    await update.message.reply_text("I am sorry to see you go.", reply_markup=hello_markup)
 
+    query = update.callback_query
+    await query.answer()
 
-main_commands = {"Who": who, "Enroll": enroll, "Retire": retire}
-
-hello_markup = ReplyKeyboardMarkup([[command, ] for command in main_commands.keys()])
+    await query.edit_message_text("I am sorry to see you go.",
+                                  reply_markup=InlineKeyboardMarkup(((button_who, button_enroll), )))
 
 
 async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Show the self-destructing help message"""
-
-    await self_destructing_reply(update, context,
-                                 "Hi!  I keep records on users who would like to offer something to others, "
-                                 "and provide that information to everyone in this chat.\n"
-                                 "\n"
-                                 "To see what I can do, start a private conversation with me.\n"
-                                 "\n"
-                                 "I will delete this message in a minute to keep this chat clean of my messages.")
-
-
-async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Welcome the user and show them the selection of options"""
-
-    if not await talking_private(update, context):
-        return
-
-    logger.info("Welcoming user {username} (chat ID {chat_id})".format(
-        username=update.message.from_user.username, chat_id=update.message.from_user.id))
-
-    await update.message.reply_text("Hi!  This is the service registry for the chat!  Use the buttons below to browse "
-                                    "the directory and to add or remove yourself!", reply_markup=hello_markup)
-
-
-async def message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle the message.  If it is a recognised command, execute it.  Otherwise, show help."""
-
-    if update.message.text in main_commands:
-        await main_commands[update.message.text](update, context)
-        return
+    """Show the help message"""
 
     if update.effective_message.chat_id != update.message.from_user.id:
-        # Skip silently everything from the chat that is not a command
+        await self_destructing_reply(update, context,
+                                     "Hi!  I keep records on users who would like to offer something to others, "
+                                     "and provide that information to everyone in this chat.\n"
+                                     "\n"
+                                     "To see what I can do, start a private conversation with me.\n"
+                                     "\n"
+                                     "I will delete this message in a minute to keep this chat clean of my messages.")
         return
 
-    await update.message.reply_text("I could not parse that.  Here are the things that I do understand.",
-                                    reply_markup=hello_markup)
+    await update.message.reply_text("Hi!  I keep records on users of the Viva Galicia chat who would like to offer "
+                                    "something to others, and provide that information to everyone in that chat.\n"
+                                    "\n"
+                                    "Use the buttons below to see the registry, to add yourself or update your data, "
+                                    "and to remove your record.\n",
+                                    reply_markup=InlineKeyboardMarkup(((button_who, button_enroll, button_retire), )))
+
 
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -261,7 +274,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
         return
 
     await update.message.reply_text("It seems like I screwed up.  Please use the commands below.",
-                                    reply_markup=hello_markup)
+                                    reply_markup=InlineKeyboardMarkup(((button_who, button_enroll, button_retire), )))
 
 
 def main() -> None:
@@ -273,17 +286,18 @@ def main() -> None:
     # Create the Application and pass it your bot's token.
     application = Application.builder().token(BOT_TOKEN).build()
 
-    application.add_handler(CommandHandler("start", hello))
-    application.add_handler(CommandHandler("help", show_help))
+    application.add_handler(CommandHandler(COMMAND_START, hello))
+    application.add_handler(CommandHandler(COMMAND_HELP, show_help))
+    application.add_handler(CallbackQueryHandler(who, pattern=COMMAND_WHO))
+    application.add_handler(CallbackQueryHandler(retire, pattern=COMMAND_RETIRE))
 
     # Add conversation handler that questions the user about his profile
-    conv_handler = ConversationHandler(entry_points=[MessageHandler(filters.Regex("^Enroll$"), enroll)],
+    conv_handler = ConversationHandler(entry_points=[CallbackQueryHandler(enroll, pattern=COMMAND_ENROLL)],
                                        states={TYPING_OCCUPATION: [MessageHandler(filters.TEXT, received_occupation)],
                                                TYPING_LOCATION: [MessageHandler(filters.TEXT, received_location)], },
                                        fallbacks=[], )
 
     application.add_handler(conv_handler)
-    application.add_handler(MessageHandler(filters.TEXT, message))
 
     application.add_error_handler(error_handler)
 
