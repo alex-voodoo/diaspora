@@ -41,7 +41,6 @@ DELETE_MESSAGE_TIMEOUT = 60
 db_connection: Connection
 
 COMMAND_START, COMMAND_HELP, COMMAND_WHO, COMMAND_ENROLL, COMMAND_RETIRE = ("start", "help", "who", "enroll", "retire")
-
 command_buttons = {"Who": COMMAND_WHO, "Enroll": COMMAND_ENROLL, "Update": COMMAND_ENROLL, "Retire": COMMAND_RETIRE}
 button_who, button_enroll, button_update, button_retire = (InlineKeyboardButton(text, callback_data=command) for
 text, command in command_buttons.items())
@@ -77,7 +76,7 @@ class LogTime:
 def delete_user_record(tg_id):
     """Deletes the user record from the DB"""
 
-    with LogTime("Deleting personal data from the DB"):
+    with LogTime("DELETE FROM people WHERE tg_id=?"):
         global db_connection
         c = db_connection.cursor()
 
@@ -87,7 +86,7 @@ def delete_user_record(tg_id):
 
 
 def has_user_record(td_ig):
-    with LogTime("Getting the current user record from the DB"):
+    with LogTime("SELECT FROM people WHERE tg_id=?"):
         global db_connection
         c = db_connection.cursor()
 
@@ -166,7 +165,7 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     user_list = ["Here is the directory:"]
 
-    with LogTime("Reading all people from the DB"):
+    with LogTime("SELECT FROM people"):
         global db_connection
         c = db_connection.cursor()
 
@@ -236,7 +235,7 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     user_data = context.user_data
 
     if update.callback_query.data == RESPONSE_YES:
-        with LogTime("Updating personal data in the DB"):
+        with LogTime("INSERT OR REPLACE INTO people"):
             global db_connection
             c = db_connection.cursor()
 
