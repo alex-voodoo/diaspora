@@ -41,14 +41,15 @@ DELETE_MESSAGE_TIMEOUT = 60
 db_connection: Connection
 
 COMMAND_START, COMMAND_HELP, COMMAND_WHO, COMMAND_ENROLL, COMMAND_RETIRE = ("start", "help", "who", "enroll", "retire")
-command_buttons = {"Who": COMMAND_WHO, "Enroll": COMMAND_ENROLL, "Update": COMMAND_ENROLL, "Retire": COMMAND_RETIRE}
+command_buttons = {"Show records": COMMAND_WHO, "Register yourself": COMMAND_ENROLL,
+                   "Update your record": COMMAND_ENROLL, "Remove your record": COMMAND_RETIRE}
 button_who, button_enroll, button_update, button_retire = (InlineKeyboardButton(text, callback_data=command) for
-text, command in command_buttons.items())
+                                                           text, command in command_buttons.items())
 
 RESPONSE_YES, RESPONSE_NO = ("yes", "no")
 response_buttons = {"Yes": RESPONSE_YES, "No": RESPONSE_NO}
 response_button_yes, response_button_no = (InlineKeyboardButton(text, callback_data=command) for text, command in
-response_buttons.items())
+                                           response_buttons.items())
 
 
 class LogTime:
@@ -136,6 +137,36 @@ async def talking_private(update, context) -> bool:
     return True
 
 
+async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Show the help message"""
+
+    if update.effective_message.chat_id != update.message.from_user.id:
+        await self_destructing_reply(update, context,
+                                     "I keep records of users who would like to offer something to others, "
+                                     "and provide that information to everyone in this chat.\n"
+                                     "\n"
+                                     "To learn more and see what I can do, start a private conversation with me.\n"
+                                     "\n"
+                                     "I will delete this message in a minute to keep this chat clean of my messages.")
+        return
+
+    enrolled = has_user_record(update.message.from_user.id)
+
+    buttons = [button_update if enrolled else button_enroll]
+    if enrolled:
+        buttons.append(button_retire)
+
+    await update.message.reply_text("I keep records of users of the chat who would like to offer something to "
+                                    "others, and provide that information to everyone in the chat.\n"
+                                    "\n"
+                                    "The data is simple: every person tells what they do and where they are based.  "
+                                    "I keep no personal data, only Telegram usernames of those who register.\n"
+                                    "\n"
+                                    "Use the buttons below to see the records, to add yourself or update your data, "
+                                    "and to remove your record (of course if you have one).\n",
+                                    reply_markup=InlineKeyboardMarkup(((button_who,), buttons)))
+
+
 async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Welcome the user and show them the selection of options"""
 
@@ -143,22 +174,18 @@ async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
 
     logger.info("Welcoming user {username} (chat ID {chat_id})".format(username=update.message.from_user.username,
-        chat_id=update.message.from_user.id))
+                                                                       chat_id=update.message.from_user.id))
 
     enrolled = has_user_record(update.message.from_user.id)
-    buttons = [button_who, button_update if enrolled else button_enroll]
+    buttons = [button_update if enrolled else button_enroll]
     if enrolled:
         buttons.append(button_retire)
 
-    await update.message.reply_text("Hi!  This is the service registry for the chat!  Use the buttons below to browse "
-                                    "the directory and to add or remove yourself!",
-                                    reply_markup=InlineKeyboardMarkup((buttons,)))
+    await update.message.reply_text("Welcome!", reply_markup=InlineKeyboardMarkup(((button_who,), buttons)))
 
 
 async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show the current registry"""
-
-    logger.info("Who!")
 
     query = update.callback_query
     await query.answer()
@@ -172,10 +199,11 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         for row in c.execute("SELECT tg_id, tg_username, occupation, location FROM people"):
             values = {key: value for (key, value) in zip((i[0] for i in c.description), row)}
             user_list.append("@{username} ({location}): {occupation}".format(username=values["tg_username"],
-                occupation=values["occupation"], location=values["location"]))
+                                                                             occupation=values["occupation"],
+                                                                             location=values["location"]))
 
         if len(user_list) == 1:
-            user_list = ["Nobody has enrolled so far :-( ."]
+            user_list = ["Nobody has registered themselves so far :-( ."]
 
     enrolled = has_user_record(update.callback_query.from_user.id)
 
@@ -189,12 +217,11 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation and ask user for input"""
 
-    logger.info("Enroll!")
-
     query = update.callback_query
     await query.answer()
 
-    await query.edit_message_text("Enrolling!  Let us begin with the most important question: What do you do?\n"
+    await query.edit_message_text("Let us start!  What do you do?\n"
+                                  "\n"
                                   "Please give a short and simple answer, like \"Teach how to surf\" or \"Help with "
                                   "the immigrations\".")
 
@@ -207,8 +234,9 @@ async def received_occupation(update: Update, context: ContextTypes.DEFAULT_TYPE
     user_data = context.user_data
     user_data['occupation'] = update.message.text
 
-    await update.message.reply_text("Now please tell me where are you based.\n"
-                                    "Just the name of the place, like \"A Coruña\"")
+    await update.message.reply_text("Where are you based?\n"
+                                    "\n"
+                                    "Just the name of the place is enough, like \"A Coruña\"")
 
     return TYPING_LOCATION
 
@@ -219,7 +247,9 @@ async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     user_data = context.user_data
     user_data['location'] = update.message.text
 
-    await update.message.reply_text("Finally, please confirm that what you do does not violate any laws.\n"
+    await update.message.reply_text("Finally, please confirm that what you do is legal and does not violate any "
+                                    "laws or local regulations.\n"
+                                    "\n"
                                     "Is your service legal?",
                                     reply_markup=InlineKeyboardMarkup(((response_button_yes, response_button_no),)))
 
@@ -245,15 +275,15 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
             db_connection.commit()
 
-        await update.callback_query.message.reply_text("We are done, you are now in the registry!",
+        await update.callback_query.message.reply_text("We are done, you are now registered!",
                                                        reply_markup=InlineKeyboardMarkup(
-                                                           ((button_who, button_update, button_retire),)))
+                                                           ((button_who,), (button_update, button_retire),)))
     elif update.callback_query.data == RESPONSE_NO:
         delete_user_record(update.callback_query.from_user.id)
 
         await update.callback_query.message.reply_text(
-            "I am sorry.  We cannot register services that do not comply local regulations.",
-            reply_markup=InlineKeyboardMarkup(((button_who, button_enroll),)))
+            "I am sorry.  I cannot register services that do not comply with the laws and local regulations.",
+            reply_markup=InlineKeyboardMarkup(((button_who,), (button_enroll,))))
 
     user_data.clear()
 
@@ -263,41 +293,13 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 async def retire(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Remove the user from the directory"""
 
-    logger.info("Retire!")
-
     delete_user_record(update.callback_query.from_user.id)
 
     query = update.callback_query
     await query.answer()
 
     await query.edit_message_text("I am sorry to see you go.",
-                                  reply_markup=InlineKeyboardMarkup(((button_who, button_enroll),)))
-
-
-async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Show the help message"""
-
-    if update.effective_message.chat_id != update.message.from_user.id:
-        await self_destructing_reply(update, context,
-                                     "Hi!  I keep records on users who would like to offer something to others, "
-                                     "and provide that information to everyone in this chat.\n"
-                                     "\n"
-                                     "To see what I can do, start a private conversation with me.\n"
-                                     "\n"
-                                     "I will delete this message in a minute to keep this chat clean of my messages.")
-        return
-
-    enrolled = has_user_record(update.message.from_user.id)
-
-    buttons = [button_who, button_update if enrolled else button_enroll]
-    if enrolled:
-        buttons.append(button_retire)
-
-    await update.message.reply_text("Hi!  I keep records on users of the Viva Galicia chat who would like to offer "
-                                    "something to others, and provide that information to everyone in that chat.\n"
-                                    "\n"
-                                    "Use the buttons below to see the registry, to add yourself or update your data, "
-                                    "and to remove your record.\n", reply_markup=InlineKeyboardMarkup((buttons,)))
+                                  reply_markup=InlineKeyboardMarkup(((button_who,), (button_enroll,))))
 
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -329,12 +331,12 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 
     enrolled = has_user_record(update.message.from_user.id)
 
-    buttons = [button_who, button_update if enrolled else button_enroll]
+    buttons = [button_update if enrolled else button_enroll]
     if enrolled:
         buttons.append(button_retire)
 
     await update.message.reply_text("It seems like I screwed up.  Please use the commands below.",
-                                    reply_markup=InlineKeyboardMarkup((buttons,)))
+                                    reply_markup=InlineKeyboardMarkup(((button_who,), buttons)))
 
 
 def main() -> None:
