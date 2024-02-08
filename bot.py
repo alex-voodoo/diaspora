@@ -211,7 +211,8 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if enrolled:
         buttons.append(button_retire)
 
-    await query.edit_message_text(text="\n".join(user_list), reply_markup=InlineKeyboardMarkup((buttons,)))
+    await query.edit_message_reply_markup(None)
+    await query.message.reply_text(text="\n".join(user_list), reply_markup=InlineKeyboardMarkup((buttons,)))
 
 
 async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -219,11 +220,11 @@ async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     query = update.callback_query
     await query.answer()
-
-    await query.edit_message_text("Let us start!  What do you do?\n"
-                                  "\n"
-                                  "Please give a short and simple answer, like \"Teach how to surf\" or \"Help with "
-                                  "the immigrations\".")
+    await query.edit_message_reply_markup(None)
+    await query.message.reply_text("Let us start!  What do you do?\n"
+                                   "\n"
+                                   "Please give a short and simple answer, like \"Teach how to surf\" or \"Help with "
+                                   "the immigrations\".")
 
     return TYPING_OCCUPATION
 
@@ -264,24 +265,26 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     user_data = context.user_data
 
-    if update.callback_query.data == RESPONSE_YES:
+    if query.data == RESPONSE_YES:
         with LogTime("INSERT OR REPLACE INTO people"):
             global db_connection
             c = db_connection.cursor()
 
-            from_user = update.callback_query.from_user
+            from_user = query.from_user
             c.execute("INSERT OR REPLACE INTO people (tg_id, tg_username, occupation, location) VALUES(?, ?, ?, ?)",
                       (from_user.id, from_user.username, user_data["occupation"], user_data["location"]))
 
             db_connection.commit()
 
-        await update.callback_query.message.reply_text("We are done, you are now registered!",
-                                                       reply_markup=InlineKeyboardMarkup(
-                                                           ((button_who,), (button_update, button_retire),)))
-    elif update.callback_query.data == RESPONSE_NO:
-        delete_user_record(update.callback_query.from_user.id)
+        await query.edit_message_reply_markup(None)
+        await query.message.reply_text("We are done, you are now registered!",
+                                       reply_markup=InlineKeyboardMarkup(
+                                           ((button_who,), (button_update, button_retire),)))
+    elif query.data == RESPONSE_NO:
+        delete_user_record(query.from_user.id)
 
-        await update.callback_query.message.reply_text(
+        await query.edit_message_reply_markup(None)
+        await query.message.reply_text(
             "I am sorry.  I cannot register services that do not comply with the laws and local regulations.",
             reply_markup=InlineKeyboardMarkup(((button_who,), (button_enroll,))))
 
@@ -293,13 +296,14 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 async def retire(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Remove the user from the directory"""
 
-    delete_user_record(update.callback_query.from_user.id)
-
     query = update.callback_query
-    await query.answer()
 
-    await query.edit_message_text("I am sorry to see you go.",
-                                  reply_markup=InlineKeyboardMarkup(((button_who,), (button_enroll,))))
+    delete_user_record(query.from_user.id)
+
+    await query.answer()
+    await query.edit_message_reply_markup(None)
+    await query.message.reply_text("I am sorry to see you go.",
+                                   reply_markup=InlineKeyboardMarkup(((button_who,), (button_enroll,))))
 
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -358,7 +362,7 @@ def main() -> None:
                                        states={TYPING_OCCUPATION: [MessageHandler(filters.TEXT, received_occupation)],
                                                TYPING_LOCATION: [MessageHandler(filters.TEXT, received_location)],
                                                CONFIRMING_LEGALITY: [CallbackQueryHandler(confirm_legality)]},
-                                       fallbacks=[], )
+                                       fallbacks=[])
 
     application.add_handler(conv_handler)
 
