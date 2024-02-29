@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # pylint: disable=unused-argument
 
 """
@@ -13,6 +12,7 @@ Usage:
 - Press Ctrl-C on the command line or send a signal to the process to stop the bot.
 """
 
+import gettext
 import html
 import json
 import logging
@@ -21,12 +21,17 @@ import time
 import traceback
 from sqlite3 import Connection
 
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, User
 from telegram.constants import ParseMode
 from telegram.ext import (Application, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters,
                           CallbackQueryHandler, )
 
 from secret import BOT_TOKEN, DEVELOPER_CHAT_ID
+
+_ = gettext.gettext
+
+# Configure languages
+LANGUAGES = ('en', 'ru')
 
 # Configure logging
 # Set higher logging level for httpx to avoid all GET and POST requests being logged.
@@ -72,6 +77,19 @@ class LogTime:
     def __exit__(self, exc_type, exc_val, exc_tb):
         elapsed = (time.perf_counter() - self.started_at) * 1000
         logger.info("{name} took {elapsed} ms".format(name=self.name, elapsed=elapsed))
+
+
+def update_language(user: User):
+    """Load the translation to match the user language"""
+
+    global _
+
+    user_lang = user.language_code
+    translation = gettext.translation('bot', localedir='locales',
+                                      languages=[user_lang if user_lang in LANGUAGES else 'en'])
+    translation.install()
+
+    _ = translation.gettext
 
 
 def delete_user_record(tg_id):
@@ -131,8 +149,10 @@ async def talking_private(update, context) -> bool:
     false.
     """
 
+    update_language(update.message.from_user)
+
     if update.effective_message.chat_id != update.message.from_user.id:
-        await self_destructing_reply(update, context, "Let's talk private!")
+        await self_destructing_reply(update, context, _("Let's talk private!"))
         return False
     return True
 
@@ -140,14 +160,17 @@ async def talking_private(update, context) -> bool:
 async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show the help message"""
 
+    update_language(update.message.from_user)
+
     if update.effective_message.chat_id != update.message.from_user.id:
         await self_destructing_reply(update, context,
-                                     "I keep records of users who would like to offer something to others, "
-                                     "and provide that information to everyone in this chat.\n"
-                                     "\n"
-                                     "To learn more and see what I can do, start a private conversation with me.\n"
-                                     "\n"
-                                     "I will delete this message in a minute to keep this chat clean of my messages.")
+                                     _("I keep records of users who would like to offer something to others, "
+                                       "and provide that information to everyone in this chat.\n"
+                                       "\n"
+                                       "To learn more and see what I can do, start a private conversation with me.\n"
+                                       "\n"
+                                       "I will delete this message in a minute to keep this chat clean of my "
+                                       "messages."))
         return
 
     enrolled = has_user_record(update.message.from_user.id)
@@ -156,14 +179,14 @@ async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if enrolled:
         buttons.append(button_retire)
 
-    await update.message.reply_text("I keep records of users of the chat who would like to offer something to "
-                                    "others, and provide that information to everyone in the chat.\n"
-                                    "\n"
-                                    "The data is simple: every person tells what they do and where they are based.  "
-                                    "I keep no personal data, only Telegram usernames of those who register.\n"
-                                    "\n"
-                                    "Use the buttons below to see the records, to add yourself or update your data, "
-                                    "and to remove your record (of course if you have one).\n",
+    await update.message.reply_text(_("I keep records of users of the chat who would like to offer something to "
+                                      "others, and provide that information to everyone in the chat.\n"
+                                      "\n"
+                                      "The data is simple: every person tells what they do and where they are based.  "
+                                      "I keep no personal data, only Telegram usernames of those who register.\n"
+                                      "\n"
+                                      "Use the buttons below to see the records, to add yourself or update your data, "
+                                      "and to remove your record (of course if you have one)."),
                                     reply_markup=InlineKeyboardMarkup(((button_who,), buttons)))
 
 
@@ -173,6 +196,8 @@ async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not await talking_private(update, context):
         return
 
+    update_language(update.message.from_user)
+
     logger.info("Welcoming user {username} (chat ID {chat_id})".format(username=update.message.from_user.username,
                                                                        chat_id=update.message.from_user.id))
 
@@ -181,16 +206,18 @@ async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if enrolled:
         buttons.append(button_retire)
 
-    await update.message.reply_text("Welcome!", reply_markup=InlineKeyboardMarkup(((button_who,), buttons)))
+    await update.message.reply_text(_("Welcome!"), reply_markup=InlineKeyboardMarkup(((button_who,), buttons)))
 
 
 async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show the current registry"""
 
+    update_language(update.callback_query.from_user)
+
     query = update.callback_query
     await query.answer()
 
-    user_list = ["Here is the directory:"]
+    user_list = [_("Here is the directory:")]
 
     with LogTime("SELECT FROM people"):
         global db_connection
@@ -203,7 +230,7 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                                                                              location=values["location"]))
 
         if len(user_list) == 1:
-            user_list = ["Nobody has registered themselves so far :-( ."]
+            user_list = [_("Nobody has registered themselves so far :-( .")]
 
     enrolled = has_user_record(update.callback_query.from_user.id)
 
@@ -218,13 +245,15 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation and ask user for input"""
 
+    update_language(update.callback_query.from_user)
+
     query = update.callback_query
     await query.answer()
     await query.edit_message_reply_markup(None)
-    await query.message.reply_text("Let us start!  What do you do?\n"
-                                   "\n"
-                                   "Please give a short and simple answer, like \"Teach how to surf\" or \"Help with "
-                                   "the immigrations\".")
+    await query.message.reply_text(_("Let us start!  What do you do?\n"
+                                     "\n"
+                                     "Please give a short and simple answer, like \"Teach how to surf\" or \"Help with "
+                                     "the immigrations\"."))
 
     return TYPING_OCCUPATION
 
@@ -232,12 +261,14 @@ async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 async def received_occupation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Store info provided by user and ask for the next category"""
 
+    update_language(update.message.from_user)
+
     user_data = context.user_data
     user_data['occupation'] = update.message.text
 
-    await update.message.reply_text("Where are you based?\n"
-                                    "\n"
-                                    "Just the name of the place is enough, like \"A Coruña\"")
+    await update.message.reply_text(_("Where are you based?\n"
+                                      "\n"
+                                      "Just the name of the place is enough, like \"A Coruña\""))
 
     return TYPING_LOCATION
 
@@ -245,13 +276,15 @@ async def received_occupation(update: Update, context: ContextTypes.DEFAULT_TYPE
 async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Store info provided by user and ask for the legality"""
 
+    update_language(update.message.from_user)
+
     user_data = context.user_data
     user_data['location'] = update.message.text
 
-    await update.message.reply_text("Finally, please confirm that what you do is legal and does not violate any "
-                                    "laws or local regulations.\n"
-                                    "\n"
-                                    "Is your service legal?",
+    await update.message.reply_text(_("Finally, please confirm that what you do is legal and does not violate any "
+                                      "laws or local regulations.\n"
+                                      "\n"
+                                      "Is your service legal?"),
                                     reply_markup=InlineKeyboardMarkup(((response_button_yes, response_button_no),)))
 
     return CONFIRMING_LEGALITY
@@ -259,6 +292,8 @@ async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
 async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Complete the enrollment"""
+
+    update_language(update.callback_query.from_user)
 
     query = update.callback_query
     await query.answer()
@@ -277,15 +312,14 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             db_connection.commit()
 
         await query.edit_message_reply_markup(None)
-        await query.message.reply_text("We are done, you are now registered!",
-                                       reply_markup=InlineKeyboardMarkup(
-                                           ((button_who,), (button_update, button_retire),)))
+        await query.message.reply_text(_("We are done, you are now registered!"), reply_markup=InlineKeyboardMarkup(
+            ((button_who,), (button_update, button_retire),)))
     elif query.data == RESPONSE_NO:
         delete_user_record(query.from_user.id)
 
         await query.edit_message_reply_markup(None)
         await query.message.reply_text(
-            "I am sorry.  I cannot register services that do not comply with the laws and local regulations.",
+            _("I am sorry.  I cannot register services that do not comply with the laws and local regulations."),
             reply_markup=InlineKeyboardMarkup(((button_who,), (button_enroll,))))
 
     user_data.clear()
@@ -296,36 +330,38 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 async def retire(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Remove the user from the directory"""
 
+    update_language(update.callback_query.from_user)
+
     query = update.callback_query
 
     delete_user_record(query.from_user.id)
 
     await query.answer()
     await query.edit_message_reply_markup(None)
-    await query.message.reply_text("I am sorry to see you go.",
+    await query.message.reply_text(_("I am sorry to see you go."),
                                    reply_markup=InlineKeyboardMarkup(((button_who,), (button_enroll,))))
 
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Log the error and send a telegram message to notify the developer"""
 
+    if isinstance(update, Update):
+        update_language(update.message.from_user)
+
     # Log the error before we do anything else, so we can see it even if something breaks.
     logger.error("Exception while handling an update:", exc_info=context.error)
 
     # traceback.format_exception returns the usual python message about an exception, but as a
     # list of strings rather than a single string, so we have to join them together.
-    tb_list = traceback.format_exception(None, context.error, context.error.__traceback__)
-    tb_string = "".join(tb_list)
+    tb_string = "".join(traceback.format_exception(None, context.error, context.error.__traceback__))
 
     # Build the message with some markup and additional information about what happened.
     # You might need to add some logic to deal with messages longer than the 4096 character limit.
     update_str = update.to_dict() if isinstance(update, Update) else str(update)
-    error_message = ("An exception was raised while handling an update\n"
-                     f"<pre>update = {html.escape(json.dumps(update_str, indent=2, ensure_ascii=False))}"
-                     "</pre>\n\n"
+    error_message = (f"<pre>{html.escape(tb_string)}</pre>"
+                     f"<pre>update = {html.escape(json.dumps(update_str, indent=2, ensure_ascii=False))}</pre>\n\n"
                      f"<pre>context.chat_data = {html.escape(str(context.chat_data))}</pre>\n\n"
-                     f"<pre>context.user_data = {html.escape(str(context.user_data))}</pre>\n\n"
-                     f"<pre>{html.escape(tb_string)}</pre>")
+                     f"<pre>context.user_data = {html.escape(str(context.user_data))}</pre>\n\n")
 
     # Finally, send the message
     await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID, text=error_message, parse_mode=ParseMode.HTML)
@@ -333,13 +369,14 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     if not await talking_private(update, context):
         return
 
-    enrolled = has_user_record(update.message.from_user.id)
+    enrolled = has_user_record(update.message.from_user.id) if isinstance(update, Update) else False
 
     buttons = [button_update if enrolled else button_enroll]
     if enrolled:
         buttons.append(button_retire)
 
-    await update.message.reply_text("It seems like I screwed up.  Please use the commands below.",
+    await update.message.reply_text(_("An internal error occurred.  I have notified my administrator about the error.  "
+                                      "Please use the buttons below, hopefully it will work."),
                                     reply_markup=InlineKeyboardMarkup(((button_who,), buttons)))
 
 
