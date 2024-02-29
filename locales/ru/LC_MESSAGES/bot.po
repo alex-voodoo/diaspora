@@ -1,0 +1,90 @@
+#: bot.py:155
+msgid "Let's talk private!"
+msgstr "Напишите мне личное сообщение!"
+
+#: bot.py:167
+msgid ""
+"I keep records of users who would like to offer something to others, and provide that information to everyone in this chat.\n"
+"\n"
+"To learn more and see what I can do, start a private conversation with me.\n"
+"\n"
+"I will delete this message in a minute to keep this chat clean of my messages."
+msgstr ""
+"Я записываю пользователей, которые хотели бы предложить что-то другим, и делаю эту информацию доступной всем пользователям чата.\n"
+"\n"
+"Напишите мне личное сообщение, чтобы узнать больше и узнать обо всех моих функциях.\n"
+"\n"
+"Я удалю это сообщение через минуту, чтобы не засорять чат своими ответами."
+
+#: bot.py:182
+msgid ""
+"I keep records of users of the chat who would like to offer something to others, and provide that information to everyone in the chat.\n"
+"\n"
+"The data is simple: every person tells what they do and where they are based.  I keep no personal data, only Telegram usernames of those who register.\n"
+"\n"
+"Use the buttons below to see the records, to add yourself or update your data, and to remove your record (of course if you have one)."
+msgstr ""
+"Я записываю пользователей, которые хотели бы предложить что-то другим, и делаю эту информацию доступной всем пользователям чата.\n"
+"\n"
+"Формат простой: каждый желающий пишет, что он делает и где находится. Я не храню никаких персональных данных, только имена пользователей Телеграм.\n"
+"\n"
+"Воспользуйтесь кнопками ниже, чтобы посмотреть записи других пользователей, добавить или изменить свою запись, или чтобы удалить её (конечно, если она у вас есть)."
+
+#: bot.py:209
+msgid "Welcome!"
+msgstr "Добро пожаловать!"
+
+#: bot.py:220
+msgid "Here is the directory:"
+msgstr "Вот список:"
+
+#: bot.py:233
+msgid "Nobody has registered themselves so far :-( ."
+msgstr "Никто ещё не записался :-( ."
+
+#: bot.py:253
+msgid ""
+"Let us start!  What do you do?\n"
+"\n"
+"Please give a short and simple answer, like \"Teach how to surf\" or \"Help with the immigrations\"."
+msgstr ""
+"Давайте начнём! Что вы делаете?\n"
+"\n"
+"Постарайтесь дать короткое и ясное описание, например \"Учу кататься на скейте\" или \"Помогаю с иммиграционными хлопотами\"."
+
+#: bot.py:269
+msgid ""
+"Where are you based?\n"
+"\n"
+"Just the name of the place is enough, like \"A Coruña\""
+msgstr ""
+"Где вы находитесь?\n"
+"\n"
+"Достаточно просто названия города, например, \"Корунья\"."
+
+#: bot.py:284
+msgid ""
+"Finally, please confirm that what you do is legal and does not violate any laws or local regulations.\n"
+"\n"
+"Is your service legal?"
+msgstr ""
+"Наконец, пожалуйста, подтвердите, что то, что вы делаете, легально и не нарушает никаких законов или местных правил.\n"
+"\n"
+"Ваша услуга законна?"
+
+#: bot.py:315
+msgid "We are done, you are now registered!"
+msgstr "Всё готово, вы зарегистрированы!"
+
+#: bot.py:322
+msgid "I am sorry.  I cannot register services that do not comply with the laws and local regulations."
+msgstr "Извините, я не могу зарегистрировать услугу, нарушающую закон или местные правила."
+
+#: bot.py:341
+msgid "I am sorry to see you go."
+msgstr "Мне жаль, что вы уходите."
+
+#: bot.py:378
+msgid "An internal error occurred.  I have notified my administrator about the error.  Please use the buttons below, hopefully it will work."
+msgstr "Произошла внутренняя ошибка (внутри меня). Я дал знать моему администратору. Попробуйте нажать какую-нибудь кнопку, вдруг получится."
+
