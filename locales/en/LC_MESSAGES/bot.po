@@ -1,32 +1,32 @@
-#: bot.py:147
+#: bot.py:150
 msgid "Let's talk private!"
 msgstr ""
 
-#: bot.py:168
+#: bot.py:171
 msgid "Show records"
 msgstr ""
 
-#: bot.py:168
+#: bot.py:171
 msgid "Register yourself"
 msgstr ""
 
-#: bot.py:169
+#: bot.py:172
 msgid "Update your record"
 msgstr ""
 
-#: bot.py:169
+#: bot.py:172
 msgid "Remove your record"
 msgstr ""
 
-#: bot.py:201
+#: bot.py:204
 msgid "Yes"
 msgstr ""
 
-#: bot.py:201
+#: bot.py:204
 msgid "No"
 msgstr ""
 
-#: bot.py:215
+#: bot.py:218
 msgid ""
 "I keep records of users who would like to offer something to others, and provide that information to everyone in this chat.\n"
 "\n"
@@ -35,7 +35,7 @@ msgid ""
 "I will delete this message in a minute to keep this chat clean of my messages."
 msgstr ""
 
-#: bot.py:224
+#: bot.py:227
 msgid ""
 "I keep records of users of the chat who would like to offer something to others, and provide that information to everyone in the chat.\n"
 "\n"
@@ -44,52 +44,52 @@ msgid ""
 "Use the buttons below to see the records, to add yourself or update your data, and to remove your record (of course if you have one)."
 msgstr ""
 
-#: bot.py:246
+#: bot.py:249
 msgid "Welcome!"
 msgstr "Welcome!"
 
-#: bot.py:258
+#: bot.py:261
 msgid "Here is the directory:"
 msgstr ""
 
-#: bot.py:271
+#: bot.py:274
 msgid "Nobody has registered themselves so far :-( ."
 msgstr ""
 
-#: bot.py:285
+#: bot.py:288
 msgid ""
 "Let us start!  What do you do?\n"
 "\n"
 "Please give a short and simple answer, like \"Teach how to surf\" or \"Help with the immigrations\"."
 msgstr ""
 
-#: bot.py:301
+#: bot.py:304
 msgid ""
 "Where are you based?\n"
 "\n"
 "Just the name of the place is enough, like \"A Coruña\""
 msgstr ""
 
-#: bot.py:316
+#: bot.py:319
 msgid ""
 "Finally, please confirm that what you do is legal and does not violate any laws or local regulations.\n"
 "\n"
 "Is your service legal?"
 msgstr ""
 
-#: bot.py:348
+#: bot.py:351
 msgid "We are done, you are now registered!"
 msgstr ""
 
-#: bot.py:355
+#: bot.py:358
 msgid "I am sorry.  I cannot register services that do not comply with the laws and local regulations."
 msgstr ""
 
-#: bot.py:374
+#: bot.py:377
 msgid "I am sorry to see you go."
 msgstr ""
 
-#: bot.py:405
+#: bot.py:408
 msgid "An internal error occurred.  I have notified my administrator about the error.  Please use the buttons below, hopefully it will work."
 msgstr ""
 

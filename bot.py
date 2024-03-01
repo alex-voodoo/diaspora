@@ -1,15 +1,7 @@
 # pylint: disable=unused-argument
 
 """
-First, a few callback functions are defined. Then, those functions are passed to
-the Application and registered at their respective places.
-Then, the bot is started and runs until we press Ctrl-C on the command line.
-
-Usage:
-- Configure BOT_TOKEN and DEVELOPER_CHAT_ID appropriately
-- Run this script either locally (for testing) or on the server.  It will poll indefinitely.
-- Send /start to the bot to initiate the conversation.
-- Press Ctrl-C on the command line or send a signal to the process to stop the bot.
+See README.md for details
 """
 
 import gettext
@@ -28,9 +20,7 @@ from telegram.ext import (Application, CommandHandler, ContextTypes, Conversatio
 
 from secret import BOT_TOKEN, DEVELOPER_CHAT_ID
 
-_ = gettext.gettext
-
-# Configure languages
+# Supported languages.  Every time a new translation is added, this tuple should be updated.
 LANGUAGES = ('en', 'ru')
 
 # Configure logging
@@ -39,14 +29,19 @@ logging.basicConfig(format="[%(asctime)s] %(levelname)s %(message)s", level=logg
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
-TYPING_OCCUPATION, TYPING_LOCATION, CONFIRMING_LEGALITY = range(3)
-
+# Timeout for the self-destructible messages (in seconds)
 DELETE_MESSAGE_TIMEOUT = 60
+
+# Commands, sequences, and responses
+COMMAND_START, COMMAND_HELP, COMMAND_WHO, COMMAND_ENROLL, COMMAND_RETIRE = ("start", "help", "who", "enroll", "retire")
+TYPING_OCCUPATION, TYPING_LOCATION, CONFIRMING_LEGALITY = range(3)
+RESPONSE_YES, RESPONSE_NO = ("yes", "no")
+
+# Global translation context.  Updated by update_language() depending on the locale of the current user.
+_ = gettext.gettext
 
 db_connection: Connection
 
-COMMAND_START, COMMAND_HELP, COMMAND_WHO, COMMAND_ENROLL, COMMAND_RETIRE = ("start", "help", "who", "enroll", "retire")
-RESPONSE_YES, RESPONSE_NO = ("yes", "no")
 
 
 class LogTime:
