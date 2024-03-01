@@ -46,15 +46,7 @@ DELETE_MESSAGE_TIMEOUT = 60
 db_connection: Connection
 
 COMMAND_START, COMMAND_HELP, COMMAND_WHO, COMMAND_ENROLL, COMMAND_RETIRE = ("start", "help", "who", "enroll", "retire")
-command_buttons = {"Show records": COMMAND_WHO, "Register yourself": COMMAND_ENROLL,
-                   "Update your record": COMMAND_ENROLL, "Remove your record": COMMAND_RETIRE}
-button_who, button_enroll, button_update, button_retire = (InlineKeyboardButton(text, callback_data=command) for
-                                                           text, command in command_buttons.items())
-
 RESPONSE_YES, RESPONSE_NO = ("yes", "no")
-response_buttons = {"Yes": RESPONSE_YES, "No": RESPONSE_NO}
-response_button_yes, response_button_no = (InlineKeyboardButton(text, callback_data=command) for text, command in
-                                           response_buttons.items())
 
 
 class LogTime:
@@ -157,6 +149,62 @@ async def talking_private(update, context) -> bool:
     return True
 
 
+def get_standard_keyboard(tg_id, hidden_commands=None):
+    """Builds the standard keyboard for the user identified by `td_id`
+
+    The standard keyboard looks like this:
+
+    +-----------------+
+    | WHO             |
+    +--------+--------+
+    | ENROLL | RETIRE |
+    +--------+--------+
+
+    Depending on the context, certain commands can be omitted.
+
+    Returns an instance of InlineKeyboardMarkup.
+    """
+
+    command_buttons = {_("Show records"): COMMAND_WHO, _("Register yourself"): COMMAND_ENROLL,
+                       _("Update your record"): COMMAND_ENROLL, _("Remove your record"): COMMAND_RETIRE}
+    button_who, button_enroll, button_update, button_retire = (InlineKeyboardButton(text, callback_data=command) for
+                                                               text, command in command_buttons.items())
+
+    if hidden_commands is None:
+        hidden_commands = list()
+    buttons = []
+    if COMMAND_WHO not in hidden_commands:
+        buttons.append([button_who])
+
+    enrolled = tg_id != 0 and has_user_record(tg_id)
+    second_row = []
+    if COMMAND_ENROLL not in hidden_commands:
+        second_row.append(button_update if enrolled else button_enroll)
+    if enrolled and COMMAND_RETIRE not in hidden_commands:
+        second_row.append(button_retire)
+    if second_row:
+        buttons.append(second_row)
+
+    return InlineKeyboardMarkup(buttons)
+
+
+def get_yesno_keyboard():
+    """Builds the YES/NO keyboard used in the step where the user confirms legality of their service
+
+    +-----+----+
+    | YES | NO |
+    +-----+----+
+
+    Returns an instance of InlineKeyboardMarkup.
+    """
+
+    response_buttons = {_("Yes"): RESPONSE_YES, _("No"): RESPONSE_NO}
+    response_button_yes, response_button_no = (InlineKeyboardButton(text, callback_data=command) for text, command in
+                                               response_buttons.items())
+
+    return InlineKeyboardMarkup(((response_button_yes, response_button_no),))
+
+
 async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show the help message"""
 
@@ -173,12 +221,6 @@ async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                                        "messages."))
         return
 
-    enrolled = has_user_record(update.message.from_user.id)
-
-    buttons = [button_update if enrolled else button_enroll]
-    if enrolled:
-        buttons.append(button_retire)
-
     await update.message.reply_text(_("I keep records of users of the chat who would like to offer something to "
                                       "others, and provide that information to everyone in the chat.\n"
                                       "\n"
@@ -187,7 +229,7 @@ async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                                       "\n"
                                       "Use the buttons below to see the records, to add yourself or update your data, "
                                       "and to remove your record (of course if you have one)."),
-                                    reply_markup=InlineKeyboardMarkup(((button_who,), buttons)))
+                                    reply_markup=get_standard_keyboard(update.message.from_user.id))
 
 
 async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -201,20 +243,16 @@ async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info("Welcoming user {username} (chat ID {chat_id})".format(username=update.message.from_user.username,
                                                                        chat_id=update.message.from_user.id))
 
-    enrolled = has_user_record(update.message.from_user.id)
-    buttons = [button_update if enrolled else button_enroll]
-    if enrolled:
-        buttons.append(button_retire)
-
-    await update.message.reply_text(_("Welcome!"), reply_markup=InlineKeyboardMarkup(((button_who,), buttons)))
+    await update.message.reply_text(_("Welcome!"), reply_markup=get_standard_keyboard(update.message.from_user.id))
 
 
 async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show the current registry"""
 
-    update_language(update.callback_query.from_user)
-
     query = update.callback_query
+
+    update_language(query.from_user)
+
     await query.answer()
 
     user_list = [_("Here is the directory:")]
@@ -232,14 +270,8 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if len(user_list) == 1:
             user_list = [_("Nobody has registered themselves so far :-( .")]
 
-    enrolled = has_user_record(update.callback_query.from_user.id)
-
-    buttons = [button_update if enrolled else button_enroll]
-    if enrolled:
-        buttons.append(button_retire)
-
     await query.edit_message_reply_markup(None)
-    await query.message.reply_text(text="\n".join(user_list), reply_markup=InlineKeyboardMarkup((buttons,)))
+    await query.message.reply_text(text="\n".join(user_list), reply_markup=get_standard_keyboard(query.from_user.id))
 
 
 async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -285,7 +317,7 @@ async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                                       "laws or local regulations.\n"
                                       "\n"
                                       "Is your service legal?"),
-                                    reply_markup=InlineKeyboardMarkup(((response_button_yes, response_button_no),)))
+                                    reply_markup=get_yesno_keyboard())
 
     return CONFIRMING_LEGALITY
 
@@ -293,9 +325,10 @@ async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Complete the enrollment"""
 
-    update_language(update.callback_query.from_user)
-
     query = update.callback_query
+
+    update_language(query.from_user)
+
     await query.answer()
 
     user_data = context.user_data
@@ -312,15 +345,15 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             db_connection.commit()
 
         await query.edit_message_reply_markup(None)
-        await query.message.reply_text(_("We are done, you are now registered!"), reply_markup=InlineKeyboardMarkup(
-            ((button_who,), (button_update, button_retire),)))
+        await query.message.reply_text(_("We are done, you are now registered!"),
+                                       reply_markup=get_standard_keyboard(query.from_user.id))
     elif query.data == RESPONSE_NO:
         delete_user_record(query.from_user.id)
 
         await query.edit_message_reply_markup(None)
         await query.message.reply_text(
             _("I am sorry.  I cannot register services that do not comply with the laws and local regulations."),
-            reply_markup=InlineKeyboardMarkup(((button_who,), (button_enroll,))))
+            reply_markup=get_standard_keyboard(0, [COMMAND_RETIRE]))
 
     user_data.clear()
 
@@ -330,16 +363,16 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 async def retire(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Remove the user from the directory"""
 
-    update_language(update.callback_query.from_user)
-
     query = update.callback_query
+
+    update_language(query.from_user)
 
     delete_user_record(query.from_user.id)
 
     await query.answer()
     await query.edit_message_reply_markup(None)
     await query.message.reply_text(_("I am sorry to see you go."),
-                                   reply_markup=InlineKeyboardMarkup(((button_who,), (button_enroll,))))
+                                   reply_markup=get_standard_keyboard(0, [COMMAND_RETIRE]))
 
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -369,15 +402,9 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     if not await talking_private(update, context):
         return
 
-    enrolled = has_user_record(update.message.from_user.id) if isinstance(update, Update) else False
-
-    buttons = [button_update if enrolled else button_enroll]
-    if enrolled:
-        buttons.append(button_retire)
-
     await update.message.reply_text(_("An internal error occurred.  I have notified my administrator about the error.  "
                                       "Please use the buttons below, hopefully it will work."),
-                                    reply_markup=InlineKeyboardMarkup(((button_who,), buttons)))
+                                    reply_markup=get_standard_keyboard(update.message.from_user.id))
 
 
 def main() -> None:
