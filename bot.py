@@ -1,4 +1,4 @@
-# pylint: disable=unused-argument
+#!./venv/bin/python
 
 """
 See README.md for details
@@ -13,12 +13,13 @@ import time
 import traceback
 from sqlite3 import Connection
 
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, User
+from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, User, ChatMemberLeft, ChatMemberBanned, \
+    ChatMember
 from telegram.constants import ParseMode
 from telegram.ext import (Application, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters,
                           CallbackQueryHandler, )
 
-from secret import BOT_TOKEN, DEVELOPER_CHAT_ID
+from secret import BOT_TOKEN, DEVELOPER_CHAT_ID, MAIN_CHAT_ID
 
 # Supported languages.  Every time a new translation is added, this tuple should be updated.
 LANGUAGES = ('en', 'ru')
@@ -41,7 +42,6 @@ RESPONSE_YES, RESPONSE_NO = ("yes", "no")
 _ = gettext.gettext
 
 db_connection: Connection
-
 
 
 class LogTime:
@@ -136,11 +136,28 @@ async def talking_private(update, context) -> bool:
     false.
     """
 
-    update_language(update.message.from_user)
-
     if update.effective_message.chat_id != update.message.from_user.id:
         await self_destructing_reply(update, context, _("Let's talk private!"))
         return False
+    return True
+
+
+async def is_member_of_main_chat(user, context):
+    """Helper for handlers that require that the user would be a member of the main chat"""
+
+    def should_be_blocked(chat_member: ChatMember):
+        if isinstance(chat_member, ChatMemberLeft):
+            return "not in chat"
+        if isinstance(chat_member, ChatMemberBanned):
+            return "banned"
+        return None
+
+    reason = should_be_blocked(await context.bot.get_chat_member(MAIN_CHAT_ID, user.id))
+    if reason:
+        logger.info("User {username} (chat ID {chat_id}) is not allowed: {reason}".format(username=user.username,
+            chat_id=user.id, reason=reason))
+        return False
+
     return True
 
 
@@ -203,9 +220,11 @@ def get_yesno_keyboard():
 async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show the help message"""
 
-    update_language(update.message.from_user)
+    user = update.message.from_user
 
-    if update.effective_message.chat_id != update.message.from_user.id:
+    update_language(user)
+
+    if update.effective_message.chat_id != user.id:
         await self_destructing_reply(update, context,
                                      _("I keep records of users who would like to offer something to others, "
                                        "and provide that information to everyone in this chat.\n"
@@ -216,6 +235,9 @@ async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                                        "messages."))
         return
 
+    if not await is_member_of_main_chat(user, context):
+        return
+
     await update.message.reply_text(_("I keep records of users of the chat who would like to offer something to "
                                       "others, and provide that information to everyone in the chat.\n"
                                       "\n"
@@ -224,21 +246,37 @@ async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                                       "\n"
                                       "Use the buttons below to see the records, to add yourself or update your data, "
                                       "and to remove your record (of course if you have one)."),
-                                    reply_markup=get_standard_keyboard(update.message.from_user.id))
+                                    reply_markup=get_standard_keyboard(user.id))
 
 
 async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Welcome the user and show them the selection of options"""
 
+    user = update.message.from_user
+
+    update_language(user)
+
+    if user.id == DEVELOPER_CHAT_ID and update.message.chat.id != DEVELOPER_CHAT_ID:
+        logger.info("This is the admin user {username} talking from \"{chat_name}\" (chat ID {chat_id})".format(
+            username=user.username, chat_name=update.message.chat.title, chat_id=update.message.chat.id))
+
+        await context.bot.deleteMessage(message_id=update.message.id, chat_id=update.message.chat.id)
+
+        await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID,
+                                       text=_("The ID of the \"{title}\" group is {id}").format(
+                                           title=update.message.chat.title, id=str(update.message.chat.id)))
+
+        return
+
     if not await talking_private(update, context):
         return
 
-    update_language(update.message.from_user)
+    if not await is_member_of_main_chat(user, context):
+        return
 
-    logger.info("Welcoming user {username} (chat ID {chat_id})".format(username=update.message.from_user.username,
-                                                                       chat_id=update.message.from_user.id))
+    logger.info("Welcoming user {username} (chat ID {chat_id})".format(username=user.username, chat_id=user.id))
 
-    await update.message.reply_text(_("Welcome!"), reply_markup=get_standard_keyboard(update.message.from_user.id))
+    await update.message.reply_text(_("Welcome!"), reply_markup=get_standard_keyboard(user.id))
 
 
 async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -311,8 +349,7 @@ async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     await update.message.reply_text(_("Finally, please confirm that what you do is legal and does not violate any "
                                       "laws or local regulations.\n"
                                       "\n"
-                                      "Is your service legal?"),
-                                    reply_markup=get_yesno_keyboard())
+                                      "Is your service legal?"), reply_markup=get_yesno_keyboard())
 
     return CONFIRMING_LEGALITY
 

@@ -13,6 +13,7 @@ def main() -> None:
     secret_lines = (
         "BOT_TOKEN = \"{token}\"\n".format(token=token),
         "DEVELOPER_CHAT_ID = 0\n"
+        "MAIN_CHAT_ID = 0\n"
     )
     with open("secret.py", "w") as secret:
         secret.writelines(secret_lines)
