@@ -24,10 +24,11 @@ def main() -> None:
     c = conn.cursor()
 
     c.execute("CREATE TABLE \"people\" ("
-              "\"tg_id\"	INTEGER,"
-              "\"tg_username\"	TEXT,"
-              "\"occupation\"	TEXT,"
-              "\"location\"	TEXT,"
+              "\"tg_id\" INTEGER,"
+              "\"tg_username\" TEXT,"
+              "\"occupation\" TEXT,"
+              "\"location\" TEXT,"
+              "\"last_modified\" DATETIME DEFAULT CURRENT_TIMESTAMP,"
               "PRIMARY KEY(\"tg_id\"))")
 
     conn.commit()
