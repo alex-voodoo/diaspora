@@ -155,7 +155,8 @@ async def is_member_of_main_chat(user, context):
     reason = should_be_blocked(await context.bot.get_chat_member(MAIN_CHAT_ID, user.id))
     if reason:
         logger.info("User {username} (chat ID {chat_id}) is not allowed: {reason}".format(username=user.username,
-            chat_id=user.id, reason=reason))
+                                                                                          chat_id=user.id,
+                                                                                          reason=reason))
         return False
 
     return True
@@ -276,7 +277,12 @@ async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     logger.info("Welcoming user {username} (chat ID {chat_id})".format(username=user.username, chat_id=user.id))
 
-    await update.message.reply_text(_("Welcome!"), reply_markup=get_standard_keyboard(user.id))
+    main_chat = await context.bot.get_chat(MAIN_CHAT_ID)
+
+    await update.message.reply_text(
+        _("Hello!  I am {bot_name}, the bookkeeper bot of the \"{main_chat_name}\" group.").format(
+            bot_name=context.bot.first_name, main_chat_name=main_chat.title),
+        reply_markup=get_standard_keyboard(user.id))
 
 
 async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
