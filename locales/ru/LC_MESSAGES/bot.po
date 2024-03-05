@@ -50,7 +50,7 @@ msgid ""
 msgstr ""
 "Я записываю пользователей, которые предлагают услуги, и показываю их список всем участникам чата.\n"
 "\n"
-"Каждый желающий пишет, что он делает и где находится. Я не храню персональные данные, только никнеймы пользователей Телеграм.\n"
+"Каждый желающий пишет, что он делает и где находится. Я не храню персональные данные, только имена пользователей Телеграм.\n"
 "\n"
 "С помощью кнопок ниже можно посмотреть список контактов, добавиться в него, изменить или удалить свою запись."
 
@@ -70,7 +70,17 @@ msgstr "Вот кого я знаю:"
 msgid "Nobody has registered themselves so far :-( ."
 msgstr "Пока никто не записался, будьте первым!"
 
-#: bot.py:324
+#: bot.py:327
+msgid ""
+"Your Telegram profile does not have a username.  I need it to show people a link to your profile.\n"
+"\n"
+"Please register a username for your profile and try again."
+msgstr ""
+"В вашем профиле Телеграм не задано имя пользователя. Добавьте его в настройках, чтобы другие участники могли написать вам, не зная вашего номера.\n"
+"\n"
+"После этого я смогу добавить вас в список."
+
+#: bot.py:334
 msgid ""
 "Let us start!  What do you do?\n"
 "\n"
@@ -80,7 +90,7 @@ msgstr ""
 "\n"
 "Сформулируйте коротко, кто вы (например, «Парикмахер», «Няня») или что вы делаете («Учу сёрфингу», «Помогаю с уборкой»)."
 
-#: bot.py:340
+#: bot.py:350
 msgid ""
 "Where are you based?\n"
 "\n"
@@ -90,7 +100,7 @@ msgstr ""
 "\n"
 "Укажите город по-русски: Сантьяго, Корунья, Виго и др. Если городов несколько, пишите «Галисия»."
 
-#: bot.py:355
+#: bot.py:365
 msgid ""
 "Finally, please confirm that what you do is legal and does not violate any laws or local regulations.\n"
 "\n"
@@ -100,19 +110,19 @@ msgstr ""
 "\n"
 "Ваша услуга легальна?"
 
-#: bot.py:386
+#: bot.py:396
 msgid "We are done, you are now registered!"
 msgstr "Готово, вы добавлены в список!"
 
-#: bot.py:393
+#: bot.py:403
 msgid "I am sorry.  I cannot register services that do not comply with the laws and local regulations."
 msgstr "Извините, я не могу добавлять нелегальные услуги."
 
-#: bot.py:412
+#: bot.py:422
 msgid "I am sorry to see you go."
 msgstr "Вы удалены из списка."
 
-#: bot.py:443
+#: bot.py:453
 msgid "An internal error occurred.  I have notified my administrator about the error.  Please use the buttons below, hopefully it will work."
 msgstr "Что-то сломалось (во мне). Я сообщу моему администратору. Попробуйте нажать какую-нибудь кнопку, вдруг получится."
 

@@ -316,11 +316,21 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation and ask user for input"""
 
-    update_language(update.callback_query.from_user)
-
     query = update.callback_query
+
+    update_language(query.from_user)
+
     await query.answer()
     await query.edit_message_reply_markup(None)
+
+    if not query.from_user.username:
+        await query.message.reply_text(_("Your Telegram profile does not have a username.  I need it to show people "
+                                         "a link to your profile.\n"
+                                         "\n"
+                                         "Please register a username for your profile and try again."),
+                                       reply_markup=get_standard_keyboard(query.from_user.id))
+        return ConversationHandler.END
+
     await query.message.reply_text(_("Let us start!  What do you do?\n"
                                      "\n"
                                      "Please give a short and simple answer, like \"Teach how to surf\" or \"Help with "

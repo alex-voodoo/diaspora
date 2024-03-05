@@ -60,39 +60,47 @@ msgstr ""
 msgid "Nobody has registered themselves so far :-( ."
 msgstr ""
 
-#: bot.py:324
+#: bot.py:327
+msgid ""
+"Your Telegram profile does not have a username.  I need it to show people a link to your profile.\n"
+"\n"
+"Please register a username for your profile and try again."
+msgstr ""
+
+#: bot.py:334
 msgid ""
 "Let us start!  What do you do?\n"
 "\n"
 "Please give a short and simple answer, like \"Teach how to surf\" or \"Help with the immigrations\"."
 msgstr ""
 
-#: bot.py:340
+#: bot.py:350
 msgid ""
 "Where are you based?\n"
 "\n"
 "Just the name of the place is enough, like \"A Coruña\""
 msgstr ""
 
-#: bot.py:355
+#: bot.py:365
 msgid ""
 "Finally, please confirm that what you do is legal and does not violate any laws or local regulations.\n"
 "\n"
 "Is your service legal?"
 msgstr ""
 
-#: bot.py:386
+#: bot.py:396
 msgid "We are done, you are now registered!"
 msgstr ""
 
-#: bot.py:393
+#: bot.py:403
 msgid "I am sorry.  I cannot register services that do not comply with the laws and local regulations."
 msgstr ""
 
-#: bot.py:412
+#: bot.py:422
 msgid "I am sorry to see you go."
 msgstr ""
 
-#: bot.py:443
+#: bot.py:453
 msgid "An internal error occurred.  I have notified my administrator about the error.  Please use the buttons below, hopefully it will work."
 msgstr ""
+
