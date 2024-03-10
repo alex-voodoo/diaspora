@@ -3,11 +3,12 @@
 """
 See README.md for details
 """
-
+import copy
 import gettext
 import html
 import json
 import logging
+import re
 import sqlite3
 import time
 import traceback
@@ -38,6 +39,7 @@ DELETE_MESSAGE_TIMEOUT = 60
 COMMAND_START, COMMAND_HELP, COMMAND_WHO, COMMAND_ENROLL, COMMAND_RETIRE = ("start", "help", "who", "enroll", "retire")
 TYPING_OCCUPATION, TYPING_LOCATION, CONFIRMING_LEGALITY = range(3)
 RESPONSE_YES, RESPONSE_NO = ("yes", "no")
+MODERATOR_APPROVE, MODERATOR_DECLINE = ("approve", "decline")
 
 # Global translation context.  Updated by update_language() depending on the locale of the current user.
 _ = gettext.gettext
@@ -231,6 +233,25 @@ def get_yesno_keyboard():
     return InlineKeyboardMarkup(((response_button_yes, response_button_no),))
 
 
+def get_moderation_keyboard(tg_id):
+    response_buttons = {_("Yes"): MODERATOR_APPROVE, _("No"): MODERATOR_DECLINE}
+    response_button_yes, response_button_no = (InlineKeyboardButton(text, callback_data="{}:{}".format(command, tg_id))
+                                               for text, command in response_buttons.items())
+
+    return InlineKeyboardMarkup(((response_button_yes, response_button_no),))
+
+
+async def moderate_new_data(update: Update, context: ContextTypes.DEFAULT_TYPE, data) -> None:
+    await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID, text=_("User @{username} has updated their data.\n"
+                                                                     "Occupation: {occupation}\n"
+                                                                     "Location: {location}\n"
+                                                                     "Approve it?").format(username=data['tg_username'],
+                                                                                           occupation=data[
+                                                                                               'occupation'],
+                                                                                           location=data['location']),
+                                   reply_markup=get_moderation_keyboard(data['tg_id']))
+
+
 async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show the help message"""
 
@@ -313,7 +334,7 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         global db_connection
         c = db_connection.cursor()
 
-        for row in c.execute("SELECT tg_id, tg_username, occupation, location FROM people"):
+        for row in c.execute("SELECT tg_id, tg_username, occupation, location FROM people WHERE is_suspended=0"):
             values = {key: value for (key, value) in zip((i[0] for i in c.description), row)}
             user_list.append("@{username} ({location}): {occupation}".format(username=values["tg_username"],
                                                                              occupation=values["occupation"],
@@ -404,19 +425,57 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
                       (from_user.id, from_user.username, user_data["occupation"], user_data["location"]))
 
             db_connection.commit()
+        saved_user_data = copy.deepcopy(user_data)
+        user_data.clear()
+
+        saved_user_data['tg_id'] = from_user.id
+        saved_user_data['tg_username'] = from_user.username
 
         await query.edit_message_reply_markup(None)
         await query.message.reply_text(_("We are done, you are now registered!"),
-                                       reply_markup=get_standard_keyboard(query.from_user.id))
+                                       reply_markup=get_standard_keyboard(from_user.id))
+
+        await moderate_new_data(update, context, saved_user_data)
+
     elif query.data == RESPONSE_NO:
-        delete_user_record(query.from_user.id)
+        delete_user_record(from_user.id)
+        user_data.clear()
 
         await query.edit_message_reply_markup(None)
         await query.message.reply_text(
             _("I am sorry.  I cannot register services that do not comply with the laws and local regulations."),
             reply_markup=get_standard_keyboard(0, [COMMAND_RETIRE]))
 
-    user_data.clear()
+    return ConversationHandler.END
+
+
+async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Approve or decline changes to user data"""
+
+    query = update.callback_query
+
+    update_language(query.from_user)
+
+    await query.answer()
+
+    command, tg_id = query.data.split(":")
+
+    if command == MODERATOR_APPROVE:
+        await query.edit_message_reply_markup(None)
+        await query.message.reply_text(_("Approved."))
+    elif command == MODERATOR_DECLINE:
+        with LogTime("UPDATE people"):
+            global db_connection
+            c = db_connection.cursor()
+
+            c.execute("UPDATE people SET is_suspended=1 WHERE tg_id=?", (tg_id,))
+
+            db_connection.commit()
+
+        await query.edit_message_reply_markup(None)
+        await query.message.reply_text(_("The user is suspended.  Contact them to fix their data."))
+    else:
+        logger.error("Unexpected query data: '{}'".format(query.data))
 
     return ConversationHandler.END
 
@@ -504,13 +563,15 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(retire, pattern=COMMAND_RETIRE))
 
     # Add conversation handler that questions the user about his profile
-    conv_handler = ConversationHandler(entry_points=[CallbackQueryHandler(enroll, pattern=COMMAND_ENROLL)],
-                                       states={TYPING_OCCUPATION: [MessageHandler(filters.TEXT, received_occupation)],
-                                               TYPING_LOCATION: [MessageHandler(filters.TEXT, received_location)],
-                                               CONFIRMING_LEGALITY: [CallbackQueryHandler(confirm_legality)]},
-                                       fallbacks=[])
+    application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(enroll, pattern=COMMAND_ENROLL)],
+                                                states={TYPING_OCCUPATION: [
+                                                    MessageHandler(filters.TEXT, received_occupation)],
+                                                    TYPING_LOCATION: [MessageHandler(filters.TEXT, received_location)],
+                                                    CONFIRMING_LEGALITY: [CallbackQueryHandler(confirm_legality)]},
+                                                fallbacks=[]))
 
-    application.add_handler(conv_handler)
+    application.add_handler(CallbackQueryHandler(confirm_user_data, pattern=re.compile(
+        "^({approve}|{decline}):[0-9]+$".format(approve=MODERATOR_APPROVE, decline=MODERATOR_DECLINE))))
 
     application.add_error_handler(error_handler)
 

@@ -29,6 +29,7 @@ def main() -> None:
               "\"occupation\" TEXT,"
               "\"location\" TEXT,"
               "\"last_modified\" DATETIME DEFAULT CURRENT_TIMESTAMP,"
+              "\"is_suspended\" INTEGER DEFAULT 0,"
               "PRIMARY KEY(\"tg_id\"))")
 
     conn.commit()

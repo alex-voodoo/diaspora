@@ -1,32 +1,40 @@
-#: bot.py:140
+#: bot.py:155
 msgid "Let's talk private!"
 msgstr ""
 
-#: bot.py:181
+#: bot.py:196
 msgid "Show records"
 msgstr ""
 
-#: bot.py:181
+#: bot.py:196
 msgid "Register yourself"
 msgstr ""
 
-#: bot.py:182
+#: bot.py:197
 msgid "Update your record"
 msgstr ""
 
-#: bot.py:182
+#: bot.py:197
 msgid "Remove your record"
 msgstr ""
 
-#: bot.py:214
+#: bot.py:229 bot.py:237
 msgid "Yes"
 msgstr ""
 
-#: bot.py:214
+#: bot.py:229 bot.py:237
 msgid "No"
 msgstr ""
 
-#: bot.py:230
+#: bot.py:245
+msgid ""
+"User @{username} has updated their data.\n"
+"Occupation: {occupation}\n"
+"Location: {location}\n"
+"Approve it?"
+msgstr ""
+
+#: bot.py:264
 msgid ""
 "I keep records of users who would like to offer something to others, and provide that information to everyone in this chat.\n"
 "\n"
@@ -35,7 +43,7 @@ msgid ""
 "I will delete this message in a minute to keep this chat clean of my messages."
 msgstr ""
 
-#: bot.py:242
+#: bot.py:276
 msgid ""
 "I keep records of users of the chat who would like to offer something to others, and provide that information to everyone in the chat.\n"
 "\n"
@@ -44,63 +52,71 @@ msgid ""
 "Use the buttons below to see the records, to add yourself or update your data, and to remove your record (of course if you have one)."
 msgstr ""
 
-#: bot.py:267
+#: bot.py:301
 msgid "The ID of the \"{title}\" group is {id}"
 msgstr ""
 
-#: bot.py:283
+#: bot.py:317
 msgid "Hello!  I am {bot_name}, the bookkeeper bot of the \"{main_chat_name}\" group."
 msgstr ""
 
-#: bot.py:297
+#: bot.py:331
 msgid "Here is the directory:"
 msgstr ""
 
-#: bot.py:310
+#: bot.py:344
 msgid "Nobody has registered themselves so far :-( ."
 msgstr ""
 
-#: bot.py:327
+#: bot.py:361
 msgid ""
 "Your Telegram profile does not have a username.  I need it to show people a link to your profile.\n"
 "\n"
 "Please register a username for your profile and try again."
 msgstr ""
 
-#: bot.py:334
+#: bot.py:368
 msgid ""
 "Let us start!  What do you do?\n"
 "\n"
 "Please give a short and simple answer, like \"Teach how to surf\" or \"Help with the immigrations\"."
 msgstr ""
 
-#: bot.py:350
+#: bot.py:384
 msgid ""
 "Where are you based?\n"
 "\n"
 "Just the name of the place is enough, like \"A Coruña\""
 msgstr ""
 
-#: bot.py:365
+#: bot.py:399
 msgid ""
 "Finally, please confirm that what you do is legal and does not violate any laws or local regulations.\n"
 "\n"
 "Is your service legal?"
 msgstr ""
 
-#: bot.py:396
+#: bot.py:435
 msgid "We are done, you are now registered!"
 msgstr ""
 
-#: bot.py:403
+#: bot.py:446
 msgid "I am sorry.  I cannot register services that do not comply with the laws and local regulations."
 msgstr ""
 
-#: bot.py:422
+#: bot.py:465
+msgid "Approved."
+msgstr ""
+
+#: bot.py:476
+msgid "The user is suspended.  Contact them to fix their data."
+msgstr ""
+
+#: bot.py:494
 msgid "I am sorry to see you go."
 msgstr ""
 
-#: bot.py:453
+#: bot.py:546
 msgid "An internal error occurred.  I have notified my administrator about the error.  Please use the buttons below, hopefully it will work."
 msgstr ""
 
