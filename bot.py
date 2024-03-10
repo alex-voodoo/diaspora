@@ -13,6 +13,7 @@ import time
 import traceback
 from sqlite3 import Connection
 
+import httpx
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, User, ChatMemberLeft, ChatMemberBanned, \
     ChatMember
 from telegram.constants import ParseMode
@@ -64,6 +65,16 @@ class LogTime:
     def __exit__(self, exc_type, exc_val, exc_tb):
         elapsed = (time.perf_counter() - self.started_at) * 1000
         logger.info("{name} took {elapsed} ms".format(name=self.name, elapsed=elapsed))
+
+
+def user_from_update(update: Update):
+    if update.message:
+        return update.message.from_user
+    elif update.callback_query:
+        return update.callback_query.from_user
+    logger.error(
+        "Neither message nor callback_query are defined; returning None.  The update is {}".format(update.to_dict()))
+    return None
 
 
 def update_language(user: User):
@@ -127,7 +138,7 @@ async def self_destructing_reply(update, context, message_body):
     context.job_queue.run_once(delete_message, DELETE_MESSAGE_TIMEOUT, data=posted_message)
 
 
-async def talking_private(update, context) -> bool:
+async def talking_private(update: Update, context) -> bool:
     """Helper for handlers that require private conversation
 
     Most features of the bot should not be accessed from the chat, instead users should talk to the bot directly via
@@ -136,7 +147,9 @@ async def talking_private(update, context) -> bool:
     false.
     """
 
-    if update.effective_message.chat_id != update.message.from_user.id:
+    from_user = user_from_update(update)
+
+    if not from_user or update.effective_message.chat_id != from_user.id:
         await self_destructing_reply(update, context, _("Let's talk private!"))
         return False
     return True
@@ -374,8 +387,9 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     """Complete the enrollment"""
 
     query = update.callback_query
+    from_user = query.from_user
 
-    update_language(query.from_user)
+    update_language(from_user)
 
     await query.answer()
 
@@ -386,7 +400,6 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             global db_connection
             c = db_connection.cursor()
 
-            from_user = query.from_user
             c.execute("INSERT OR REPLACE INTO people (tg_id, tg_username, occupation, location) VALUES(?, ?, ?, ?)",
                       (from_user.id, from_user.username, user_data["occupation"], user_data["location"]))
 
@@ -426,15 +439,28 @@ async def retire(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Log the error and send a telegram message to notify the developer"""
 
-    if isinstance(update, Update):
-        update_language(update.message.from_user)
+    if not isinstance(update, Update):
+        logger.error("Unexpected type of update: {}".format(type(update)))
+        return
+
+    from_user = user_from_update(update)
+
+    update_language(from_user)
+
+    exception = context.error
+
+    if isinstance(exception, httpx.RemoteProtocolError):
+        # Connection errors occur every now and then, and they are caused by reasons external to the bot, so it makes no
+        # sense notifying the developer about them.  Log an error and bail out.
+        logger.error(exception)
+        return
 
     # Log the error before we do anything else, so we can see it even if something breaks.
-    logger.error("Exception while handling an update:", exc_info=context.error)
+    logger.error("Exception while handling an update:", exc_info=exception)
 
     # traceback.format_exception returns the usual python message about an exception, but as a
     # list of strings rather than a single string, so we have to join them together.
-    tb_string = "".join(traceback.format_exception(None, context.error, context.error.__traceback__))
+    tb_string = "".join(traceback.format_exception(None, exception, exception.__traceback__))
 
     # Build the message with some markup and additional information about what happened.
     # You might need to add some logic to deal with messages longer than the 4096 character limit.
@@ -450,9 +476,17 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     if not await talking_private(update, context):
         return
 
-    await update.message.reply_text(_("An internal error occurred.  I have notified my administrator about the error.  "
-                                      "Please use the buttons below, hopefully it will work."),
-                                    reply_markup=get_standard_keyboard(update.message.from_user.id))
+    if update.message:
+        message = update.message
+    elif update.callback_query:
+        message = update.callback_query.message
+    else:
+        logger.error("Unexpected state of the update: {}".format(update_str))
+        return
+
+    await message.reply_text(_("An internal error occurred.  I have notified my administrator about the error.  "
+                               "Please use the buttons below, hopefully it will work."),
+                             reply_markup=get_standard_keyboard(from_user.id))
 
 
 def main() -> None:
