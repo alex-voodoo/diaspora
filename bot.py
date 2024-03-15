@@ -21,7 +21,12 @@ from telegram.constants import ParseMode
 from telegram.ext import (Application, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters,
                           CallbackQueryHandler, )
 
-from secret import BOT_TOKEN, DEVELOPER_CHAT_ID, MAIN_CHAT_ID
+DEFAULT_LANGUAGE = 'en'
+SPEAK_USER_LANGUAGE = True
+GREET_NEW_USERS = False
+
+# May re-define settings
+from secret import *
 
 # Supported languages.  Every time a new translation is added, this tuple should be updated.
 LANGUAGES = ('en', 'ru')
@@ -33,7 +38,8 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 # Timeout for the self-destructible messages (in seconds)
-DELETE_MESSAGE_TIMEOUT = 60
+DELETE_MESSAGE_TIMEOUT = 60  # default 60
+GREETING_TIMEOUT = 300       # default 300
 
 # Commands, sequences, and responses
 COMMAND_START, COMMAND_HELP, COMMAND_WHO, COMMAND_ENROLL, COMMAND_RETIRE = ("start", "help", "who", "enroll", "retire")
@@ -84,9 +90,9 @@ def update_language(user: User):
 
     global _
 
-    user_lang = user.language_code
+    user_lang = user.language_code if SPEAK_USER_LANGUAGE else DEFAULT_LANGUAGE
     translation = gettext.translation('bot', localedir='locales',
-                                      languages=[user_lang if user_lang in LANGUAGES else 'en'])
+                                      languages=[user_lang if user_lang in LANGUAGES else DEFAULT_LANGUAGE])
     translation.install()
 
     _ = translation.gettext
@@ -124,20 +130,24 @@ async def delete_message(context: ContextTypes.DEFAULT_TYPE) -> None:
 
     Use `self_destructing_reply()` as a wrapper for this function."""
 
-    for message_to_delete in (context.job.data, context.job.data.reply_to_message):
-        await context.bot.deleteMessage(message_id=message_to_delete.message_id, chat_id=message_to_delete.chat.id)
+    message_to_delete, delete_reply_to = context.job.data
+
+    await context.bot.deleteMessage(message_id=message_to_delete.message_id, chat_id=message_to_delete.chat.id)
+
+    if delete_reply_to:
+        await context.bot.deleteMessage(message_id=message_to_delete.reply_to_message.message_id, chat_id=message_to_delete.chat.id)
 
 
-async def self_destructing_reply(update, context, message_body):
+async def self_destructing_reply(update, context, message_body, timeout, delete_reply_to=True):
     """Replies to the message contained in the update, then schedules the reply to be deleted"""
 
     if update.effective_message.chat_id == update.message.from_user.id:
         logger.error("Cannot delete messages in private chats!")
         return
 
-    posted_message = await update.message.reply_text(message_body)
+    posted_message = await update.message.reply_text(message_body, parse_mode=ParseMode.HTML)
 
-    context.job_queue.run_once(delete_message, DELETE_MESSAGE_TIMEOUT, data=posted_message)
+    context.job_queue.run_once(delete_message, timeout, data=(posted_message, delete_reply_to))
 
 
 async def talking_private(update: Update, context) -> bool:
@@ -152,7 +162,7 @@ async def talking_private(update: Update, context) -> bool:
     from_user = user_from_update(update)
 
     if not from_user or update.effective_message.chat_id != from_user.id:
-        await self_destructing_reply(update, context, _("Let's talk private!"))
+        await self_destructing_reply(update, context, _("Let's talk private!"), DELETE_MESSAGE_TIMEOUT)
         return False
     return True
 
@@ -252,6 +262,33 @@ async def moderate_new_data(update: Update, context: ContextTypes.DEFAULT_TYPE, 
                                    reply_markup=get_moderation_keyboard(data['tg_id']))
 
 
+async def maybe_greet_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Maybe (depending on the settings) show the welcome message to the user that has just joined the main chat"""
+
+    if not GREET_NEW_USERS:
+        return
+
+    for user in update.message.new_chat_members:
+        update_language(user)
+
+        logger.info("Greeting new user {username} (chat ID {chat_id})".format(username=user.username, chat_id=user.id))
+
+        await self_destructing_reply(update, context,
+                                     _("Hello, {username}!\n"
+                                       "\n"
+                                       "\U0001F9DC\U0000200D\U00002640\U0000FE0F I am {bot_name}, the hostess bot "
+                                       "here.  In the pinned messages you will find navigation, mission, and rules of "
+                                       "this group.\n"
+                                       "\n"
+                                       "\U0001F44B Please introduce yourself!  Where do you live, what do you do?  "
+                                       "Share your hobbies, plans and doubts with others.\n"
+                                       "\n"
+                                       "<em>I will delete this message in five minutes.</em>").format(
+                                         username=user.full_name, bot_name=context.bot.first_name),
+                                     GREETING_TIMEOUT, False)
+
+
+
 async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show the help message"""
 
@@ -267,7 +304,8 @@ async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                                        "To learn more and see what I can do, start a private conversation with me.\n"
                                        "\n"
                                        "I will delete this message in a minute to keep this chat clean of my "
-                                       "messages."))
+                                       "messages."),
+                                     DELETE_MESSAGE_TIMEOUT)
         return
 
     if not await is_member_of_main_chat(user, context):
@@ -572,6 +610,8 @@ def main() -> None:
 
     application.add_handler(CallbackQueryHandler(confirm_user_data, pattern=re.compile(
         "^({approve}|{decline}):[0-9]+$".format(approve=MODERATOR_APPROVE, decline=MODERATOR_DECLINE))))
+
+    application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, maybe_greet_new_member))
 
     application.add_error_handler(error_handler)
 

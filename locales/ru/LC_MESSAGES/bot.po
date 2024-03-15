@@ -1,32 +1,32 @@
-#: bot.py:155
+#: bot.py:165
 msgid "Let's talk private!"
 msgstr "Напишите мне личное сообщение"
 
-#: bot.py:196
+#: bot.py:206
 msgid "Show records"
 msgstr "Показать список контактов"
 
-#: bot.py:196
+#: bot.py:206
 msgid "Register yourself"
 msgstr "Добавиться в список"
 
-#: bot.py:197
+#: bot.py:207
 msgid "Update your record"
 msgstr "Править запись"
 
-#: bot.py:197
+#: bot.py:207
 msgid "Remove your record"
 msgstr "Удалить запись"
 
-#: bot.py:229 bot.py:237
+#: bot.py:239 bot.py:247
 msgid "Yes"
 msgstr "Да"
 
-#: bot.py:229 bot.py:237
+#: bot.py:239 bot.py:247
 msgid "No"
 msgstr "Нет"
 
-#: bot.py:245
+#: bot.py:255
 msgid ""
 "User @{username} has updated their data.\n"
 "Occupation: {occupation}\n"
@@ -38,7 +38,25 @@ msgstr ""
 "Местонахождение: {location}\n"
 "Принять изменения?"
 
-#: bot.py:264
+#: bot.py:277
+msgid ""
+"Hello, {username}!\n"
+"\n"
+"🧜‍♀️ I am {bot_name}, the hostess bot here.  In the pinned messages you will find navigation, mission, and rules of this group.\n"
+"\n"
+"👋 Please introduce yourself!  Where do you live, what do you do?  Share your hobbies, plans and doubts with others.\n"
+"\n"
+"<em>I will delete this message in five minutes.</em>"
+msgstr ""
+"Добро пожаловать, {username}!\n"
+"\n"
+"🧜‍♀️ Я {bot_name}, распорядительница. В закреплённых сообщениях есть навигация, миссия и правила группы.\n"
+"\n"
+"👋 Будет здорово, если вы представитесь: где живёте или планируете, чем занимаетесь и увлекаетесь.\n"
+"\n"
+"<em>Я удалю это сообщение через 5 минут.</em>"
+
+#: bot.py:301
 msgid ""
 "I keep records of users who would like to offer something to others, and provide that information to everyone in this chat.\n"
 "\n"
@@ -52,7 +70,7 @@ msgstr ""
 "\n"
 "Я удалю это сообщение через минуту, чтобы не засорять чат."
 
-#: bot.py:276
+#: bot.py:314
 msgid ""
 "I keep records of users of the chat who would like to offer something to others, and provide that information to everyone in the chat.\n"
 "\n"
@@ -66,23 +84,23 @@ msgstr ""
 "\n"
 "С помощью кнопок ниже можно посмотреть список контактов, добавиться в него, изменить или удалить свою запись."
 
-#: bot.py:301
+#: bot.py:339
 msgid "The ID of the \"{title}\" group is {id}"
 msgstr "ID группы «{title}»: {id}"
 
-#: bot.py:317
+#: bot.py:355
 msgid "Hello!  I am {bot_name}, the bookkeeper bot of the \"{main_chat_name}\" group."
 msgstr "Привет, я бот {bot_name} — хранитель полезных контактов группы «{main_chat_name}». Подскажу, кто будет полезен вам, или помогу найти клиентов. Добавляйтесь!"
 
-#: bot.py:331
+#: bot.py:369
 msgid "Here is the directory:"
 msgstr "Вот кого я знаю:"
 
-#: bot.py:344
+#: bot.py:382
 msgid "Nobody has registered themselves so far :-( ."
 msgstr "Пока никто не записался, будьте первым!"
 
-#: bot.py:361
+#: bot.py:399
 msgid ""
 "Your Telegram profile does not have a username.  I need it to show people a link to your profile.\n"
 "\n"
@@ -92,7 +110,7 @@ msgstr ""
 "\n"
 "После этого я смогу добавить вас в список."
 
-#: bot.py:368
+#: bot.py:406
 msgid ""
 "Let us start!  What do you do?\n"
 "\n"
@@ -102,7 +120,7 @@ msgstr ""
 "\n"
 "Сформулируйте коротко, кто вы (например, «Парикмахер», «Няня») или что вы делаете («Учу сёрфингу», «Помогаю с уборкой»)."
 
-#: bot.py:384
+#: bot.py:422
 msgid ""
 "Where are you based?\n"
 "\n"
@@ -112,7 +130,7 @@ msgstr ""
 "\n"
 "Укажите город по-русски: Сантьяго, Корунья, Виго и др. Если городов несколько, пишите «Галисия»."
 
-#: bot.py:399
+#: bot.py:437
 msgid ""
 "Finally, please confirm that what you do is legal and does not violate any laws or local regulations.\n"
 "\n"
@@ -122,27 +140,27 @@ msgstr ""
 "\n"
 "Ваша услуга легальна?"
 
-#: bot.py:435
+#: bot.py:473
 msgid "We are done, you are now registered!"
 msgstr "Готово, вы добавлены в список!"
 
-#: bot.py:446
+#: bot.py:484
 msgid "I am sorry.  I cannot register services that do not comply with the laws and local regulations."
 msgstr "Извините, я не могу добавлять нелегальные услуги."
 
-#: bot.py:465
+#: bot.py:503
 msgid "Approved."
 msgstr "Одобрено."
 
-#: bot.py:476
+#: bot.py:514
 msgid "The user is suspended.  Contact them to fix their data."
 msgstr "Пользователь скрыт. Свяжитесь с ним и сообщите, что нужно поправить данные."
 
-#: bot.py:494
+#: bot.py:532
 msgid "I am sorry to see you go."
 msgstr "Вы удалены из списка."
 
-#: bot.py:546
+#: bot.py:584
 msgid "An internal error occurred.  I have notified my administrator about the error.  Please use the buttons below, hopefully it will work."
 msgstr "Что-то сломалось (во мне). Я сообщу моему администратору. Попробуйте нажать какую-нибудь кнопку, вдруг получится."
 
