@@ -269,6 +269,9 @@ async def maybe_greet_new_member(update: Update, context: ContextTypes.DEFAULT_T
         return
 
     for user in update.message.new_chat_members:
+        if user.is_bot:
+            continue
+
         update_language(user)
 
         logger.info("Greeting new user {username} (chat ID {chat_id})".format(username=user.username, chat_id=user.id))
@@ -284,7 +287,7 @@ async def maybe_greet_new_member(update: Update, context: ContextTypes.DEFAULT_T
                                        "Share your hobbies, plans and doubts with others.\n"
                                        "\n"
                                        "<em>I will delete this message in five minutes.</em>").format(
-                                         username=user.full_name, bot_name=context.bot.first_name),
+                                         username=user.first_name, bot_name=context.bot.first_name),
                                      GREETING_TIMEOUT, False)
 
 
