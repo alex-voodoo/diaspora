@@ -1,82 +1,52 @@
-#: bot.py:165
-msgid "Let's talk private!"
+#: bot.py:166
+msgid "MESSAGE_MC_LET_US_TALK_PRIVATE"
 msgstr "Let's talk private!"
 
-#: bot.py:206
-msgid "Show records"
+#: bot.py:207
+msgid "BUTTON_WHO"
 msgstr "Show records"
 
-#: bot.py:206
-msgid "Register yourself"
+#: bot.py:207
+msgid "BUTTON_ENROLL"
 msgstr "Register yourself"
 
-#: bot.py:207
-msgid "Update your record"
+#: bot.py:208
+msgid "BUTTON_UPDATE"
 msgstr "Update your record"
 
-#: bot.py:207
-msgid "Remove your record"
+#: bot.py:208
+msgid "BUTTON_RETIRE"
 msgstr "Remove your record"
 
-#: bot.py:239 bot.py:247
-msgid "Yes"
+#: bot.py:240 bot.py:248
+msgid "BUTTON_YES"
 msgstr "Yes"
 
-#: bot.py:239 bot.py:247
-msgid "No"
+#: bot.py:240 bot.py:248
+msgid "BUTTON_NO"
 msgstr "No"
 
-#: bot.py:255
-msgid ""
-"User @{username} has updated their data.\n"
-"Occupation: {occupation}\n"
-"Location: {location}\n"
-"Approve it?"
+#: bot.py:257
+msgid "MESSAGE_ADMIN_APPROVE_USER_DATA {username}"
 msgstr ""
 "User @{username} has updated their data.\n"
 "Occupation: {occupation}\n"
 "Location: {location}\n"
 "Approve it?"
 
-#: bot.py:280
-msgid ""
-"Hello, {username}!\n"
-"\n"
-"🧜‍♀️ I am {bot_name}, the hostess bot here.  In the pinned messages you will find navigation, mission, and rules of this group.\n"
-"\n"
-"👋 Please introduce yourself!  Where do you live, what do you do?  Share your hobbies, plans and doubts with others.\n"
-"\n"
-"<em>I will delete this message in five minutes.</em>"
+#: bot.py:277
+msgid "MESSAGE_MC_GREETING {user_first_name} {bot_first_name}"
 msgstr ""
-"Hello, {username}!\n"
+"Welcome, {user_first_name}!\n"
 "\n"
-"🧜‍♀️ I am {bot_name}, the hostess bot here.  In the pinned messages you will find navigation, mission, and rules of this group.\n"
+"🧜‍♀️ I am {bot_first_name}, the hostess.  In the pinned messages you will find navigation, mission, and rules of this group.\n"
 "\n"
-"👋 Please introduce yourself!  Where do you live, what do you do?  Share your hobbies, plans and doubts with others.\n"
+"👋 Please introduce yourself!  Where do you live or plan to move, what do you do?  Share your hobbies, plans and doubts with others.\n"
 "\n"
 "<em>I will delete this message in five minutes.</em>"
 
-#: bot.py:304
-msgid ""
-"I keep records of users who would like to offer something to others, and provide that information to everyone in this chat.\n"
-"\n"
-"To learn more and see what I can do, start a private conversation with me.\n"
-"\n"
-"I will delete this message in a minute to keep this chat clean of my messages."
-msgstr ""
-"I keep records of users who would like to offer something to others, and provide that information to everyone in this chat.\n"
-"\n"
-"To learn more and see what I can do, start a private conversation with me.\n"
-"\n"
-"I will delete this message in a minute to keep this chat clean of my messages."
-
-#: bot.py:317
-msgid ""
-"I keep records of users of the chat who would like to offer something to others, and provide that information to everyone in the chat.\n"
-"\n"
-"The data is simple: every person tells what they do and where they are based.  I keep no personal data, only Telegram usernames of those who register.\n"
-"\n"
-"Use the buttons below to see the records, to add yourself or update your data, and to remove your record (of course if you have one)."
+#: bot.py:290
+msgid "MESSAGE_MC_HELP"
 msgstr ""
 "I keep records of users of the chat who would like to offer something to others, and provide that information to everyone in the chat.\n"
 "\n"
@@ -84,83 +54,80 @@ msgstr ""
 "\n"
 "Use the buttons below to see the records, to add yourself or update your data, and to remove your record (of course if you have one)."
 
-#: bot.py:342
-msgid "The ID of the \"{title}\" group is {id}"
+#: bot.py:296
+msgid "MESSAGE_DM_HELP"
+msgstr ""
+"I keep records of users of the chat who would like to offer something to others, and provide that information to everyone in the chat.\n"
+"\n"
+"The data is simple: every person tells what they do and where they are based.  I keep no personal data, only Telegram usernames of those who register.\n"
+"\n"
+"Use the buttons below to see the records, to add yourself or update your data, and to remove your record (of course if you have one)."
+
+#: bot.py:313
+msgid "MESSAGE_ADMIN_MAIN_CHAT_ID {title} {id}"
 msgstr "The ID of the \"{title}\" group is {id}"
 
-#: bot.py:358
-msgid "Hello!  I am {bot_name}, the bookkeeper bot of the \"{main_chat_name}\" group."
-msgstr "Hello!  I am {bot_name}, the bookkeeper bot of the \"{main_chat_name}\" group."
+#: bot.py:329
+msgid "MESSAGE_DM_HELLO {bot_first_name} {main_chat_name}"
+msgstr "Hello!  I am {bot_first_name}, the bookkeeper bot of the \"{main_chat_name}\" group."
 
-#: bot.py:372
-msgid "Here is the directory:"
+#: bot.py:342
+msgid "MESSAGE_DM_WHO_LIST_HEADING"
 msgstr "Here is the directory:"
 
-#: bot.py:385
-msgid "Nobody has registered themselves so far :-( ."
+#: bot.py:355
+msgid "MESSAGE_DM_WHO_EMPTY"
 msgstr "Nobody has registered themselves so far :-( ."
 
+#: bot.py:372
+msgid "MESSAGE_DM_ENROLL_USERNAME_REQUIRED"
+msgstr ""
+"Your Telegram profile does not have a username.  I need it to show people a link to your profile.\n"
+"\n"
+"Please register a username for your profile and try again."
+
+#: bot.py:376
+msgid "MESSAGE_DM_ENROLL_ASK_OCCUPATION"
+msgstr ""
+"Let us start!  What do you do?\n"
+"\n"
+"Please give a short and simple answer, like \"Teach how to surf\" or \"Help with the immigrations\"."
+
+#: bot.py:389
+msgid "MESSAGE_DM_ENROLL_ASK_LOCATION"
+msgstr ""
+"Where are you based?\n"
+"\n"
+"Just the name of the place is enough, like \"A Coruña\""
+
 #: bot.py:402
-msgid ""
-"Your Telegram profile does not have a username.  I need it to show people a link to your profile.\n"
-"\n"
-"Please register a username for your profile and try again."
-msgstr ""
-"Your Telegram profile does not have a username.  I need it to show people a link to your profile.\n"
-"\n"
-"Please register a username for your profile and try again."
-
-#: bot.py:409
-msgid ""
-"Let us start!  What do you do?\n"
-"\n"
-"Please give a short and simple answer, like \"Teach how to surf\" or \"Help with the immigrations\"."
-msgstr ""
-"Let us start!  What do you do?\n"
-"\n"
-"Please give a short and simple answer, like \"Teach how to surf\" or \"Help with the immigrations\"."
-
-#: bot.py:425
-msgid ""
-"Where are you based?\n"
-"\n"
-"Just the name of the place is enough, like \"A Coruña\""
-msgstr ""
-"Where are you based?\n"
-"\n"
-"Just the name of the place is enough, like \"A Coruña\""
-
-#: bot.py:440
-msgid ""
-"Finally, please confirm that what you do is legal and does not violate any laws or local regulations.\n"
-"\n"
-"Is your service legal?"
+msgid "MESSAGE_DM_ENROLL_CONFIRM_LEGALITY"
 msgstr ""
 "Finally, please confirm that what you do is legal and does not violate any laws or local regulations.\n"
 "\n"
 "Is your service legal?"
 
-#: bot.py:476
-msgid "We are done, you are now registered!"
+#: bot.py:435
+msgid "MESSAGE_DM_ENROLL_COMPLETED"
 msgstr "We are done, you are now registered!"
 
-#: bot.py:487
-msgid "I am sorry.  I cannot register services that do not comply with the laws and local regulations."
+#: bot.py:445
+msgid "MESSAGE_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"
 msgstr "I am sorry.  I cannot register services that do not comply with the laws and local regulations."
 
-#: bot.py:506
-msgid "Approved."
+#: bot.py:464
+msgid "MESSAGE_ADMIN_USER_RECORD_APPROVED"
 msgstr "Approved."
 
-#: bot.py:517
-msgid "The user is suspended.  Contact them to fix their data."
-msgstr "The user is suspended.  Contact them to fix their data."
+#: bot.py:475
+msgid "MESSAGE_ADMIN_USER_RECORD_SUSPENDED"
+msgstr "The user's record is suspended.  Contact them to fix their data."
 
-#: bot.py:535
-msgid "I am sorry to see you go."
+#: bot.py:493
+msgid "MESSAGE_DM_RETIRE"
 msgstr "I am sorry to see you go."
 
-#: bot.py:587
-msgid "An internal error occurred.  I have notified my administrator about the error.  Please use the buttons below, hopefully it will work."
+#: bot.py:544
+msgid "MESSAGE_DM_INTERNAL_ERROR"
 msgstr "An internal error occurred.  I have notified my administrator about the error.  Please use the buttons below, hopefully it will work."
 

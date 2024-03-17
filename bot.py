@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 
 # Timeout for the self-destructible messages (in seconds)
 DELETE_MESSAGE_TIMEOUT = 60  # default 60
-GREETING_TIMEOUT = 300       # default 300
+GREETING_TIMEOUT = 300  # default 300
 
 # Commands, sequences, and responses
 COMMAND_START, COMMAND_HELP, COMMAND_WHO, COMMAND_ENROLL, COMMAND_RETIRE = ("start", "help", "who", "enroll", "retire")
@@ -135,7 +135,8 @@ async def delete_message(context: ContextTypes.DEFAULT_TYPE) -> None:
     await context.bot.deleteMessage(message_id=message_to_delete.message_id, chat_id=message_to_delete.chat.id)
 
     if delete_reply_to:
-        await context.bot.deleteMessage(message_id=message_to_delete.reply_to_message.message_id, chat_id=message_to_delete.chat.id)
+        await context.bot.deleteMessage(message_id=message_to_delete.reply_to_message.message_id,
+                                        chat_id=message_to_delete.chat.id)
 
 
 async def self_destructing_reply(update, context, message_body, timeout, delete_reply_to=True):
@@ -162,7 +163,7 @@ async def talking_private(update: Update, context) -> bool:
     from_user = user_from_update(update)
 
     if not from_user or update.effective_message.chat_id != from_user.id:
-        await self_destructing_reply(update, context, _("Let's talk private!"), DELETE_MESSAGE_TIMEOUT)
+        await self_destructing_reply(update, context, _("MESSAGE_MC_LET_US_TALK_PRIVATE"), DELETE_MESSAGE_TIMEOUT)
         return False
     return True
 
@@ -203,8 +204,8 @@ def get_standard_keyboard(tg_id, hidden_commands=None):
     Returns an instance of InlineKeyboardMarkup.
     """
 
-    command_buttons = {_("Show records"): COMMAND_WHO, _("Register yourself"): COMMAND_ENROLL,
-                       _("Update your record"): COMMAND_ENROLL, _("Remove your record"): COMMAND_RETIRE}
+    command_buttons = {_("BUTTON_WHO"): COMMAND_WHO, _("BUTTON_ENROLL"): COMMAND_ENROLL,
+                       _("BUTTON_UPDATE"): COMMAND_ENROLL, _("BUTTON_RETIRE"): COMMAND_RETIRE}
     button_who, button_enroll, button_update, button_retire = (InlineKeyboardButton(text, callback_data=command) for
                                                                text, command in command_buttons.items())
 
@@ -236,7 +237,7 @@ def get_yesno_keyboard():
     Returns an instance of InlineKeyboardMarkup.
     """
 
-    response_buttons = {_("Yes"): RESPONSE_YES, _("No"): RESPONSE_NO}
+    response_buttons = {_("BUTTON_YES"): RESPONSE_YES, _("BUTTON_NO"): RESPONSE_NO}
     response_button_yes, response_button_no = (InlineKeyboardButton(text, callback_data=command) for text, command in
                                                response_buttons.items())
 
@@ -244,7 +245,7 @@ def get_yesno_keyboard():
 
 
 def get_moderation_keyboard(tg_id):
-    response_buttons = {_("Yes"): MODERATOR_APPROVE, _("No"): MODERATOR_DECLINE}
+    response_buttons = {_("BUTTON_YES"): MODERATOR_APPROVE, _("BUTTON_NO"): MODERATOR_DECLINE}
     response_button_yes, response_button_no = (InlineKeyboardButton(text, callback_data="{}:{}".format(command, tg_id))
                                                for text, command in response_buttons.items())
 
@@ -252,14 +253,10 @@ def get_moderation_keyboard(tg_id):
 
 
 async def moderate_new_data(update: Update, context: ContextTypes.DEFAULT_TYPE, data) -> None:
-    await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID, text=_("User @{username} has updated their data.\n"
-                                                                     "Occupation: {occupation}\n"
-                                                                     "Location: {location}\n"
-                                                                     "Approve it?").format(username=data['tg_username'],
-                                                                                           occupation=data[
-                                                                                               'occupation'],
-                                                                                           location=data['location']),
-                                   reply_markup=get_moderation_keyboard(data['tg_id']))
+    await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID,
+                                   text=_("MESSAGE_ADMIN_APPROVE_USER_DATA {username}").format(
+                                       username=data['tg_username'], occupation=data['occupation'],
+                                       location=data['location']), reply_markup=get_moderation_keyboard(data['tg_id']))
 
 
 async def maybe_greet_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -277,19 +274,9 @@ async def maybe_greet_new_member(update: Update, context: ContextTypes.DEFAULT_T
         logger.info("Greeting new user {username} (chat ID {chat_id})".format(username=user.username, chat_id=user.id))
 
         await self_destructing_reply(update, context,
-                                     _("Hello, {username}!\n"
-                                       "\n"
-                                       "\U0001F9DC\U0000200D\U00002640\U0000FE0F I am {bot_name}, the hostess bot "
-                                       "here.  In the pinned messages you will find navigation, mission, and rules of "
-                                       "this group.\n"
-                                       "\n"
-                                       "\U0001F44B Please introduce yourself!  Where do you live, what do you do?  "
-                                       "Share your hobbies, plans and doubts with others.\n"
-                                       "\n"
-                                       "<em>I will delete this message in five minutes.</em>").format(
-                                         username=user.first_name, bot_name=context.bot.first_name),
+                                     _("MESSAGE_MC_GREETING {user_first_name} {bot_first_name}").format(
+                                         user_first_name=user.first_name, bot_first_name=context.bot.first_name),
                                      GREETING_TIMEOUT, False)
-
 
 
 async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -300,29 +287,13 @@ async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     update_language(user)
 
     if update.effective_message.chat_id != user.id:
-        await self_destructing_reply(update, context,
-                                     _("I keep records of users who would like to offer something to others, "
-                                       "and provide that information to everyone in this chat.\n"
-                                       "\n"
-                                       "To learn more and see what I can do, start a private conversation with me.\n"
-                                       "\n"
-                                       "I will delete this message in a minute to keep this chat clean of my "
-                                       "messages."),
-                                     DELETE_MESSAGE_TIMEOUT)
+        await self_destructing_reply(update, context, _("MESSAGE_MC_HELP"), DELETE_MESSAGE_TIMEOUT)
         return
 
     if not await is_member_of_main_chat(user, context):
         return
 
-    await update.message.reply_text(_("I keep records of users of the chat who would like to offer something to "
-                                      "others, and provide that information to everyone in the chat.\n"
-                                      "\n"
-                                      "The data is simple: every person tells what they do and where they are based.  "
-                                      "I keep no personal data, only Telegram usernames of those who register.\n"
-                                      "\n"
-                                      "Use the buttons below to see the records, to add yourself or update your data, "
-                                      "and to remove your record (of course if you have one)."),
-                                    reply_markup=get_standard_keyboard(user.id))
+    await update.message.reply_text(_("MESSAGE_DM_HELP"), reply_markup=get_standard_keyboard(user.id))
 
 
 async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -339,7 +310,7 @@ async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await context.bot.deleteMessage(message_id=update.message.id, chat_id=update.message.chat.id)
 
         await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID,
-                                       text=_("The ID of the \"{title}\" group is {id}").format(
+                                       text=_("MESSAGE_ADMIN_MAIN_CHAT_ID {title} {id}").format(
                                            title=update.message.chat.title, id=str(update.message.chat.id)))
 
         return
@@ -355,9 +326,8 @@ async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     main_chat = await context.bot.get_chat(MAIN_CHAT_ID)
 
     await update.message.reply_text(
-        _("Hello!  I am {bot_name}, the bookkeeper bot of the \"{main_chat_name}\" group.").format(
-            bot_name=context.bot.first_name, main_chat_name=main_chat.title),
-        reply_markup=get_standard_keyboard(user.id))
+        _("MESSAGE_DM_HELLO {bot_first_name} {main_chat_name}").format(bot_first_name=context.bot.first_name,
+            main_chat_name=main_chat.title), reply_markup=get_standard_keyboard(user.id))
 
 
 async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -369,7 +339,7 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     await query.answer()
 
-    user_list = [_("Here is the directory:")]
+    user_list = [_("MESSAGE_DM_WHO_LIST_HEADING")]
 
     with LogTime("SELECT FROM people"):
         global db_connection
@@ -382,7 +352,7 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                                                                              location=values["location"]))
 
         if len(user_list) == 1:
-            user_list = [_("Nobody has registered themselves so far :-( .")]
+            user_list = [_("MESSAGE_DM_WHO_EMPTY")]
 
     await query.edit_message_reply_markup(None)
     await query.message.reply_text(text="\n".join(user_list), reply_markup=get_standard_keyboard(query.from_user.id))
@@ -399,17 +369,11 @@ async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await query.edit_message_reply_markup(None)
 
     if not query.from_user.username:
-        await query.message.reply_text(_("Your Telegram profile does not have a username.  I need it to show people "
-                                         "a link to your profile.\n"
-                                         "\n"
-                                         "Please register a username for your profile and try again."),
+        await query.message.reply_text(_("MESSAGE_DM_ENROLL_USERNAME_REQUIRED"),
                                        reply_markup=get_standard_keyboard(query.from_user.id))
         return ConversationHandler.END
 
-    await query.message.reply_text(_("Let us start!  What do you do?\n"
-                                     "\n"
-                                     "Please give a short and simple answer, like \"Teach how to surf\" or \"Help with "
-                                     "the immigrations\"."))
+    await query.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_OCCUPATION"))
 
     return TYPING_OCCUPATION
 
@@ -422,9 +386,7 @@ async def received_occupation(update: Update, context: ContextTypes.DEFAULT_TYPE
     user_data = context.user_data
     user_data['occupation'] = update.message.text
 
-    await update.message.reply_text(_("Where are you based?\n"
-                                      "\n"
-                                      "Just the name of the place is enough, like \"A Coruña\""))
+    await update.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_LOCATION"))
 
     return TYPING_LOCATION
 
@@ -437,10 +399,7 @@ async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     user_data = context.user_data
     user_data['location'] = update.message.text
 
-    await update.message.reply_text(_("Finally, please confirm that what you do is legal and does not violate any "
-                                      "laws or local regulations.\n"
-                                      "\n"
-                                      "Is your service legal?"), reply_markup=get_yesno_keyboard())
+    await update.message.reply_text(_("MESSAGE_DM_ENROLL_CONFIRM_LEGALITY"), reply_markup=get_yesno_keyboard())
 
     return CONFIRMING_LEGALITY
 
@@ -473,7 +432,7 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         saved_user_data['tg_username'] = from_user.username
 
         await query.edit_message_reply_markup(None)
-        await query.message.reply_text(_("We are done, you are now registered!"),
+        await query.message.reply_text(_("MESSAGE_DM_ENROLL_COMPLETED"),
                                        reply_markup=get_standard_keyboard(from_user.id))
 
         await moderate_new_data(update, context, saved_user_data)
@@ -483,8 +442,7 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         user_data.clear()
 
         await query.edit_message_reply_markup(None)
-        await query.message.reply_text(
-            _("I am sorry.  I cannot register services that do not comply with the laws and local regulations."),
+        await query.message.reply_text(_("MESSAGE_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"),
             reply_markup=get_standard_keyboard(0, [COMMAND_RETIRE]))
 
     return ConversationHandler.END
@@ -503,7 +461,7 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     if command == MODERATOR_APPROVE:
         await query.edit_message_reply_markup(None)
-        await query.message.reply_text(_("Approved."))
+        await query.message.reply_text(_("MESSAGE_ADMIN_USER_RECORD_APPROVED"))
     elif command == MODERATOR_DECLINE:
         with LogTime("UPDATE people"):
             global db_connection
@@ -514,7 +472,7 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             db_connection.commit()
 
         await query.edit_message_reply_markup(None)
-        await query.message.reply_text(_("The user is suspended.  Contact them to fix their data."))
+        await query.message.reply_text(_("MESSAGE_ADMIN_USER_RECORD_SUSPENDED"))
     else:
         logger.error("Unexpected query data: '{}'".format(query.data))
 
@@ -532,8 +490,7 @@ async def retire(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     await query.answer()
     await query.edit_message_reply_markup(None)
-    await query.message.reply_text(_("I am sorry to see you go."),
-                                   reply_markup=get_standard_keyboard(0, [COMMAND_RETIRE]))
+    await query.message.reply_text(_("MESSAGE_DM_RETIRE"), reply_markup=get_standard_keyboard(0, [COMMAND_RETIRE]))
 
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -584,9 +541,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
         logger.error("Unexpected state of the update: {}".format(update_str))
         return
 
-    await message.reply_text(_("An internal error occurred.  I have notified my administrator about the error.  "
-                               "Please use the buttons below, hopefully it will work."),
-                             reply_markup=get_standard_keyboard(from_user.id))
+    await message.reply_text(_("MESSAGE_DM_INTERNAL_ERROR"), reply_markup=get_standard_keyboard(from_user.id))
 
 
 def main() -> None:
