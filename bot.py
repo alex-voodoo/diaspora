@@ -21,9 +21,10 @@ from telegram.constants import ParseMode
 from telegram.ext import (Application, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters,
                           CallbackQueryHandler, )
 
-DEFAULT_LANGUAGE = 'en'
+DEFAULT_LANGUAGE = "en"
 SPEAK_USER_LANGUAGE = True
 GREET_NEW_USERS = False
+BOT_IS_MALE = True
 
 # May re-define settings
 from secret import *
@@ -273,9 +274,11 @@ async def maybe_greet_new_member(update: Update, context: ContextTypes.DEFAULT_T
 
         logger.info("Greeting new user {username} (chat ID {chat_id})".format(username=user.username, chat_id=user.id))
 
-        await self_destructing_reply(update, context,
-                                     _("MESSAGE_MC_GREETING {user_first_name} {bot_first_name}").format(
-                                         user_first_name=user.first_name, bot_first_name=context.bot.first_name),
+        greeting_message = _("MESSAGE_MC_GREETING_M {user_first_name} {bot_first_name}") if BOT_IS_MALE else _(
+            "MESSAGE_MC_GREETING_F {user_first_name} {bot_first_name}")
+
+        await self_destructing_reply(update, context, greeting_message.format(user_first_name=user.first_name,
+                                                                              bot_first_name=context.bot.first_name),
                                      GREETING_TIMEOUT, False)
 
 
@@ -327,7 +330,8 @@ async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     await update.message.reply_text(
         _("MESSAGE_DM_HELLO {bot_first_name} {main_chat_name}").format(bot_first_name=context.bot.first_name,
-            main_chat_name=main_chat.title), reply_markup=get_standard_keyboard(user.id))
+                                                                       main_chat_name=main_chat.title),
+        reply_markup=get_standard_keyboard(user.id))
 
 
 async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -443,7 +447,7 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
         await query.edit_message_reply_markup(None)
         await query.message.reply_text(_("MESSAGE_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"),
-            reply_markup=get_standard_keyboard(0, [COMMAND_RETIRE]))
+                                       reply_markup=get_standard_keyboard(0, [COMMAND_RETIRE]))
 
     return ConversationHandler.END
 
