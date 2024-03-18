@@ -22,6 +22,11 @@ from telegram.ext import (Application, CommandHandler, ContextTypes, Conversatio
                           CallbackQueryHandler, )
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Bot default configuration.
+#
+# To override these settings, edit `secret.py`.  It is loaded in the bottom and overwrites default values.
+
+# ----------------------------------------------------------------------------------------------------------------------
 # Internationalisation
 #
 # The official documentation suggests that bots should switch to the user's language or fall back to English.  This is
