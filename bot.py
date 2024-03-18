@@ -21,26 +21,56 @@ from telegram.constants import ParseMode
 from telegram.ext import (Application, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters,
                           CallbackQueryHandler, )
 
-DEFAULT_LANGUAGE = "en"
+# ----------------------------------------------------------------------------------------------------------------------
+# Internationalisation
+#
+# The official documentation suggests that bots should switch to the user's language or fall back to English.  This is
+# not completely adequate for this bot that is designed for groups of nationals; the default English may be not optimal.
+# The settings below define the "standard" behaviour suggested by the documentation, but may be overridden in secret.py.
+#
+# Whether the bot should try to switch to the user's language
 SPEAK_USER_LANGUAGE = True
-GREET_NEW_USERS = False
+# Language to fall back to if there is no translation to the user's language
+DEFAULT_LANGUAGE = "en"
+# Supported languages.  Must be a subset of languages that present in the `locales` directory.
+SUPPORTED_LANGUAGES = ('en', 'ru')
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Bot personality
+#
+# Bot name may imply its "gender" that affects "personal" messages (like "I am the host" vs. "I am the hostess").  This
+# setting tells which one to pick.
 BOT_IS_MALE = True
 
-# May re-define settings
-from secret import *
+# ----------------------------------------------------------------------------------------------------------------------
+# Greeting new users
+#
+# The bot can reply to each service message about a new user joining the group.  These bot replies can be deleted by the
+# fot after the specified delay.
+#
+# Whether to greet users that join the group
+GREETING_ENABLED = True
+# Delay in seconds for deleting the greeting, 0 for not deleting the greetings
+GREETING_TIMEOUT = 300
 
-# Supported languages.  Every time a new translation is added, this tuple should be updated.
-LANGUAGES = ('en', 'ru')
+# ----------------------------------------------------------------------------------------------------------------------
+# Moderation
+#
+# The bot may ask the moderators to approve changes made by users to their data records.  This setting tells whether
+# moderation is enabled.
+MODERATION_ENABLED = True
+
+# Generic delay in seconds for self-destructing messages
+DELETE_MESSAGE_TIMEOUT = 60
+
+# Defines some essential configuration parameters, and may re-define settings explained above
+from secret import *
 
 # Configure logging
 # Set higher logging level for httpx to avoid all GET and POST requests being logged.
 logging.basicConfig(format="[%(asctime)s] %(levelname)s %(message)s", level=logging.INFO)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
-
-# Timeout for the self-destructible messages (in seconds)
-DELETE_MESSAGE_TIMEOUT = 60  # default 60
-GREETING_TIMEOUT = 300  # default 300
 
 # Commands, sequences, and responses
 COMMAND_START, COMMAND_HELP, COMMAND_WHO, COMMAND_ENROLL, COMMAND_RETIRE = ("start", "help", "who", "enroll", "retire")
@@ -93,7 +123,7 @@ def update_language(user: User):
 
     user_lang = user.language_code if SPEAK_USER_LANGUAGE else DEFAULT_LANGUAGE
     translation = gettext.translation('bot', localedir='locales',
-                                      languages=[user_lang if user_lang in LANGUAGES else DEFAULT_LANGUAGE])
+                                      languages=[user_lang if user_lang in SUPPORTED_LANGUAGES else DEFAULT_LANGUAGE])
     translation.install()
 
     _ = translation.gettext
@@ -141,7 +171,8 @@ async def delete_message(context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def self_destructing_reply(update, context, message_body, timeout, delete_reply_to=True):
-    """Replies to the message contained in the update, then schedules the reply to be deleted"""
+    """Replies to the message contained in the update.  If `timeout` is greater than zero, schedules the reply to be
+    deleted."""
 
     if update.effective_message.chat_id == update.message.from_user.id:
         logger.error("Cannot delete messages in private chats!")
@@ -149,7 +180,8 @@ async def self_destructing_reply(update, context, message_body, timeout, delete_
 
     posted_message = await update.message.reply_text(message_body, parse_mode=ParseMode.HTML)
 
-    context.job_queue.run_once(delete_message, timeout, data=(posted_message, delete_reply_to))
+    if timeout > 0:
+        context.job_queue.run_once(delete_message, timeout, data=(posted_message, delete_reply_to))
 
 
 async def talking_private(update: Update, context) -> bool:
@@ -253,6 +285,7 @@ def get_moderation_keyboard(tg_id):
     return InlineKeyboardMarkup(((response_button_yes, response_button_no),))
 
 
+# noinspection PyUnusedLocal
 async def moderate_new_data(update: Update, context: ContextTypes.DEFAULT_TYPE, data) -> None:
     await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID,
                                    text=_("MESSAGE_ADMIN_APPROVE_USER_DATA {username}").format(
@@ -331,6 +364,7 @@ async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         reply_markup=get_standard_keyboard(user.id))
 
 
+# noinspection PyUnusedLocal
 async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show the current registry"""
 
@@ -359,6 +393,7 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await query.message.reply_text(text="\n".join(user_list), reply_markup=get_standard_keyboard(query.from_user.id))
 
 
+# noinspection PyUnusedLocal
 async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation and ask user for input"""
 
@@ -436,7 +471,8 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         await query.message.reply_text(_("MESSAGE_DM_ENROLL_COMPLETED"),
                                        reply_markup=get_standard_keyboard(from_user.id))
 
-        await moderate_new_data(update, context, saved_user_data)
+        if MODERATION_ENABLED:
+            await moderate_new_data(update, context, saved_user_data)
 
     elif query.data == RESPONSE_NO:
         delete_user_record(from_user.id)
@@ -449,6 +485,7 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     return ConversationHandler.END
 
 
+# noinspection PyUnusedLocal
 async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Approve or decline changes to user data"""
 
@@ -480,6 +517,7 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     return ConversationHandler.END
 
 
+# noinspection PyUnusedLocal
 async def retire(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Remove the user from the directory"""
 
@@ -567,10 +605,11 @@ def main() -> None:
                                                     CONFIRMING_LEGALITY: [CallbackQueryHandler(confirm_legality)]},
                                                 fallbacks=[]))
 
-    application.add_handler(CallbackQueryHandler(confirm_user_data, pattern=re.compile(
-        "^({approve}|{decline}):[0-9]+$".format(approve=MODERATOR_APPROVE, decline=MODERATOR_DECLINE))))
+    if MODERATION_ENABLED:
+        application.add_handler(CallbackQueryHandler(confirm_user_data, pattern=re.compile(
+            "^({approve}|{decline}):[0-9]+$".format(approve=MODERATOR_APPROVE, decline=MODERATOR_DECLINE))))
 
-    if GREET_NEW_USERS:
+    if GREETING_ENABLED:
         application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, greet_new_member))
 
     application.add_error_handler(error_handler)
