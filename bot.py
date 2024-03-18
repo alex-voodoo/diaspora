@@ -40,7 +40,7 @@ SUPPORTED_LANGUAGES = ('en', 'ru')
 #
 # Bot name may imply its "gender" that affects "personal" messages (like "I am the host" vs. "I am the hostess").  This
 # setting tells which one to pick.
-BOT_IS_MALE = True
+BOT_IS_MALE = False
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Greeting new users
