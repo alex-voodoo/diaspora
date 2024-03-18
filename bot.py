@@ -260,11 +260,8 @@ async def moderate_new_data(update: Update, context: ContextTypes.DEFAULT_TYPE, 
                                        location=data['location']), reply_markup=get_moderation_keyboard(data['tg_id']))
 
 
-async def maybe_greet_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Maybe (depending on the settings) show the welcome message to the user that has just joined the main chat"""
-
-    if not GREET_NEW_USERS:
-        return
+async def greet_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Show the welcome message to the user that has just joined the main chat"""
 
     for user in update.message.new_chat_members:
         if user.is_bot:
@@ -573,7 +570,8 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(confirm_user_data, pattern=re.compile(
         "^({approve}|{decline}):[0-9]+$".format(approve=MODERATOR_APPROVE, decline=MODERATOR_DECLINE))))
 
-    application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, maybe_greet_new_member))
+    if GREET_NEW_USERS:
+        application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, greet_new_member))
 
     application.add_error_handler(error_handler)
 
