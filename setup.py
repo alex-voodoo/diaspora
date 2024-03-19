@@ -78,7 +78,7 @@ MAIN_CHAT_ID = 0
 # Greeting new users
 #
 # The bot can reply to each service message about a new user joining the group.  These bot replies can be deleted by the
-# fot after the specified delay.
+# bot after the specified delay.
 #
 # Whether to greet users that join the group.  Default is True.
 # GREETING_ENABLED = True
