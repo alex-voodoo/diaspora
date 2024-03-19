@@ -88,9 +88,14 @@ MAIN_CHAT_ID = 0
 # ----------------------------------------------------------------------------------------------------------------------
 # Moderation
 #
-# The bot may ask the moderators to approve changes made by users to their data records.  This setting tells whether
-# moderation is enabled.  Default is True.
+# The bot may ask the moderators to approve changes made by users to their data records.
+#
+# Whether moderation is enabled.  Default is True.
 # MODERATION_ENABLED = True
+# Telegram IDs of moderators, each of them will receive requests to approve changes.
+# - If it is empty (default), the only moderator is the developer.
+# - If it is not empty, only those users are moderators.  Each moderator must be a member of the main chat.
+# MODERATOR_IDS = tuple()
 
 # Generic delay in seconds for self-destructing messages.  Default is 60.
 # DELETE_MESSAGE_TIMEOUT = 60

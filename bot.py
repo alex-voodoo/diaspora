@@ -61,9 +61,12 @@ GREETING_TIMEOUT = 300
 # ----------------------------------------------------------------------------------------------------------------------
 # Moderation
 #
-# The bot may ask the moderators to approve changes made by users to their data records.  This setting tells whether
-# moderation is enabled.
+# The bot may ask the moderators to approve changes made by users to their data records.
+#
+# Whether moderation is enabled
 MODERATION_ENABLED = True
+# Telegram IDs of moderators
+MODERATOR_IDS = tuple()
 
 # Generic delay in seconds for self-destructing messages
 DELETE_MESSAGE_TIMEOUT = 60
@@ -292,10 +295,15 @@ def get_moderation_keyboard(tg_id):
 
 # noinspection PyUnusedLocal
 async def moderate_new_data(update: Update, context: ContextTypes.DEFAULT_TYPE, data) -> None:
-    await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID,
-                                   text=_("MESSAGE_ADMIN_APPROVE_USER_DATA {username}").format(
-                                       username=data['tg_username'], occupation=data['occupation'],
-                                       location=data['location']), reply_markup=get_moderation_keyboard(data['tg_id']))
+    moderator_ids = MODERATOR_IDS if MODERATOR_IDS else (DEVELOPER_CHAT_ID,)
+
+    for moderator_id in moderator_ids:
+        logger.info("Sending moderation request to moderator ID {id}".format(id=moderator_id))
+        await context.bot.send_message(chat_id=moderator_id,
+                                       text=_("MESSAGE_ADMIN_APPROVE_USER_DATA {username}").format(
+                                           username=data['tg_username'], occupation=data['occupation'],
+                                           location=data['location']),
+                                       reply_markup=get_moderation_keyboard(data['tg_id']))
 
 
 async def greet_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -503,9 +511,15 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     command, tg_id = query.data.split(":")
 
     if command == MODERATOR_APPROVE:
+        logger.info("Moderator ID {moderator_id} approves new data from user ID {user_id}".format(
+            moderator_id=query.from_user.id, user_id=tg_id))
+
         await query.edit_message_reply_markup(None)
         await query.message.reply_text(_("MESSAGE_ADMIN_USER_RECORD_APPROVED"))
     elif command == MODERATOR_DECLINE:
+        logger.info("Moderator ID {moderator_id} declines new data from user ID {user_id}".format(
+            moderator_id=query.from_user.id, user_id=tg_id))
+
         with LogTime("UPDATE people"):
             global db_connection
             c = db_connection.cursor()
