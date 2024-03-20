@@ -61,8 +61,10 @@ MAIN_CHAT_ID = 0
 #
 # Whether the bot should try to switch to the user's language.  Default is True.
 # SPEAK_USER_LANGUAGE = True
+#
 # Language to fall back to if there is no translation to the user's language. Default is "en".
 # DEFAULT_LANGUAGE = "en"
+#
 # Supported languages.  Must be a subset of languages that present in the `locales` directory.  Default is tuple that
 # contains all available languages.
 # SUPPORTED_LANGUAGES = ('en', 'ru')
@@ -82,6 +84,7 @@ MAIN_CHAT_ID = 0
 #
 # Whether to greet users that join the group.  Default is True.
 # GREETING_ENABLED = True
+#
 # Delay in seconds for deleting the greeting, 0 for not deleting the greetings.  Default is 300.
 # GREETING_TIMEOUT = 300
 
@@ -92,6 +95,15 @@ MAIN_CHAT_ID = 0
 #
 # Whether moderation is enabled.  Default is True.
 # MODERATION_ENABLED = True
+#
+# Whether moderation is "lazy" (True, default) or "mandatory" (False).
+# "Lazy" moderation (also known as post-moderation) means that all changes are initially visible, but moderators may
+# decide later to decline them.  "Mandatory" moderation means that the data is initially hidden, and becomes visible
+# only after the explicit approval of a moderator.
+# Moderators' votes work symmetrically: with "lazy" moderation one "decline" vote is enough to hide the data, and in
+# "mandatory" mode one "approve" vote is enough to make it visible.
+# MODERATION_IS_LAZY = True
+#
 # Telegram IDs of moderators, each of them will receive requests to approve changes.
 # - If it is empty (default), the only moderator is the developer.
 # - If it is not empty, only those users are moderators.  Each moderator must be a member of the main chat.

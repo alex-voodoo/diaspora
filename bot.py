@@ -38,7 +38,7 @@ SPEAK_USER_LANGUAGE = True
 # Language to fall back to if there is no translation to the user's language
 DEFAULT_LANGUAGE = "en"
 # Supported languages.  Must be a subset of languages that present in the `locales` directory.
-SUPPORTED_LANGUAGES = ('en', 'ru')
+SUPPORTED_LANGUAGES = ("en", "ru")
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Bot personality
@@ -65,6 +65,8 @@ GREETING_TIMEOUT = 300
 #
 # Whether moderation is enabled
 MODERATION_ENABLED = True
+# Whether moderation is "lazy" (True) or "mandatory" (False)
+MODERATION_IS_LAZY = True
 # Telegram IDs of moderators
 MODERATOR_IDS = tuple()
 
@@ -130,7 +132,7 @@ def update_language(user: User):
     global _
 
     user_lang = user.language_code if SPEAK_USER_LANGUAGE else DEFAULT_LANGUAGE
-    translation = gettext.translation('bot', localedir='locales',
+    translation = gettext.translation("bot", localedir="locales",
                                       languages=[user_lang if user_lang in SUPPORTED_LANGUAGES else DEFAULT_LANGUAGE])
     translation.install()
 
@@ -301,9 +303,9 @@ async def moderate_new_data(update: Update, context: ContextTypes.DEFAULT_TYPE, 
         logger.info("Sending moderation request to moderator ID {id}".format(id=moderator_id))
         await context.bot.send_message(chat_id=moderator_id,
                                        text=_("MESSAGE_ADMIN_APPROVE_USER_DATA {username}").format(
-                                           username=data['tg_username'], occupation=data['occupation'],
-                                           location=data['location']),
-                                       reply_markup=get_moderation_keyboard(data['tg_id']))
+                                           username=data["tg_username"], occupation=data["occupation"],
+                                           location=data["location"]),
+                                       reply_markup=get_moderation_keyboard(data["tg_id"]))
 
 
 async def greet_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -433,7 +435,7 @@ async def received_occupation(update: Update, context: ContextTypes.DEFAULT_TYPE
     update_language(update.message.from_user)
 
     user_data = context.user_data
-    user_data['occupation'] = update.message.text
+    user_data["occupation"] = update.message.text
 
     await update.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_LOCATION"))
 
@@ -446,7 +448,7 @@ async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     update_language(update.message.from_user)
 
     user_data = context.user_data
-    user_data['location'] = update.message.text
+    user_data["location"] = update.message.text
 
     await update.message.reply_text(_("MESSAGE_DM_ENROLL_CONFIRM_LEGALITY"), reply_markup=get_yesno_keyboard())
 
@@ -470,19 +472,28 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             global db_connection
             c = db_connection.cursor()
 
-            c.execute("INSERT OR REPLACE INTO people (tg_id, tg_username, occupation, location) VALUES(?, ?, ?, ?)",
-                      (from_user.id, from_user.username, user_data["occupation"], user_data["location"]))
+            c.execute("INSERT OR REPLACE INTO people (tg_id, tg_username, occupation, location, is_suspended) "
+                      "VALUES(?, ?, ?, ?, ?)", (
+                      from_user.id, from_user.username, user_data["occupation"], user_data["location"],
+                      (0 if MODERATION_IS_LAZY else 1)))
 
             db_connection.commit()
         saved_user_data = copy.deepcopy(user_data)
         user_data.clear()
 
-        saved_user_data['tg_id'] = from_user.id
-        saved_user_data['tg_username'] = from_user.username
+        saved_user_data["tg_id"] = from_user.id
+        saved_user_data["tg_username"] = from_user.username
 
         await query.edit_message_reply_markup(None)
-        await query.message.reply_text(_("MESSAGE_DM_ENROLL_COMPLETED"),
-                                       reply_markup=get_standard_keyboard(from_user.id))
+
+        if not MODERATION_ENABLED:
+            message = _("MESSAGE_DM_ENROLL_COMPLETED")
+        elif MODERATION_IS_LAZY:
+            message = _("MESSAGE_DM_ENROLL_COMPLETED_POST_MODERATION")
+        else:
+            message = _("MESSAGE_DM_ENROLL_COMPLETED_PRE_MODERATION")
+
+        await query.message.reply_text(message, reply_markup=get_standard_keyboard(from_user.id))
 
         if MODERATION_ENABLED:
             await moderate_new_data(update, context, saved_user_data)
@@ -514,19 +525,29 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         logger.info("Moderator ID {moderator_id} approves new data from user ID {user_id}".format(
             moderator_id=query.from_user.id, user_id=tg_id))
 
+        if not MODERATION_IS_LAZY:
+            with LogTime("UPDATE people"):
+                global db_connection
+                c = db_connection.cursor()
+
+                c.execute("UPDATE people SET is_suspended=0 WHERE tg_id=?", (tg_id,))
+
+                db_connection.commit()
+
         await query.edit_message_reply_markup(None)
         await query.message.reply_text(_("MESSAGE_ADMIN_USER_RECORD_APPROVED"))
     elif command == MODERATOR_DECLINE:
         logger.info("Moderator ID {moderator_id} declines new data from user ID {user_id}".format(
             moderator_id=query.from_user.id, user_id=tg_id))
 
-        with LogTime("UPDATE people"):
-            global db_connection
-            c = db_connection.cursor()
+        if MODERATION_IS_LAZY:
+            with LogTime("UPDATE people"):
+                global db_connection
+                c = db_connection.cursor()
 
-            c.execute("UPDATE people SET is_suspended=1 WHERE tg_id=?", (tg_id,))
+                c.execute("UPDATE people SET is_suspended=1 WHERE tg_id=?", (tg_id,))
 
-            db_connection.commit()
+                db_connection.commit()
 
         await query.edit_message_reply_markup(None)
         await query.message.reply_text(_("MESSAGE_ADMIN_USER_RECORD_SUSPENDED"))
