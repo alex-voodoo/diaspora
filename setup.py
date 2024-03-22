@@ -109,5 +109,24 @@ MAIN_CHAT_ID = 0
 # - If it is not empty, only those users are moderators.  Each moderator must be a member of the main chat.
 # MODERATOR_IDS = tuple()
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Language moderation
+#
+# The bot may ask people in the main chat to speak the default language.  If the bot detects too many messages written
+# in languages other than the default one, it posts a message that reminds the people about rules of the group.
+#
+# Whether bot controls languages.  Default is False.
+# LANGUAGE_MODERATION_ENABLED = False
+#
+# Maximum number of languages in non-default language.  Default is 3.
+# LANGUAGE_MODERATION_MAX_FOREIGN_MESSAGE_COUNT = 3
+#
+# Minimum number of words in a message that the bot should evaluate when detecting the language.  Language detection may
+# fail for short messages.  Default is 3.
+# LANGUAGE_MODERATION_MIN_WORD_COUNT = 3
+
+# ----------------------------------------------------------------------------------------------------------------------
+# General settings
+#
 # Generic delay in seconds for self-destructing messages.  Default is 60.
 # DELETE_MESSAGE_TIMEOUT = 60

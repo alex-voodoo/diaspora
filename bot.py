@@ -12,9 +12,11 @@ import re
 import sqlite3
 import time
 import traceback
+from collections import deque
 from sqlite3 import Connection
 
 import httpx
+from langdetect import detect
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, User, ChatMemberLeft, ChatMemberBanned, \
     ChatMember
 from telegram.constants import ParseMode
@@ -70,6 +72,24 @@ MODERATION_IS_LAZY = True
 # Telegram IDs of moderators
 MODERATOR_IDS = tuple()
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Language moderation
+#
+# The bot may ask people in the main chat to speak the default language.  If the bot detects too many messages written
+# in languages other than the default one, it posts a message that reminds the people about rules of the group.
+#
+# Whether bot controls languages
+LANGUAGE_MODERATION_ENABLED = False
+#
+# Maximum number of languages in non-default language
+LANGUAGE_MODERATION_MAX_FOREIGN_MESSAGE_COUNT = 3
+#
+# Minimum number of words in a message that the bot should evaluate when detecting the language
+LANGUAGE_MODERATION_MIN_WORD_COUNT = 3
+
+# ----------------------------------------------------------------------------------------------------------------------
+# General settings
+#
 # Generic delay in seconds for self-destructing messages
 DELETE_MESSAGE_TIMEOUT = 60
 
@@ -92,6 +112,8 @@ MODERATOR_APPROVE, MODERATOR_DECLINE = ("approve", "decline")
 _ = gettext.gettext
 
 db_connection: Connection
+
+message_languages: deque
 
 
 class LogTime:
@@ -126,17 +148,21 @@ def user_from_update(update: Update):
     return None
 
 
-def update_language(user: User):
-    """Load the translation to match the user language"""
-
+def update_language_by_code(code: str):
     global _
 
-    user_lang = user.language_code if SPEAK_USER_LANGUAGE else DEFAULT_LANGUAGE
-    translation = gettext.translation("bot", localedir="locales",
-                                      languages=[user_lang if user_lang in SUPPORTED_LANGUAGES else DEFAULT_LANGUAGE])
+    translation = gettext.translation("bot", localedir="locales", languages=[code])
     translation.install()
 
     _ = translation.gettext
+
+
+def update_language(user: User):
+    """Load the translation to match the user language"""
+
+    user_lang = user.language_code if SPEAK_USER_LANGUAGE else DEFAULT_LANGUAGE
+
+    update_language_by_code(user_lang if user_lang in SUPPORTED_LANGUAGES else DEFAULT_LANGUAGE)
 
 
 def delete_user_record(tg_id):
@@ -325,6 +351,29 @@ async def greet_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         await self_destructing_reply(update, context, greeting_message.format(user_first_name=user.first_name,
                                                                               bot_first_name=context.bot.first_name),
                                      GREETING_TIMEOUT, False)
+
+
+async def detect_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """"""
+
+    if (update.effective_message.chat_id != MAIN_CHAT_ID or
+            len(update.message.text.split(" ")) < LANGUAGE_MODERATION_MIN_WORD_COUNT):
+        return
+
+    global message_languages
+
+    message_languages.append(detect(update.message.text))
+
+    if len(message_languages) < LANGUAGE_MODERATION_MAX_FOREIGN_MESSAGE_COUNT:
+        return
+
+    while len(message_languages) > LANGUAGE_MODERATION_MAX_FOREIGN_MESSAGE_COUNT:
+        message_languages.popleft()
+
+    if DEFAULT_LANGUAGE not in message_languages:
+        update_language_by_code(DEFAULT_LANGUAGE)
+        message_languages = deque()
+        await context.bot.send_message(chat_id=MAIN_CHAT_ID, text=_("MESSAGE_MC_SPEAK_DEFAULT_LANGUAGE"), parse_mode=ParseMode.HTML)
 
 
 async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -651,6 +700,12 @@ def main() -> None:
 
     if GREETING_ENABLED:
         application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, greet_new_member))
+
+    if LANGUAGE_MODERATION_ENABLED:
+        global message_languages
+        message_languages = deque()
+
+        application.add_handler(MessageHandler(filters.TEXT, detect_language))
 
     application.add_error_handler(error_handler)
 
