@@ -513,6 +513,8 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Approve or decline changes to user data"""
 
+    global db_connection
+
     query = update.callback_query
 
     update_language(query.from_user)
@@ -527,7 +529,6 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
         if not MODERATION_IS_LAZY:
             with LogTime("UPDATE people"):
-                global db_connection
                 c = db_connection.cursor()
 
                 c.execute("UPDATE people SET is_suspended=0 WHERE tg_id=?", (tg_id,))
@@ -542,7 +543,6 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
         if MODERATION_IS_LAZY:
             with LogTime("UPDATE people"):
-                global db_connection
                 c = db_connection.cursor()
 
                 c.execute("UPDATE people SET is_suspended=1 WHERE tg_id=?", (tg_id,))
