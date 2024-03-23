@@ -354,9 +354,11 @@ async def greet_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 
 async def detect_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """"""
+    """Detect language of the incoming message in the main chat, and show a warning if there are too many messages
+    written in non-default languages."""
 
     if (update.effective_message.chat_id != MAIN_CHAT_ID or
+            not hasattr(update.message, "text") or
             len(update.message.text.split(" ")) < LANGUAGE_MODERATION_MIN_WORD_COUNT):
         return
 
