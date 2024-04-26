@@ -6,7 +6,17 @@ The bot runs in a Telegram group (aka chat) and maintains a database of users of
 
 For example, some chat member might be a hairdresser that speaks the language of the chat.  Another person knows a lot about how the immigration office works in this city, and can help with advice.  They can talk to the bot and declare what they do and where they are located.  Others can then ask the bot about services available in the location, and they will see users who registered their services.
 
-The bot is specifically designed to keep the chat clean of its replies.  Users are supposed to talk to bot using private messages. 
+## Features
+
+The main purpose and the core feature is maintaining the database of members of a Telegram group who would like to advertise their services to other members of that group.  Any member may add themselves, alter the data they added earlier, or remove the record.  Any member may request the full list of records added by other users.  The bot does not talk to Telegram users who are not members of the group.
+
+In addition, the bot provides a set of moderation and housekeeping features, all optional and configurable:
+
+- Pre- or post-moderation of input from the users.  Every time a user sends new data, the bot asks the moderators if the new content is acceptable.  The content that did not pass the moderation will not be shown to other users.
+- Greeting new users.  The bot may react when a new user joins the group by sending a greeting message to the group.
+- Language moderation.  The bot may detect language of messages posted by the users, and post a warning about preferred (or required) language if too many messages were sent in other languages.
+
+The bot deletes most of its own messages some time after posting them, to keep the chat clean of automatic replies.  Users are supposed to talk to bot using private messages.
 
 ## Setup and usage
 
@@ -22,8 +32,14 @@ Now you need to configure your instance of the bot.  Follow these steps to compl
 Finally, complete the setup from the Telegram side.
 
 1. Add the bot to the Telegram group that you want it to serve (aka "main chat")
-2. Grant the bot the administrator privilege (this is needed to allow the bot deleting certain messages)
+2. Grant the bot the administrator privilege to allow the bot 1) to check that the user is eligible for using it, and 2) to delete certain messages
 3. Disallow chats in the bot settings via BotFather to prevent random people from finding your bot and adding it to their chats
 4. Run `python bot.py` again.  In the main chat, issue the `/start` command of your bot, like this: `/start@YourGroupBot`, where `YourGroupBot` is the unique name of the bot that you registered earlier with BotFather.  The bot will send you the ID of the main chat in a private message.  Note that IDs of Telegram groups can be negative.  Copy that ID and paste it as the new value of the `MAIN_CHAT_ID` parameter in the `secret.py` file.  Stop the bot by pressing `Ctrl+C` in the terminal.
 
 Now the bot is ready to work.  You can start it by running `python bot.py` in a command terminal or adding it to some system auto-run.  The script will run indefinitely, unless something severe causes it to crash.  Should any non-fatal error occur in the bot, it will send error messages to you via private Telegram message.
+
+## Configuration
+
+To tune your bot, read and edit `secret.py`.  Uncomment settings that you want to alter and put your values.
+
+Do not forget to restart the bot after you have changed the settings!
