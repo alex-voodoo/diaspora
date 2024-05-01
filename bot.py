@@ -23,6 +23,8 @@ from telegram.constants import ParseMode
 from telegram.ext import (Application, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters,
                           CallbackQueryHandler, )
 
+from features import antispam
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Bot default configuration.
 #
@@ -86,6 +88,24 @@ LANGUAGE_MODERATION_MAX_FOREIGN_MESSAGE_COUNT = 3
 #
 # Minimum number of words in a message that the bot should evaluate when detecting the language
 LANGUAGE_MODERATION_MIN_WORD_COUNT = 3
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Antispam
+#
+# The bot may detect and delete spam messages.  Spammers in Telegram are normally regular users that join the group, sit
+# silent for some time, and then send their junk, hoping that someone will see and buy it before the moderators react.
+# Telegram blocks user accounts that have been reported as spammers, which makes it not worth it trying to mimic the
+# good user before sending spam.  Therefore, to eliminate most spam, it should be enough to evaluate the first message a
+# new user sends to the group.
+#
+# Whether the feature is enabled
+ANTISPAM_ENABLED = False
+# Whether to use simple filter that triggers on a single word
+ANTISPAM_STOP_WORDS_ENABLED = False
+# Whether to use OpenAI-backed filter
+ANTISPAM_OPENAI_ENABLED = False
+# Whether to use OpenAI-backed filter
+ANTISPAM_OPENAI_API_KEY = ""
 
 # ----------------------------------------------------------------------------------------------------------------------
 # General settings
@@ -186,6 +206,41 @@ def has_user_record(td_ig):
             return True
 
         return False
+
+
+def add_new_member(tg_id):
+    """Registers the user ID in the new_members table"""
+
+    with LogTime("INSERT INTO new_members"):
+        global db_connection
+        c = db_connection.cursor()
+
+        c.execute("INSERT INTO new_members (tg_id) VALUES(?)", (tg_id,))
+
+
+def is_new_member(tg_id):
+    """Returns whether the user ID exists in the new_members table"""
+
+    with LogTime("SELECT FROM new_members WHERE tg_id=?"):
+        global db_connection
+        c = db_connection.cursor()
+
+        for _ in c.execute("SELECT tg_id FROM new_members WHERE tg_id=?", (tg_id,)):
+            return True
+
+        return False
+
+
+def delete_new_member(tg_id):
+    """Deletes the user ID in the new_members table"""
+
+    with LogTime("DELETE FROM new_members WHERE tg_id=?"):
+        global db_connection
+        c = db_connection.cursor()
+
+        c.execute("DELETE FROM new_members WHERE tg_id=?", (tg_id,))
+
+        db_connection.commit()
 
 
 async def delete_message(context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -560,6 +615,54 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     return ConversationHandler.END
 
 
+async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Detect spam and take appropriate action"""
+
+    if update.effective_message is None:
+        logging.warning("The update does not have any message, cannot detect spam")
+        return
+    message = update.effective_message
+
+    if message.chat_id != MAIN_CHAT_ID or not hasattr(message, "text"):
+        return
+
+    if message.new_chat_members:
+        for user in message.new_chat_members:
+            logging.info("Registering a new user ID {user_id}".format(user_id=user.id))
+            add_new_member(user.id)
+        return
+
+    update_language(message.from_user)
+
+    if not is_new_member(message.from_user.id):
+        return
+
+    logging.info("User ID {user_id} posts their first message".format(user_id=message.from_user.id))
+    delete_new_member(message.from_user.id)
+
+    message_text = message.text
+    found_spam = False
+
+    if ANTISPAM_STOP_WORDS_ENABLED:
+        if antispam.detect_stop_words(message_text):
+            logging.info("SPAM detected by stop words in the first message from user ID {user_id}".format(
+                user_id=message.from_user.id))
+            found_spam = True
+
+    if not found_spam and ANTISPAM_OPENAI_ENABLED:
+        if antispam.detect_openai(message_text, ANTISPAM_OPENAI_API_KEY):
+            logging.info("SPAM detected by OpenAI in the first message from user ID {user_id}".format(
+                user_id=message.from_user.id))
+            found_spam = True
+
+    if found_spam:
+        admins = " ".join("@" + admin for admin in ADMIN_USERNAMES)
+        await context.bot.send_message(chat_id=MAIN_CHAT_ID, text=_("MESSAGE_MC_SPAM_DETECTED").format(admins=admins))
+        return
+
+    logging.info("Nothing wrong with this message.")
+
+
 # noinspection PyUnusedLocal
 async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Approve or decline changes to user data"""
@@ -695,6 +798,10 @@ def main() -> None:
                                                     TYPING_LOCATION: [MessageHandler(filters.TEXT, received_location)],
                                                     CONFIRMING_LEGALITY: [CallbackQueryHandler(confirm_legality)]},
                                                 fallbacks=[]))
+
+    if ANTISPAM_ENABLED:
+        application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, detect_spam))
+        application.add_handler(MessageHandler(filters.TEXT, detect_spam))
 
     if MODERATION_ENABLED:
         application.add_handler(CallbackQueryHandler(confirm_user_data, pattern=re.compile(

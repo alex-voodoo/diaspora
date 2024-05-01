@@ -126,6 +126,24 @@ MAIN_CHAT_ID = 0
 # LANGUAGE_MODERATION_MIN_WORD_COUNT = 3
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Antispam
+#
+# The bot may detect and delete spam messages.  Spammers in Telegram are normally regular users that join the group, sit
+# silent for some time, and then send their junk, hoping that someone will see and buy it before the moderators react.
+# Telegram blocks user accounts that have been reported as spammers, which makes it not worth it trying to mimic the
+# good user before sending spam.  Therefore, to eliminate most spam, it should be enough to evaluate the first message
+# sent by a new user to the group.
+#
+# Whether the feature is enabled.  Default is False.
+# ANTISPAM_ENABLED = False
+# Whether to use simple filter that triggers on a single word.  Default is False.
+# ANTISPAM_STOP_WORDS_ENABLED = False
+# Whether to use OpenAI-backed filter.  Default is False.
+# ANTISPAM_OPENAI_ENABLED = False
+# API key for the OpenAI API
+# ANTISPAM_OPENAI_API_KEY = ""
+
+# ----------------------------------------------------------------------------------------------------------------------
 # General settings
 #
 # Generic delay in seconds for self-destructing messages.  Default is 60.
