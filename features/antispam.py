@@ -14,7 +14,7 @@ def detect_stop_words(text):
     if stop_words is None:
         logging.info("Loading the list of stop words")
         stop_words = []
-        with open("antispam/resources/bad_keywords.txt") as f:
+        with open("features/resources/bad_keywords.txt") as f:
             for line in f.readlines():
                 stop_words.append(line.strip())
 
@@ -32,7 +32,7 @@ def detect_openai(text, api_key, threshold=0.5):
     # Load the model using joblib
     if openai_model is None:
         logging.info("Loading the OpenAI model")
-        filename = "antispam/resources/svm_model.joblib"
+        filename = "features/resources/svm_model.joblib"
         openai_model = joblib.load(filename)
 
     # embedding
