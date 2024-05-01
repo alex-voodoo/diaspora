@@ -20,9 +20,6 @@ def detect_stop_words(text):
 
     text_processed = [word.strip(string.punctuation) for word in text.lower().split()]
 
-    if any([bad_kw in text_processed for bad_kw in stop_words]):
-        print(stop_words, text_processed)
-
     return any([bad_kw in text_processed for bad_kw in stop_words])
 
 

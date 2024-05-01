@@ -29,6 +29,9 @@ def main() -> None:
               "\"last_modified\" DATETIME DEFAULT CURRENT_TIMESTAMP,"
               "\"is_suspended\" INTEGER DEFAULT 0,"
               "PRIMARY KEY(\"tg_id\"))")
+    c.execute("CREATE TABLE \"new_members\" ("
+              "\"tg_id\" INTEGER,"
+              "PRIMARY KEY(\"tg_id\"))")
 
     conn.commit()
     conn.close()
