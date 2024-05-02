@@ -212,11 +212,11 @@ def has_user_record(td_ig):
 def add_new_member(tg_id):
     """Registers the user ID in the new_members table"""
 
-    with LogTime("INSERT INTO new_members"):
+    with LogTime("INSERT OR REPLACE INTO new_members"):
         global db_connection
         c = db_connection.cursor()
 
-        c.execute("INSERT INTO new_members (tg_id) VALUES(?)", (tg_id,))
+        c.execute("INSERT OR REPLACE INTO new_members (tg_id) VALUES(?)", (tg_id,))
 
 
 def is_new_member(tg_id):
