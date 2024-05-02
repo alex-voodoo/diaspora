@@ -118,7 +118,7 @@ from secret import *
 
 # Configure logging
 # Set higher logging level for httpx to avoid all GET and POST requests being logged.
-logging.basicConfig(format="[%(asctime)s] %(levelname)s %(message)s", level=logging.INFO)
+logging.basicConfig(format="[%(asctime)s %(levelname)s %(name)s %(filename)s:%(lineno)d] %(message)s", level=logging.INFO, filename="bot.log")
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
@@ -155,7 +155,8 @@ class LogTime:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         elapsed = (time.perf_counter() - self.started_at) * 1000
-        logger.info("{name} took {elapsed} ms".format(name=self.name, elapsed=elapsed))
+        time_logger = logging.getLogger("time")
+        time_logger.info("{name} took {elapsed} ms".format(name=self.name, elapsed=elapsed))
 
 
 def user_from_update(update: Update):
@@ -619,7 +620,7 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     """Detect spam and take appropriate action"""
 
     if update.effective_message is None:
-        logging.warning("The update does not have any message, cannot detect spam")
+        logger.warning("The update does not have any message, cannot detect spam")
         return
     message = update.effective_message
 
@@ -628,7 +629,7 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
     if message.new_chat_members:
         for user in message.new_chat_members:
-            logging.info("Registering a new user ID {user_id}".format(user_id=user.id))
+            logger.info("Registering a new user ID {user_id}".format(user_id=user.id))
             add_new_member(user.id)
         return
 
@@ -637,7 +638,7 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     if not is_new_member(message.from_user.id):
         return
 
-    logging.info("User ID {user_id} posts their first message".format(user_id=message.from_user.id))
+    logger.info("User ID {user_id} posts their first message".format(user_id=message.from_user.id))
     delete_new_member(message.from_user.id)
 
     message_text = message.text
@@ -645,13 +646,13 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
     if ANTISPAM_STOP_WORDS_ENABLED:
         if antispam.detect_stop_words(message_text):
-            logging.info("SPAM detected by stop words in the first message from user ID {user_id}".format(
+            logger.info("SPAM detected by stop words in the first message from user ID {user_id}".format(
                 user_id=message.from_user.id))
             found_spam = True
 
     if not found_spam and ANTISPAM_OPENAI_ENABLED:
         if antispam.detect_openai(message_text, ANTISPAM_OPENAI_API_KEY):
-            logging.info("SPAM detected by OpenAI in the first message from user ID {user_id}".format(
+            logger.info("SPAM detected by OpenAI in the first message from user ID {user_id}".format(
                 user_id=message.from_user.id))
             found_spam = True
 
@@ -660,7 +661,7 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         await context.bot.send_message(chat_id=MAIN_CHAT_ID, text=_("MESSAGE_MC_SPAM_DETECTED").format(admins=admins))
         return
 
-    logging.info("Nothing wrong with this message.")
+    logger.info("Nothing wrong with this message.")
 
 
 # noinspection PyUnusedLocal
