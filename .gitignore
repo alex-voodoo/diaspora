@@ -1,6 +1,8 @@
 .idea
+features/resources
 people.db
 __pycache__
 secret.py
 venv
+*.log
 *.pot
