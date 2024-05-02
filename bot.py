@@ -210,7 +210,7 @@ def has_user_record(td_ig):
 
 
 def register_good_member(tg_id):
-    """Registers the user ID in the new_members table"""
+    """Registers the user ID in the antispam_allowlist table"""
 
     with LogTime("INSERT OR REPLACE INTO antispam_allowlist"):
         global db_connection
@@ -222,9 +222,9 @@ def register_good_member(tg_id):
 
 
 def is_good_member(tg_id):
-    """Returns whether the user ID exists in the new_members table"""
+    """Returns whether the user ID exists in the antispam_allowlist table"""
 
-    with LogTime("SELECT FROM new_members WHERE tg_id=?"):
+    with LogTime("SELECT FROM antispam_allowlist WHERE tg_id=?"):
         global db_connection
         c = db_connection.cursor()
 
