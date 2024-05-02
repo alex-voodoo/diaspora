@@ -799,22 +799,22 @@ def main() -> None:
                                                     CONFIRMING_LEGALITY: [CallbackQueryHandler(confirm_legality)]},
                                                 fallbacks=[]))
 
+    if GREETING_ENABLED:
+        application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, greet_new_member))
+
     if ANTISPAM_ENABLED:
-        application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, detect_spam))
-        application.add_handler(MessageHandler(filters.TEXT, detect_spam))
+        application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, detect_spam), group=1)
+        application.add_handler(MessageHandler(filters.TEXT, detect_spam), group=1)
 
     if MODERATION_ENABLED:
         application.add_handler(CallbackQueryHandler(confirm_user_data, pattern=re.compile(
-            "^({approve}|{decline}):[0-9]+$".format(approve=MODERATOR_APPROVE, decline=MODERATOR_DECLINE))))
-
-    if GREETING_ENABLED:
-        application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, greet_new_member))
+            "^({approve}|{decline}):[0-9]+$".format(approve=MODERATOR_APPROVE, decline=MODERATOR_DECLINE))), group=2)
 
     if LANGUAGE_MODERATION_ENABLED:
         global message_languages
         message_languages = deque()
 
-        application.add_handler(MessageHandler(filters.TEXT, detect_language))
+        application.add_handler(MessageHandler(filters.TEXT, detect_language), group=3)
 
     application.add_error_handler(error_handler)
 
