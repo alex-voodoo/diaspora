@@ -209,39 +209,29 @@ def has_user_record(td_ig):
         return False
 
 
-def add_new_member(tg_id):
+def register_good_member(tg_id):
     """Registers the user ID in the new_members table"""
 
-    with LogTime("INSERT OR REPLACE INTO new_members"):
+    with LogTime("INSERT OR REPLACE INTO antispam_allowlist"):
         global db_connection
         c = db_connection.cursor()
 
-        c.execute("INSERT OR REPLACE INTO new_members (tg_id) VALUES(?)", (tg_id,))
+        c.execute("INSERT OR REPLACE INTO antispam_allowlist (tg_id) VALUES(?)", (tg_id,))
+
+        db_connection.commit()
 
 
-def is_new_member(tg_id):
+def is_good_member(tg_id):
     """Returns whether the user ID exists in the new_members table"""
 
     with LogTime("SELECT FROM new_members WHERE tg_id=?"):
         global db_connection
         c = db_connection.cursor()
 
-        for _ in c.execute("SELECT tg_id FROM new_members WHERE tg_id=?", (tg_id,)):
+        for _ in c.execute("SELECT tg_id FROM antispam_allowlist WHERE tg_id=?", (tg_id,)):
             return True
 
         return False
-
-
-def delete_new_member(tg_id):
-    """Deletes the user ID in the new_members table"""
-
-    with LogTime("DELETE FROM new_members WHERE tg_id=?"):
-        global db_connection
-        c = db_connection.cursor()
-
-        c.execute("DELETE FROM new_members WHERE tg_id=?", (tg_id,))
-
-        db_connection.commit()
 
 
 async def delete_message(context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -624,44 +614,42 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         return
     message = update.effective_message
 
-    if message.chat_id != MAIN_CHAT_ID or not hasattr(message, "text"):
+    if message.chat_id != MAIN_CHAT_ID:
+        logger.info("The message does not belong to the main chat, will not detect spam")
         return
 
-    if message.new_chat_members:
-        for user in message.new_chat_members:
-            logger.info("Registering a new user ID {user_id}".format(user_id=user.id))
-            add_new_member(user.id)
+    if not hasattr(message, "text"):
+        logger.info("The message does not have text, cannot detect spam")
         return
 
     update_language(message.from_user)
 
-    if not is_new_member(message.from_user.id):
+    if is_good_member(message.from_user.id):
         return
 
     logger.info("User ID {user_id} posts their first message".format(user_id=message.from_user.id))
-    delete_new_member(message.from_user.id)
 
-    message_text = message.text
     found_spam = False
 
     if ANTISPAM_STOP_WORDS_ENABLED:
-        if antispam.detect_stop_words(message_text):
+        if antispam.detect_stop_words(message.text):
             logger.info("SPAM detected by stop words in the first message from user ID {user_id}".format(
                 user_id=message.from_user.id))
             found_spam = True
 
     if not found_spam and ANTISPAM_OPENAI_ENABLED:
-        if antispam.detect_openai(message_text, ANTISPAM_OPENAI_API_KEY):
+        if antispam.detect_openai(message.text, ANTISPAM_OPENAI_API_KEY):
             logger.info("SPAM detected by OpenAI in the first message from user ID {user_id}".format(
                 user_id=message.from_user.id))
             found_spam = True
 
     if found_spam:
         admins = " ".join("@" + admin for admin in ADMIN_USERNAMES)
-        await context.bot.send_message(chat_id=MAIN_CHAT_ID, text=_("MESSAGE_MC_SPAM_DETECTED").format(admins=admins))
+        await message.reply_text(text=_("MESSAGE_MC_SPAM_DETECTED").format(admins=admins))
         return
 
     logger.info("Nothing wrong with this message.")
+    register_good_member(message.from_user.id)
 
 
 # noinspection PyUnusedLocal
@@ -804,7 +792,6 @@ def main() -> None:
         application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, greet_new_member))
 
     if ANTISPAM_ENABLED:
-        application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, detect_spam), group=1)
         application.add_handler(MessageHandler(filters.TEXT, detect_spam), group=1)
 
     if MODERATION_ENABLED:
