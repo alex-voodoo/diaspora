@@ -45,6 +45,12 @@ if __name__ == "__main__":
 
 # Below is the template for the secret.py.
 # %TEMPLATE%
+"""
+Custom configuration of the bot.
+
+This is where you keep all your secrets, and also here you can override the default settings.
+"""
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Mandatory settings
 #
