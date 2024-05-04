@@ -101,7 +101,7 @@ def update_language(user: User):
 
 
 def delete_user_record(tg_id):
-    """Deletes the user record from the DB"""
+    """Delete the user record from the DB"""
 
     with LogTime("DELETE FROM people WHERE tg_id=?"):
         global db_connection
@@ -113,6 +113,8 @@ def delete_user_record(tg_id):
 
 
 def has_user_record(td_ig):
+    """Return whether there is a user record for the given ID in the people table"""
+
     with LogTime("SELECT FROM people WHERE tg_id=?"):
         global db_connection
         c = db_connection.cursor()
@@ -124,7 +126,7 @@ def has_user_record(td_ig):
 
 
 def register_good_member(tg_id):
-    """Registers the user ID in the antispam_allowlist table"""
+    """Register the user ID in the antispam_allowlist table"""
 
     with LogTime("INSERT OR REPLACE INTO antispam_allowlist"):
         global db_connection
@@ -136,7 +138,7 @@ def register_good_member(tg_id):
 
 
 def is_good_member(tg_id):
-    """Returns whether the user ID exists in the antispam_allowlist table"""
+    """Return whether the user ID exists in the antispam_allowlist table"""
 
     with LogTime("SELECT FROM antispam_allowlist WHERE tg_id=?"):
         global db_connection

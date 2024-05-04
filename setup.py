@@ -45,7 +45,7 @@ def main() -> None:
 
     print("- Created people.db: the empty database")
 
-    print("The minimal setup is complete.  Refer to README.md for more information.")
+    print("The first step of your setup is complete.  Refer to README.md for more information.")
 
 if __name__ == "__main__":
     main()
