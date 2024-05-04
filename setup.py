@@ -32,6 +32,13 @@ def main() -> None:
     c.execute("CREATE TABLE \"antispam_allowlist\" ("
               "\"tg_id\" INTEGER,"
               "PRIMARY KEY(\"tg_id\"))")
+    c.execute("CREATE TABLE \"spam\" ("
+              "\"id\" INTEGER,"
+              "\"text\" TEXT,"
+              "\"from_user_tg_id\" INTEGER,"
+              "\"trigger\" TEXT,"
+              "\"timestamp\" INTEGER DEFAULT CURRENT_TIMESTAMP,"
+              "PRIMARY KEY(\"id\" AUTOINCREMENT))")
 
     conn.commit()
     conn.close()
