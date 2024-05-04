@@ -148,6 +148,19 @@ def is_good_member(tg_id):
         return False
 
 
+def save_spam(text, from_user_tg_id, trigger):
+    """Save a message that triggered antispam"""
+
+    with LogTime("INSERT INTO spam"):
+        global db_connection
+        c = db_connection.cursor()
+
+        c.execute("INSERT INTO spam (text, from_user_tg_id, trigger) VALUES(?, ?, ?",
+                  (text, from_user_tg_id, trigger))
+
+        db_connection.commit()
+
+
 async def delete_message(context: ContextTypes.DEFAULT_TYPE) -> None:
     """Delete the message contained in the data of the context job
 
@@ -536,29 +549,35 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         logger.info("The message does not have text, cannot detect spam")
         return
 
-    update_language(message.from_user)
-
     if is_good_member(message.from_user.id):
         return
 
     logger.info("User ID {user_id} posts their first message".format(user_id=message.from_user.id))
 
     found_spam = False
+    trigger = ""
 
     if ANTISPAM_STOP_WORDS_ENABLED:
         if antispam.detect_stop_words(message.text):
             logger.info("SPAM detected by stop words in the first message from user ID {user_id}".format(
                 user_id=message.from_user.id))
             found_spam = True
+            trigger = "keyword"
 
     if not found_spam and ANTISPAM_OPENAI_ENABLED:
         if antispam.detect_openai(message.text, ANTISPAM_OPENAI_API_KEY):
             logger.info("SPAM detected by OpenAI in the first message from user ID {user_id}".format(
                 user_id=message.from_user.id))
             found_spam = True
+            trigger = "openai"
 
     if found_spam:
+        save_spam(message.text, message.from_user.id, trigger)
+
         admins = " ".join("@" + admin for admin in ADMIN_USERNAMES)
+
+        update_language(DEFAULT_LANGUAGE)
+
         await message.reply_text(text=_("MESSAGE_MC_SPAM_DETECTED").format(admins=admins))
         return
 
