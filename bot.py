@@ -157,7 +157,7 @@ def save_spam(text, from_user_tg_id, trigger):
         global db_connection
         c = db_connection.cursor()
 
-        c.execute("INSERT INTO spam (text, from_user_tg_id, trigger) VALUES(?, ?, ?",
+        c.execute("INSERT INTO spam (text, from_user_tg_id, trigger) VALUES(?, ?, ?)",
                   (text, from_user_tg_id, trigger))
 
         db_connection.commit()
