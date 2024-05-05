@@ -31,7 +31,8 @@ from settings import *
 
 # Configure logging
 # Set higher logging level for httpx to avoid all GET and POST requests being logged.
-logging.basicConfig(format="[%(asctime)s %(levelname)s %(name)s %(filename)s:%(lineno)d] %(message)s", level=logging.INFO, filename="bot.log")
+logging.basicConfig(format="[%(asctime)s %(levelname)s %(name)s %(filename)s:%(lineno)d] %(message)s",
+                    level=logging.INFO, filename="bot.log")
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
@@ -288,7 +289,8 @@ async def detect_language(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if DEFAULT_LANGUAGE not in message_languages:
         update_language_by_code(DEFAULT_LANGUAGE)
         message_languages = deque()
-        await context.bot.send_message(chat_id=MAIN_CHAT_ID, text=_("MESSAGE_MC_SPEAK_DEFAULT_LANGUAGE"), parse_mode=ParseMode.HTML)
+        await context.bot.send_message(chat_id=MAIN_CHAT_ID, text=_("MESSAGE_MC_SPEAK_DEFAULT_LANGUAGE"),
+                                       parse_mode=ParseMode.HTML)
 
 
 async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
