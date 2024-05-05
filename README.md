@@ -26,20 +26,20 @@ Follow the [official documentation](https://core.telegram.org/bots#how-do-i-crea
 
 Now you need to configure your instance of the bot.  Follow these steps to complete this process:
 1. Open the command terminal and activate the virtual environment that you created above
-2. Run `python setup.py` and provide your token when requested.  The script will render `secret.py` that is necessary for the bot to run.
-3. Run `python bot.py`.  Find your bot in Telegram and talk to it in private.  Initiate the conversation by clicking the Start button in the direct message chat.  The bot will welcome you and show the buttons for its functions.  In the terminal you will see a log message: `"INFO Welcoming user {username} (chat ID {id})"`.  Copy the chat ID, open `secret.py` and paste that number as the new value of the `DEVELOPER_CHAT_ID` parameter.  Stop the bot by pressing `Ctrl+C` in the terminal.
+2. Run `python setup.py` and provide your token when requested.  The script will render `settings.py` that is necessary for the bot to run.
+3. Run `python bot.py`.  Find your bot in Telegram and talk to it in private.  Initiate the conversation by clicking the Start button in the direct message chat.  The bot will welcome you and show the buttons for its functions.  In the terminal you will see a log message: `"INFO Welcoming user {username} (chat ID {id})"`.  Copy the chat ID, open `settings.py` and paste that number as the new value of the `DEVELOPER_CHAT_ID` parameter.  Stop the bot by pressing `Ctrl+C` in the terminal.
 
 Finally, complete the setup from the Telegram side.
 
 1. Add the bot to the Telegram group that you want it to serve (aka "main chat")
 2. Grant the bot the administrator privilege to allow the bot 1) to check that the user is eligible for using it, and 2) to delete certain messages
 3. Disallow chats in the bot settings via BotFather to prevent random people from finding your bot and adding it to their chats
-4. Run `python bot.py` again.  In the main chat, issue the `/start` command of your bot, like this: `/start@YourGroupBot`, where `YourGroupBot` is the unique name of the bot that you registered earlier with BotFather.  The bot will send you the ID of the main chat in a private message.  Note that IDs of Telegram groups can be negative.  Copy that ID and paste it as the new value of the `MAIN_CHAT_ID` parameter in the `secret.py` file.  Stop the bot by pressing `Ctrl+C` in the terminal.
+4. Run `python bot.py` again.  In the main chat, issue the `/start` command of your bot, like this: `/start@YourGroupBot`, where `YourGroupBot` is the unique name of the bot that you registered earlier with BotFather.  The bot will send you the ID of the main chat in a private message.  Note that IDs of Telegram groups can be negative.  Copy that ID and paste it as the new value of the `MAIN_CHAT_ID` parameter in the `settings.py` file.  Stop the bot by pressing `Ctrl+C` in the terminal.
 
 Now the bot is ready to work.  You can start it by running `python bot.py` in a command terminal or adding it to some system auto-run.  The script will run indefinitely, unless something severe causes it to crash.  Should any non-fatal error occur in the bot, it will send error messages to you via private Telegram message.
 
 ## Configuration
 
-To tune your bot, read and edit `secret.py`.  Uncomment settings that you want to alter and put your values.
+To tune your bot, read and edit `settings.py`.  Uncomment settings that you want to alter and put your values.
 
 Do not forget to restart the bot after you have changed the settings!

@@ -3,19 +3,19 @@ import sqlite3
 
 
 def main() -> None:
-    if os.path.exists("secret.py") or os.path.exists("people.db"):
-        print("ERROR: local files already exist!  Please remove secret.py and people.db before running this script.")
+    if os.path.exists("settings.py") or os.path.exists("people.db"):
+        print("ERROR: local files already exist!  Please remove settings.py and people.db before running this script.")
         return
 
-    # Create secret.py
+    # Create settings.py
     bot_token = input("Please enter your bot's token: ")
 
     with open(__file__, "r") as this_file:
         secret_lines = this_file.read()
         secret_lines = secret_lines.split("# %TEMPLATE%\n")[-1].format(bot_token=bot_token.replace("\"", "\\\""))
-        with open("secret.py", "w") as secret:
+        with open("settings.py", "w") as secret:
             secret.write(secret_lines)
-    print("- Created secret.py: bot configuration")
+    print("- Created settings.py: bot configuration")
 
     # Create people.db
     conn = sqlite3.connect("people.db")
@@ -50,7 +50,7 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 
-# Below is the template for the secret.py.
+# Below is the template for the settings.py.
 # %TEMPLATE%
 """
 Custom configuration of the bot.
@@ -73,7 +73,7 @@ MAIN_CHAT_ID = 0
 #
 # The official documentation suggests that bots should switch to the user's language or fall back to English.  This is
 # not completely adequate for this bot that is designed for groups of nationals; the default English may be not optimal.
-# The settings below define the "standard" behaviour suggested by the documentation, but may be overridden in secret.py.
+# The settings below define the "standard" behaviour suggested by the documentation, but may be overridden in settings.py.
 #
 # Whether the bot should try to switch to the user's language.  Default is True.
 # SPEAK_USER_LANGUAGE = True
