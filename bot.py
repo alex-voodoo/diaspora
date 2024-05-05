@@ -12,11 +12,9 @@ import html
 import json
 import logging
 import re
-import sqlite3
 import time
 import traceback
 from collections import deque
-from sqlite3 import Connection
 
 import httpx
 from langdetect import detect
@@ -26,6 +24,7 @@ from telegram.constants import ParseMode
 from telegram.ext import (Application, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters,
                           CallbackQueryHandler, )
 
+from common import db
 from features import antispam
 
 from settings import *
@@ -44,8 +43,6 @@ MODERATOR_APPROVE, MODERATOR_DECLINE = ("approve", "decline")
 
 # Global translation context.  Updated by update_language() depending on the locale of the current user.
 _ = gettext.gettext
-
-db_connection: Connection
 
 message_languages: deque
 
@@ -100,67 +97,8 @@ def update_language(user: User):
     update_language_by_code(user_lang if user_lang in SUPPORTED_LANGUAGES else DEFAULT_LANGUAGE)
 
 
-def delete_user_record(tg_id):
-    """Delete the user record from the DB"""
-
-    with LogTime("DELETE FROM people WHERE tg_id=?"):
-        global db_connection
-        c = db_connection.cursor()
-
-        c.execute("DELETE FROM people WHERE tg_id=?", (tg_id,))
-
-        db_connection.commit()
 
 
-def has_user_record(td_ig):
-    """Return whether there is a user record for the given ID in the people table"""
-
-    with LogTime("SELECT FROM people WHERE tg_id=?"):
-        global db_connection
-        c = db_connection.cursor()
-
-        for _ in c.execute("SELECT tg_username, occupation, location FROM people WHERE tg_id=?", (td_ig,)):
-            return True
-
-        return False
-
-
-def register_good_member(tg_id):
-    """Register the user ID in the antispam_allowlist table"""
-
-    with LogTime("INSERT OR REPLACE INTO antispam_allowlist"):
-        global db_connection
-        c = db_connection.cursor()
-
-        c.execute("INSERT OR REPLACE INTO antispam_allowlist (tg_id) VALUES(?)", (tg_id,))
-
-        db_connection.commit()
-
-
-def is_good_member(tg_id):
-    """Return whether the user ID exists in the antispam_allowlist table"""
-
-    with LogTime("SELECT FROM antispam_allowlist WHERE tg_id=?"):
-        global db_connection
-        c = db_connection.cursor()
-
-        for _ in c.execute("SELECT tg_id FROM antispam_allowlist WHERE tg_id=?", (tg_id,)):
-            return True
-
-        return False
-
-
-def save_spam(text, from_user_tg_id, trigger):
-    """Save a message that triggered antispam"""
-
-    with LogTime("INSERT INTO spam"):
-        global db_connection
-        c = db_connection.cursor()
-
-        c.execute("INSERT INTO spam (text, from_user_tg_id, trigger) VALUES(?, ?, ?)",
-                  (text, from_user_tg_id, trigger))
-
-        db_connection.commit()
 
 
 async def delete_message(context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -259,7 +197,7 @@ def get_standard_keyboard(tg_id, hidden_commands=None):
     if COMMAND_WHO not in hidden_commands:
         buttons.append([button_who])
 
-    enrolled = tg_id != 0 and has_user_record(tg_id)
+    enrolled = tg_id != 0 and db.has_user_record(tg_id)
     second_row = []
     if COMMAND_ENROLL not in hidden_commands:
         second_row.append(button_update if enrolled else button_enroll)
@@ -417,18 +355,13 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     user_list = [_("MESSAGE_DM_WHO_LIST_HEADING")]
 
-    with LogTime("SELECT FROM people"):
-        global db_connection
-        c = db_connection.cursor()
+    for record in db.people_get_all():
+        user_list.append("@{username} ({location}): {occupation}".format(username=record["tg_username"],
+                                                                         occupation=record["occupation"],
+                                                                         location=record["location"]))
 
-        for row in c.execute("SELECT tg_id, tg_username, occupation, location FROM people WHERE is_suspended=0"):
-            values = {key: value for (key, value) in zip((i[0] for i in c.description), row)}
-            user_list.append("@{username} ({location}): {occupation}".format(username=values["tg_username"],
-                                                                             occupation=values["occupation"],
-                                                                             location=values["location"]))
-
-        if len(user_list) == 1:
-            user_list = [_("MESSAGE_DM_WHO_EMPTY")]
+    if len(user_list) == 1:
+        user_list = [_("MESSAGE_DM_WHO_EMPTY")]
 
     await query.edit_message_reply_markup(None)
     await query.message.reply_text(text="\n".join(user_list), reply_markup=get_standard_keyboard(query.from_user.id))
@@ -494,16 +427,9 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     user_data = context.user_data
 
     if query.data == RESPONSE_YES:
-        with LogTime("INSERT OR REPLACE INTO people"):
-            global db_connection
-            c = db_connection.cursor()
+        db.create_or_update_user_record(from_user.id, from_user.username, user_data["occupation"], user_data["location"],
+                      (0 if MODERATION_IS_LAZY else 1))
 
-            c.execute("INSERT OR REPLACE INTO people (tg_id, tg_username, occupation, location, is_suspended) "
-                      "VALUES(?, ?, ?, ?, ?)", (
-                      from_user.id, from_user.username, user_data["occupation"], user_data["location"],
-                      (0 if MODERATION_IS_LAZY else 1)))
-
-            db_connection.commit()
         saved_user_data = copy.deepcopy(user_data)
         user_data.clear()
 
@@ -525,7 +451,7 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             await moderate_new_data(update, context, saved_user_data)
 
     elif query.data == RESPONSE_NO:
-        delete_user_record(from_user.id)
+        db.delete_user_record(from_user.id)
         user_data.clear()
 
         await query.edit_message_reply_markup(None)
@@ -551,7 +477,7 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         logger.info("The message does not have text, cannot detect spam")
         return
 
-    if is_good_member(message.from_user.id):
+    if db.is_good_member(message.from_user.id):
         return
 
     logger.info("User ID {user_id} posts their first message".format(user_id=message.from_user.id))
@@ -574,7 +500,7 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             trigger = "openai"
 
     if found_spam:
-        save_spam(message.text, message.from_user.id, trigger)
+        db.save_spam(message.text, message.from_user.id, trigger)
 
         admins = " ".join("@" + admin for admin in ADMIN_USERNAMES)
 
@@ -584,14 +510,12 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         return
 
     logger.info("Nothing wrong with this message.")
-    register_good_member(message.from_user.id)
+    db.register_good_member(message.from_user.id)
 
 
 # noinspection PyUnusedLocal
 async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Approve or decline changes to user data"""
-
-    global db_connection
 
     query = update.callback_query
 
@@ -606,12 +530,7 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             moderator_id=query.from_user.id, user_id=tg_id))
 
         if not MODERATION_IS_LAZY:
-            with LogTime("UPDATE people"):
-                c = db_connection.cursor()
-
-                c.execute("UPDATE people SET is_suspended=0 WHERE tg_id=?", (tg_id,))
-
-                db_connection.commit()
+            db.approve_user_record(tg_id)
 
         await query.edit_message_reply_markup(None)
         await query.message.reply_text(_("MESSAGE_ADMIN_USER_RECORD_APPROVED"))
@@ -620,12 +539,7 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             moderator_id=query.from_user.id, user_id=tg_id))
 
         if MODERATION_IS_LAZY:
-            with LogTime("UPDATE people"):
-                c = db_connection.cursor()
-
-                c.execute("UPDATE people SET is_suspended=1 WHERE tg_id=?", (tg_id,))
-
-                db_connection.commit()
+            db.suspend_user_record(tg_id)
 
         await query.edit_message_reply_markup(None)
         await query.message.reply_text(_("MESSAGE_ADMIN_USER_RECORD_SUSPENDED"))
@@ -643,7 +557,7 @@ async def retire(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     update_language(query.from_user)
 
-    delete_user_record(query.from_user.id)
+    db.delete_user_record(query.from_user.id)
 
     await query.answer()
     await query.edit_message_reply_markup(None)
@@ -704,8 +618,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 def main() -> None:
     """Run the bot"""
 
-    global db_connection
-    db_connection = sqlite3.connect("people.db")
+    db.connect()
 
     # Create the Application and pass it your bot's token.
     application = Application.builder().token(BOT_TOKEN).build()
@@ -744,7 +657,7 @@ def main() -> None:
     # Run the bot until the user presses Ctrl-C
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
-    db_connection.close()
+    db.disconnect()
 
 
 if __name__ == "__main__":
