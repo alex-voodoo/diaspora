@@ -197,7 +197,7 @@ def get_standard_keyboard(tg_id, hidden_commands=None):
     if COMMAND_WHO not in hidden_commands:
         buttons.append([button_who])
 
-    enrolled = tg_id != 0 and db.has_user_record(tg_id)
+    enrolled = tg_id != 0 and db.people_exists(tg_id)
     second_row = []
     if COMMAND_ENROLL not in hidden_commands:
         second_row.append(button_update if enrolled else button_enroll)
@@ -355,7 +355,7 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     user_list = [_("MESSAGE_DM_WHO_LIST_HEADING")]
 
-    for record in db.people_get_all():
+    for record in db.people_select_all():
         user_list.append("@{username} ({location}): {occupation}".format(username=record["tg_username"],
                                                                          occupation=record["occupation"],
                                                                          location=record["location"]))
@@ -427,8 +427,8 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     user_data = context.user_data
 
     if query.data == RESPONSE_YES:
-        db.create_or_update_user_record(from_user.id, from_user.username, user_data["occupation"], user_data["location"],
-                      (0 if MODERATION_IS_LAZY else 1))
+        db.people_insert_or_update(from_user.id, from_user.username, user_data["occupation"], user_data["location"],
+                                   (0 if MODERATION_IS_LAZY else 1))
 
         saved_user_data = copy.deepcopy(user_data)
         user_data.clear()
@@ -451,7 +451,7 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             await moderate_new_data(update, context, saved_user_data)
 
     elif query.data == RESPONSE_NO:
-        db.delete_user_record(from_user.id)
+        db.people_delete(from_user.id)
         user_data.clear()
 
         await query.edit_message_reply_markup(None)
@@ -530,7 +530,7 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             moderator_id=query.from_user.id, user_id=tg_id))
 
         if not MODERATION_IS_LAZY:
-            db.approve_user_record(tg_id)
+            db.people_approve(tg_id)
 
         await query.edit_message_reply_markup(None)
         await query.message.reply_text(_("MESSAGE_ADMIN_USER_RECORD_APPROVED"))
@@ -539,7 +539,7 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             moderator_id=query.from_user.id, user_id=tg_id))
 
         if MODERATION_IS_LAZY:
-            db.suspend_user_record(tg_id)
+            db.people_suspend(tg_id)
 
         await query.edit_message_reply_markup(None)
         await query.message.reply_text(_("MESSAGE_ADMIN_USER_RECORD_SUSPENDED"))
@@ -557,7 +557,7 @@ async def retire(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     update_language(query.from_user)
 
-    db.delete_user_record(query.from_user.id)
+    db.people_delete(query.from_user.id)
 
     await query.answer()
     await query.edit_message_reply_markup(None)
