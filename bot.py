@@ -42,7 +42,8 @@ COMMAND_ADMIN = "admin"
 TYPING_OCCUPATION, TYPING_LOCATION, CONFIRMING_LEGALITY = range(3)
 RESPONSE_YES, RESPONSE_NO = ("yes", "no")
 MODERATOR_APPROVE, MODERATOR_DECLINE = ("approve", "decline")
-QUERY_ADMIN_DOWNLOAD_SPAM, QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS = ("download-spam", "upload-antispam-keywords")
+QUERY_ADMIN_DOWNLOAD_SPAM, QUERY_ADMIN_DOWNLOAD_ANTISPAM_KEYWORDS, QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS = (
+    "download-spam", "download-antispam-keywords", "upload-antispam-keywords")
 
 # Global translation context.  Updated by update_language() depending on the locale of the current user.
 _ = gettext.gettext
@@ -219,11 +220,14 @@ def get_moderation_keyboard(tg_id):
 
 def get_admin_keyboard() -> InlineKeyboardMarkup:
     response_buttons = {_("BUTTON_DOWNLOAD_SPAM"): QUERY_ADMIN_DOWNLOAD_SPAM,
+                        _("BUTTON_DOWNLOAD_ANTISPAM_KEYWORDS"): QUERY_ADMIN_DOWNLOAD_ANTISPAM_KEYWORDS,
                         _("BUTTON_UPLOAD_ANTISPAM_KEYWORDS"): QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS}
-    button_download_spam, button_upload_keywords = (InlineKeyboardButton(text, callback_data=command)
-                                               for text, command in response_buttons.items())
+    button_download_spam, button_download_keywords, button_upload_keywords = (
+        InlineKeyboardButton(text, callback_data=command) for text, command in response_buttons.items())
 
-    return InlineKeyboardMarkup(((button_download_spam, button_upload_keywords),))
+    return InlineKeyboardMarkup(((button_download_spam,),
+                                 (button_download_keywords,),
+                                 (button_upload_keywords,)))
 
 
 # noinspection PyUnusedLocal
@@ -365,6 +369,9 @@ async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE)
     if query.data == QUERY_ADMIN_DOWNLOAD_SPAM:
         spam = [record for record in db.spam_select_all()]
         await user.send_document(json.dumps(spam, ensure_ascii=False).encode("utf-8"), filename="spam.json",
+                                 reply_markup=get_admin_keyboard())
+    elif query.data == QUERY_ADMIN_DOWNLOAD_ANTISPAM_KEYWORDS:
+        await user.send_document("features/resources/bad_keywords.txt", filename="bad_keywords.txt",
                                  reply_markup=get_admin_keyboard())
     elif query.data == QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS:
         await user.send_message(_("MESSAGE_DM_ADMIN_NOT_IMPLEMENTED"), reply_markup=get_admin_keyboard())
@@ -658,6 +665,7 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(retire, pattern=COMMAND_RETIRE))
 
     application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_DOWNLOAD_SPAM))
+    application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_DOWNLOAD_ANTISPAM_KEYWORDS))
     application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS))
 
     # Add conversation handler that questions the user about his profile
