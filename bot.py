@@ -364,7 +364,7 @@ async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     if query.data == QUERY_ADMIN_DOWNLOAD_SPAM:
         spam = [record for record in db.spam_select_all()]
-        await user.send_document(json.dumps(spam).encode('utf-8'), filename="spam.json",
+        await user.send_document(json.dumps(spam, ensure_ascii=False).encode("utf-8"), filename="spam.json",
                                  reply_markup=get_admin_keyboard())
     elif query.data == QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS:
         await user.send_message(_("MESSAGE_DM_ADMIN_NOT_IMPLEMENTED"), reply_markup=get_admin_keyboard())
