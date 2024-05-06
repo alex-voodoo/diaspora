@@ -237,7 +237,7 @@ def get_moderation_keyboard(tg_id):
 
 # noinspection PyUnusedLocal
 async def moderate_new_data(update: Update, context: ContextTypes.DEFAULT_TYPE, data) -> None:
-    moderator_ids = MODERATOR_IDS if MODERATOR_IDS else (DEVELOPER_CHAT_ID,)
+    moderator_ids = ADMINISTRATORS.keys() if ADMINISTRATORS else (DEVELOPER_CHAT_ID,)
 
     for moderator_id in moderator_ids:
         logger.info("Sending moderation request to moderator ID {id}".format(id=moderator_id))
@@ -504,7 +504,7 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     if found_spam:
         db.save_spam(message.text, message.from_user.id, trigger)
 
-        admins = " ".join("@" + admin for admin in ADMIN_USERNAMES)
+        admins = " ".join("@" + admin for admin in ADMINISTRATORS.values())
 
         update_language(DEFAULT_LANGUAGE)
 

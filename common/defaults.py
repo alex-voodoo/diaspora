@@ -45,8 +45,6 @@ GREETING_TIMEOUT = 300
 MODERATION_ENABLED = True
 # Whether moderation is "lazy" (True) or "mandatory" (False)
 MODERATION_IS_LAZY = True
-# Telegram IDs of moderators
-MODERATOR_IDS = tuple()
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Language moderation
@@ -86,3 +84,6 @@ ANTISPAM_OPENAI_API_KEY = ""
 #
 # Generic delay in seconds for self-destructing messages
 DELETE_MESSAGE_TIMEOUT = 60
+
+# Administrators (key is Telegram ID and value is Telegram username)
+ADMINISTRATORS = dict()
