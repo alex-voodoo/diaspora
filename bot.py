@@ -293,40 +293,40 @@ async def detect_language(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                                        parse_mode=ParseMode.HTML)
 
 
-async def show_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def handle_command_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show the help message"""
 
-    user = update.message.from_user
+    message = update.effective_message
+    user = message.from_user
 
     update_language(user)
 
-    if update.effective_message.chat_id != user.id:
+    if message.chat_id != user.id:
         await self_destructing_reply(update, context, _("MESSAGE_MC_HELP"), DELETE_MESSAGE_TIMEOUT)
         return
 
     if not await is_member_of_main_chat(user, context):
         return
 
-    await update.message.reply_text(_("MESSAGE_DM_HELP"), reply_markup=get_standard_keyboard(user.id))
+    await message.reply_text(_("MESSAGE_DM_HELP"), reply_markup=get_standard_keyboard(user.id))
 
 
-async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def handle_command_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Welcome the user and show them the selection of options"""
 
-    user = update.message.from_user
+    message = update.effective_message
+    user = message.from_user
 
     update_language(user)
 
-    if user.id == DEVELOPER_CHAT_ID and update.message.chat.id != DEVELOPER_CHAT_ID:
+    if user.id == DEVELOPER_CHAT_ID and message.chat.id != DEVELOPER_CHAT_ID:
         logger.info("This is the admin user {username} talking from \"{chat_name}\" (chat ID {chat_id})".format(
-            username=user.username, chat_name=update.message.chat.title, chat_id=update.message.chat.id))
+            username=user.username, chat_name=message.chat.title, chat_id=message.chat.id))
 
-        await context.bot.deleteMessage(message_id=update.message.id, chat_id=update.message.chat.id)
-
+        await context.bot.deleteMessage(message_id=message.id, chat_id=message.chat.id)
         await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID,
                                        text=_("MESSAGE_ADMIN_MAIN_CHAT_ID {title} {id}").format(
-                                           title=update.message.chat.title, id=str(update.message.chat.id)))
-
+                                           title=message.chat.title, id=str(message.chat.id)))
         return
 
     if not await talking_private(update, context):
@@ -339,7 +339,7 @@ async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     main_chat = await context.bot.get_chat(MAIN_CHAT_ID)
 
-    await update.message.reply_text(
+    await message.reply_text(
         _("MESSAGE_DM_HELLO {bot_first_name} {main_chat_name}").format(bot_first_name=context.bot.first_name,
                                                                        main_chat_name=main_chat.title),
         reply_markup=get_standard_keyboard(user.id))
@@ -625,8 +625,8 @@ def main() -> None:
     # Create the Application and pass it your bot's token.
     application = Application.builder().token(BOT_TOKEN).build()
 
-    application.add_handler(CommandHandler(COMMAND_START, hello))
-    application.add_handler(CommandHandler(COMMAND_HELP, show_help))
+    application.add_handler(CommandHandler(COMMAND_START, handle_command_start))
+    application.add_handler(CommandHandler(COMMAND_HELP, handle_command_help))
     application.add_handler(CallbackQueryHandler(who, pattern=COMMAND_WHO))
     application.add_handler(CallbackQueryHandler(retire, pattern=COMMAND_RETIRE))
 
