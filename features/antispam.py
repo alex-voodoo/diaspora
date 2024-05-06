@@ -1,3 +1,8 @@
+"""
+Antispam
+"""
+
+import io
 import logging
 import string
 
@@ -5,30 +10,56 @@ import joblib
 import numpy as np
 from openai import OpenAI
 
-stop_words = None
+KEYWORDS_FILE_PATH = "features/resources/bad_keywords.txt"
+
+keywords = None
 openai_model = None
 
 logger = logging.getLogger(__name__)
 
-def detect_stop_words(text):
-    global stop_words
 
-    if stop_words is None:
+def detect_keywords(text) -> bool:
+    """Detect spam using keywords"""
+
+    global keywords
+
+    if keywords is None:
         logger.info("Loading the list of stop words")
-        stop_words = []
-        with open("features/resources/bad_keywords.txt") as f:
+        keywords = []
+        with open(KEYWORDS_FILE_PATH) as f:
             for line in f.readlines():
-                stop_words.append(line.strip())
+                keywords.append(line.strip())
 
     text_processed = [word.strip(string.punctuation) for word in text.lower().split()]
 
-    result = any([bad_kw in text_processed for bad_kw in stop_words])
+    result = any([bad_kw in text_processed for bad_kw in keywords])
     logger.info("Stop words found: {result}".format(result=result))
 
     return result
 
 
-def detect_openai(text, api_key, threshold=0.5):
+def get_keywords() -> io.BytesIO:
+    """Return contents of the actual keywords file"""
+
+    with open(KEYWORDS_FILE_PATH, "rb") as inp:
+        data = io.BytesIO(inp.read())
+        return data
+
+
+def save_new_keywords(data: io.BytesIO) -> None:
+    """Reset the keywords file with new contents.  The new list will be used on the next call to `detect_keywords()`."""
+
+    with open(KEYWORDS_FILE_PATH, "wb") as outp:
+        outp.write(data.read())
+
+    global keywords
+
+    keywords = None
+
+
+def detect_openai(text, api_key, threshold=0.5) -> bool:
+    """Detect spam using the OpenAI model"""
+
     global openai_model
 
     # Load the model using joblib
@@ -50,7 +81,7 @@ def detect_openai(text, api_key, threshold=0.5):
 
     pred_conf = prediction[0][1]
 
-    logger.info("Spam confidence: {confidence} and threshold: {threshold}".format(
-        confidence=pred_conf, threshold=threshold))
+    logger.info(
+        "Spam confidence: {confidence} and threshold: {threshold}".format(confidence=pred_conf, threshold=threshold))
 
     return pred_conf > threshold  # Return the predicted label

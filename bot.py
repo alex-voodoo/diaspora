@@ -9,6 +9,7 @@ See README.md for details.
 import copy
 import gettext
 import html
+import io
 import json
 import logging
 import re
@@ -26,7 +27,6 @@ from telegram.ext import (Application, CommandHandler, ContextTypes, Conversatio
 from common import db
 from common.checks import is_member_of_main_chat
 from features import antispam
-
 from settings import *
 
 # Configure logging
@@ -40,6 +40,7 @@ logger = logging.getLogger(__name__)
 COMMAND_START, COMMAND_HELP, COMMAND_WHO, COMMAND_ENROLL, COMMAND_RETIRE = ("start", "help", "who", "enroll", "retire")
 COMMAND_ADMIN = "admin"
 TYPING_OCCUPATION, TYPING_LOCATION, CONFIRMING_LEGALITY = range(3)
+UPLOADING_ANTISPAM_KEYWORDS = 1
 RESPONSE_YES, RESPONSE_NO = ("yes", "no")
 MODERATOR_APPROVE, MODERATOR_DECLINE = ("approve", "decline")
 QUERY_ADMIN_DOWNLOAD_SPAM, QUERY_ADMIN_DOWNLOAD_ANTISPAM_KEYWORDS, QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS = (
@@ -99,10 +100,6 @@ def update_language(user: User):
     user_lang = user.language_code if SPEAK_USER_LANGUAGE else DEFAULT_LANGUAGE
 
     update_language_by_code(user_lang if user_lang in SUPPORTED_LANGUAGES else DEFAULT_LANGUAGE)
-
-
-
-
 
 
 async def delete_message(context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -225,9 +222,7 @@ def get_admin_keyboard() -> InlineKeyboardMarkup:
     button_download_spam, button_download_keywords, button_upload_keywords = (
         InlineKeyboardButton(text, callback_data=command) for text, command in response_buttons.items())
 
-    return InlineKeyboardMarkup(((button_download_spam,),
-                                 (button_download_keywords,),
-                                 (button_upload_keywords,)))
+    return InlineKeyboardMarkup(((button_download_spam,), (button_download_keywords,), (button_upload_keywords,)))
 
 
 # noinspection PyUnusedLocal
@@ -266,9 +261,8 @@ async def detect_language(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     """Detect language of the incoming message in the main chat, and show a warning if there are too many messages
     written in non-default languages."""
 
-    if (update.effective_message.chat_id != MAIN_CHAT_ID or
-            not hasattr(update.message, "text") or
-            len(update.message.text.split(" ")) < LANGUAGE_MODERATION_MIN_WORD_COUNT):
+    if (update.effective_message.chat_id != MAIN_CHAT_ID or not hasattr(update.message, "text") or len(
+        update.message.text.split(" ")) < LANGUAGE_MODERATION_MIN_WORD_COUNT):
         return
 
     global message_languages
@@ -353,12 +347,10 @@ async def handle_command_admin(update: Update, context: ContextTypes.DEFAULT_TYP
 
     await context.bot.deleteMessage(message_id=message.id, chat_id=message.chat.id)
 
-    await context.bot.send_message(chat_id=user.id,
-                                   text=_("MESSAGE_DM_ADMIN"),
-                                   reply_markup=get_admin_keyboard())
+    await context.bot.send_message(chat_id=user.id, text=_("MESSAGE_DM_ADMIN"), reply_markup=get_admin_keyboard())
 
 
-async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> [None, int]:
     query = update.callback_query
     user = query.from_user
 
@@ -371,10 +363,30 @@ async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await user.send_document(json.dumps(spam, ensure_ascii=False).encode("utf-8"), filename="spam.json",
                                  reply_markup=get_admin_keyboard())
     elif query.data == QUERY_ADMIN_DOWNLOAD_ANTISPAM_KEYWORDS:
-        await user.send_document("features/resources/bad_keywords.txt", filename="bad_keywords.txt",
+        await user.send_document(antispam.get_keywords(), filename="bad_keywords.txt",
                                  reply_markup=get_admin_keyboard())
     elif query.data == QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS:
-        await user.send_message(_("MESSAGE_DM_ADMIN_NOT_IMPLEMENTED"), reply_markup=get_admin_keyboard())
+        await query.message.reply_text(_("MESSAGE_DM_ADMIN_REQUEST_KEYWORDS"))
+
+        return UPLOADING_ANTISPAM_KEYWORDS
+
+
+async def received_antispam_keywords(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    document = update.message.effective_attachment
+
+    if document.mime_type != "text/plain":
+        await update.effective_message.reply_text(_("MESSAGE_DM_ADMIN_KEYWORDS_WRONG_FILE_TYPE"),
+                                                  reply_markup=get_admin_keyboard())
+        return ConversationHandler.END
+
+    keywords_file = await document.get_file()
+    data = io.BytesIO()
+    await keywords_file.download_to_memory(data)
+    data.seek(0)
+
+    antispam.save_new_keywords(data)
+
+    return ConversationHandler.END
 
 
 # noinspection PyUnusedLocal
@@ -520,7 +532,7 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     trigger = ""
 
     if ANTISPAM_STOP_WORDS_ENABLED:
-        if antispam.detect_stop_words(message.text):
+        if antispam.detect_keywords(message.text):
             logger.info("SPAM detected by stop words in the first message from user ID {user_id}".format(
                 user_id=message.from_user.id))
             found_spam = True
@@ -666,7 +678,10 @@ def main() -> None:
 
     application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_DOWNLOAD_SPAM))
     application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_DOWNLOAD_ANTISPAM_KEYWORDS))
-    application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS))
+    application.add_handler(ConversationHandler(
+        entry_points=[CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS)],
+        states={UPLOADING_ANTISPAM_KEYWORDS: [MessageHandler(filters.ATTACHMENT, received_antispam_keywords)]},
+        fallbacks=[]))
 
     # Add conversation handler that questions the user about his profile
     application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(enroll, pattern=COMMAND_ENROLL)],
