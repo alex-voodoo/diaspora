@@ -18,13 +18,13 @@ from collections import deque
 
 import httpx
 from langdetect import detect
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, User, ChatMemberLeft, ChatMemberBanned, \
-    ChatMember
+from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, User
 from telegram.constants import ParseMode
 from telegram.ext import (Application, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters,
                           CallbackQueryHandler, )
 
 from common import db
+from common.checks import is_member_of_main_chat
 from features import antispam
 
 from settings import *
@@ -148,26 +148,6 @@ async def talking_private(update: Update, context) -> bool:
     if not from_user or update.effective_message.chat_id != from_user.id:
         await self_destructing_reply(update, context, _("MESSAGE_MC_LET_US_TALK_PRIVATE"), DELETE_MESSAGE_TIMEOUT)
         return False
-    return True
-
-
-async def is_member_of_main_chat(user, context):
-    """Helper for handlers that require that the user would be a member of the main chat"""
-
-    def should_be_blocked(chat_member: ChatMember):
-        if isinstance(chat_member, ChatMemberLeft):
-            return "not in chat"
-        if isinstance(chat_member, ChatMemberBanned):
-            return "banned"
-        return None
-
-    reason = should_be_blocked(await context.bot.get_chat_member(MAIN_CHAT_ID, user.id))
-    if reason:
-        logger.info("User {username} (chat ID {chat_id}) is not allowed: {reason}".format(username=user.username,
-                                                                                          chat_id=user.id,
-                                                                                          reason=reason))
-        return False
-
     return True
 
 
