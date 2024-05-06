@@ -1,32 +1,40 @@
-#: bot.py:149
+#: bot.py:151
 msgid "MESSAGE_MC_LET_US_TALK_PRIVATE"
 msgstr "Let's talk private!"
 
-#: bot.py:190
+#: bot.py:172
 msgid "BUTTON_WHO"
 msgstr "Show records"
 
-#: bot.py:190
+#: bot.py:172
 msgid "BUTTON_ENROLL"
 msgstr "Register yourself"
 
-#: bot.py:191
+#: bot.py:173
 msgid "BUTTON_UPDATE"
 msgstr "Update your record"
 
-#: bot.py:191
+#: bot.py:173
 msgid "BUTTON_RETIRE"
 msgstr "Remove your record"
 
-#: bot.py:223 bot.py:231
+#: bot.py:205 bot.py:213
 msgid "BUTTON_YES"
 msgstr "Yes"
 
-#: bot.py:223 bot.py:231
+#: bot.py:205 bot.py:213
 msgid "BUTTON_NO"
 msgstr "No"
 
-#: bot.py:245
+#: bot.py:221
+msgid "BUTTON_DOWNLOAD_SPAM"
+msgstr "Download spam"
+
+#: bot.py:222
+msgid "BUTTON_UPLOAD_ANTISPAM_KEYWORDS"
+msgstr "Upload stop words"
+
+#: bot.py:236
 msgid "MESSAGE_ADMIN_APPROVE_USER_DATA {username}"
 msgstr ""
 "User @{username} has updated their data.\n"
@@ -34,7 +42,7 @@ msgstr ""
 "Location: {location}\n"
 "Approve it?"
 
-#: bot.py:262
+#: bot.py:253
 msgid "MESSAGE_MC_GREETING_M {user_first_name} {bot_first_name}"
 msgstr ""
 "Welcome, {user_first_name}!\n"
@@ -45,7 +53,7 @@ msgstr ""
 "\n"
 "<em>I will delete this message in five minutes.</em>"
 
-#: bot.py:262
+#: bot.py:253
 msgid "MESSAGE_MC_GREETING_F {user_first_name} {bot_first_name}"
 msgstr ""
 "Welcome, {user_first_name}!\n"
@@ -56,11 +64,11 @@ msgstr ""
 "\n"
 "<em>I will delete this message in five minutes.</em>"
 
-#: bot.py:292
+#: bot.py:283
 msgid "MESSAGE_MC_SPEAK_DEFAULT_LANGUAGE"
 msgstr "❗ Please follow the rules of this group and write in English, so that every other member would understand you."
 
-#: bot.py:304
+#: bot.py:296
 msgid "MESSAGE_MC_HELP"
 msgstr ""
 "I keep records of users who would like to offer something to others, and provide that information to everyone in this chat.\n"
@@ -69,7 +77,7 @@ msgstr ""
 "\n"
 "<em>Soon I will delete this message to keep this chat clean.</em>"
 
-#: bot.py:310
+#: bot.py:302
 msgid "MESSAGE_DM_HELP"
 msgstr ""
 "I keep records of users of the chat who would like to offer something to others, and provide that information to everyone in the chat.\n"
@@ -78,85 +86,93 @@ msgstr ""
 "\n"
 "Use the buttons below to see the records, to add yourself or update your data, and to remove your record (of course if you have one)."
 
-#: bot.py:327
+#: bot.py:319
 msgid "MESSAGE_ADMIN_MAIN_CHAT_ID {title} {id}"
 msgstr "The ID of the \"{title}\" group is {id}"
 
-#: bot.py:343
+#: bot.py:334
 msgid "MESSAGE_DM_HELLO {bot_first_name} {main_chat_name}"
 msgstr "Hello!  I am {bot_first_name}, the bookkeeper bot of the \"{main_chat_name}\" group."
 
-#: bot.py:358
+#: bot.py:353
+msgid "MESSAGE_DM_ADMIN"
+msgstr "At your service."
+
+#: bot.py:370
+msgid "MESSAGE_DM_ADMIN_NOT_IMPLEMENTED"
+msgstr "I cannot do this yet."
+
+#: bot.py:383
 msgid "MESSAGE_DM_WHO_LIST_HEADING"
 msgstr "Here is the directory:"
 
-#: bot.py:366
+#: bot.py:391
 msgid "MESSAGE_DM_WHO_EMPTY"
 msgstr "Nobody has registered themselves so far :-( ."
 
-#: bot.py:384
+#: bot.py:409
 msgid "MESSAGE_DM_ENROLL_USERNAME_REQUIRED"
 msgstr ""
 "Your Telegram profile does not have a username.  I need it to show people a link to your profile.\n"
 "\n"
 "Please register a username for your profile and try again."
 
-#: bot.py:388
+#: bot.py:413
 msgid "MESSAGE_DM_ENROLL_ASK_OCCUPATION"
 msgstr ""
 "Let us start!  What do you do?\n"
 "\n"
 "Please give a short and simple answer, like \"Teach how to surf\" or \"Help with the immigrations\"."
 
-#: bot.py:401
+#: bot.py:426
 msgid "MESSAGE_DM_ENROLL_ASK_LOCATION"
 msgstr ""
 "Where are you based?\n"
 "\n"
 "Just the name of the place is enough, like \"A Coruña\""
 
-#: bot.py:414
+#: bot.py:439
 msgid "MESSAGE_DM_ENROLL_CONFIRM_LEGALITY"
 msgstr ""
 "Finally, please confirm that what you do is legal and does not violate any laws or local regulations.\n"
 "\n"
 "Is your service legal?"
 
-#: bot.py:444
+#: bot.py:469
 msgid "MESSAGE_DM_ENROLL_COMPLETED"
 msgstr "We are done, you are now registered!"
 
-#: bot.py:446
+#: bot.py:471
 msgid "MESSAGE_DM_ENROLL_COMPLETED_POST_MODERATION"
 msgstr "We are done, you are now registered!  Please note that moderators may hide your record if it violates rules of the group."
 
-#: bot.py:448
+#: bot.py:473
 msgid "MESSAGE_DM_ENROLL_COMPLETED_PRE_MODERATION"
 msgstr "We are done!  I will add your record to the list after the moderators approve it."
 
-#: bot.py:460
+#: bot.py:485
 msgid "MESSAGE_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"
 msgstr "I am sorry.  I cannot register services that do not comply with the laws and local regulations."
 
-#: bot.py:511
+#: bot.py:536
 msgid "MESSAGE_MC_SPAM_DETECTED"
 msgstr ""
 "Probably moderators should see this.\n"
 "{admins}"
 
-#: bot.py:538
+#: bot.py:563
 msgid "MESSAGE_ADMIN_USER_RECORD_APPROVED"
 msgstr "Approved."
 
-#: bot.py:547
+#: bot.py:572
 msgid "MESSAGE_ADMIN_USER_RECORD_SUSPENDED"
 msgstr "The user's record is suspended.  Contact them to fix their data."
 
-#: bot.py:566
+#: bot.py:591
 msgid "MESSAGE_DM_RETIRE"
 msgstr "I am sorry to see you go."
 
-#: bot.py:617
+#: bot.py:642
 msgid "MESSAGE_DM_INTERNAL_ERROR"
 msgstr "An internal error occurred.  I have notified my administrator about the error.  Please use the buttons below, hopefully it will work."
 

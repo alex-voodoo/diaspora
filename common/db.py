@@ -137,7 +137,7 @@ def is_good_member(tg_id) -> bool:
         return False
 
 
-def save_spam(text, from_user_tg_id, trigger) -> None:
+def spam_insert(text, from_user_tg_id, trigger) -> None:
     """Save a message that triggered antispam"""
 
     with LogTime("INSERT INTO spam"):
@@ -147,3 +147,12 @@ def save_spam(text, from_user_tg_id, trigger) -> None:
                   (text, from_user_tg_id, trigger))
 
         db_connection.commit()
+
+def spam_select_all() -> Iterator:
+    """Query all records from the `spam` table"""
+
+    with LogTime("SELECT text, from_user_tg_id, trigger, timestamp FROM spam"):
+        c = db_connection.cursor()
+
+        for row in c.execute("SELECT text, from_user_tg_id, trigger, timestamp FROM spam"):
+            yield {key: value for (key, value) in zip((i[0] for i in c.description), row)}

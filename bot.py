@@ -38,9 +38,11 @@ logger = logging.getLogger(__name__)
 
 # Commands, sequences, and responses
 COMMAND_START, COMMAND_HELP, COMMAND_WHO, COMMAND_ENROLL, COMMAND_RETIRE = ("start", "help", "who", "enroll", "retire")
+COMMAND_ADMIN = "admin"
 TYPING_OCCUPATION, TYPING_LOCATION, CONFIRMING_LEGALITY = range(3)
 RESPONSE_YES, RESPONSE_NO = ("yes", "no")
 MODERATOR_APPROVE, MODERATOR_DECLINE = ("approve", "decline")
+QUERY_ADMIN_DOWNLOAD_SPAM, QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS = ("download-spam", "upload-antispam-keywords")
 
 # Global translation context.  Updated by update_language() depending on the locale of the current user.
 _ = gettext.gettext
@@ -215,6 +217,15 @@ def get_moderation_keyboard(tg_id):
     return InlineKeyboardMarkup(((response_button_yes, response_button_no),))
 
 
+def get_admin_keyboard() -> InlineKeyboardMarkup:
+    response_buttons = {_("BUTTON_DOWNLOAD_SPAM"): QUERY_ADMIN_DOWNLOAD_SPAM,
+                        _("BUTTON_UPLOAD_ANTISPAM_KEYWORDS"): QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS}
+    button_download_spam, button_upload_keywords = (InlineKeyboardButton(text, callback_data=command)
+                                               for text, command in response_buttons.items())
+
+    return InlineKeyboardMarkup(((button_download_spam, button_upload_keywords),))
+
+
 # noinspection PyUnusedLocal
 async def moderate_new_data(update: Update, context: ContextTypes.DEFAULT_TYPE, data) -> None:
     moderator_ids = ADMINISTRATORS.keys() if ADMINISTRATORS else (DEVELOPER_CHAT_ID,)
@@ -323,6 +334,40 @@ async def handle_command_start(update: Update, context: ContextTypes.DEFAULT_TYP
         _("MESSAGE_DM_HELLO {bot_first_name} {main_chat_name}").format(bot_first_name=context.bot.first_name,
                                                                        main_chat_name=main_chat.title),
         reply_markup=get_standard_keyboard(user.id))
+
+
+async def handle_command_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Show the admin menu"""
+
+    message = update.effective_message
+    user = message.from_user
+
+    update_language(user)
+
+    if user.id not in ADMINISTRATORS.keys():
+        logging.info("User {username} tried to invoke the admin UI".format(username=user.username))
+
+    await context.bot.deleteMessage(message_id=message.id, chat_id=message.chat.id)
+
+    await context.bot.send_message(chat_id=user.id,
+                                   text=_("MESSAGE_DM_ADMIN"),
+                                   reply_markup=get_admin_keyboard())
+
+
+async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    user = query.from_user
+
+    await query.answer()
+
+    update_language(user)
+
+    if query.data == QUERY_ADMIN_DOWNLOAD_SPAM:
+        spam = [record for record in db.spam_select_all()]
+        await user.send_document(json.dumps(spam).encode('utf-8'), filename="spam.json",
+                                 reply_markup=get_admin_keyboard())
+    elif query.data == QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS:
+        await user.send_message(_("MESSAGE_DM_ADMIN_NOT_IMPLEMENTED"), reply_markup=get_admin_keyboard())
 
 
 # noinspection PyUnusedLocal
@@ -482,7 +527,7 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
             trigger = "openai"
 
     if found_spam:
-        db.save_spam(message.text, message.from_user.id, trigger)
+        db.spam_insert(message.text, message.from_user.id, trigger)
 
         admins = " ".join("@" + admin for admin in ADMINISTRATORS.values())
 
@@ -607,8 +652,13 @@ def main() -> None:
 
     application.add_handler(CommandHandler(COMMAND_START, handle_command_start))
     application.add_handler(CommandHandler(COMMAND_HELP, handle_command_help))
+    application.add_handler(CommandHandler(COMMAND_ADMIN, handle_command_admin))
+
     application.add_handler(CallbackQueryHandler(who, pattern=COMMAND_WHO))
     application.add_handler(CallbackQueryHandler(retire, pattern=COMMAND_RETIRE))
+
+    application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_DOWNLOAD_SPAM))
+    application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS))
 
     # Add conversation handler that questions the user about his profile
     application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(enroll, pattern=COMMAND_ENROLL)],
