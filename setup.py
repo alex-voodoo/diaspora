@@ -37,7 +37,7 @@ def main() -> None:
               "\"text\" TEXT,"
               "\"from_user_tg_id\" INTEGER,"
               "\"trigger\" TEXT,"
-              "\"timestamp\" INTEGER DEFAULT CURRENT_TIMESTAMP,"
+              "\"timestamp\" DATETIME DEFAULT CURRENT_TIMESTAMP,"
               "PRIMARY KEY(\"id\" AUTOINCREMENT))")
 
     conn.commit()
