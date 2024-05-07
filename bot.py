@@ -20,7 +20,7 @@ from collections import deque
 import httpx
 from langdetect import detect
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, User, MenuButtonCommands, BotCommand
-from telegram.constants import ParseMode
+from telegram.constants import ParseMode, ChatType
 from telegram.ext import (Application, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters,
                           CallbackQueryHandler, )
 
@@ -73,16 +73,6 @@ class LogTime:
         elapsed = (time.perf_counter() - self.started_at) * 1000
         time_logger = logging.getLogger("time")
         time_logger.info("{name} took {elapsed} ms".format(name=self.name, elapsed=elapsed))
-
-
-def user_from_update(update: Update):
-    if update.message:
-        return update.message.from_user
-    elif update.callback_query:
-        return update.callback_query.from_user
-    logger.error(
-        "Neither message nor callback_query are defined; returning None.  The update is {}".format(update.to_dict()))
-    return None
 
 
 def update_language_by_code(code: str):
@@ -143,9 +133,7 @@ async def talking_private(update: Update, context) -> bool:
     false.
     """
 
-    from_user = user_from_update(update)
-
-    if not from_user or update.effective_message.chat_id != from_user.id:
+    if not update.effective_chat or update.effective_chat.type != ChatType.PRIVATE:
         await self_destructing_reply(update, context, _("MESSAGE_MC_LET_US_TALK_PRIVATE"), DELETE_MESSAGE_TIMEOUT)
         return False
     return True
@@ -627,9 +615,9 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
         logger.error("Unexpected type of update: {}".format(type(update)))
         return
 
-    from_user = user_from_update(update)
+    user = update.effective_message.from_user
 
-    update_language(from_user)
+    update_language(user)
 
     exception = context.error
 
@@ -668,7 +656,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
         logger.error("Unexpected state of the update: {}".format(update_str))
         return
 
-    await message.reply_text(_("MESSAGE_DM_INTERNAL_ERROR"), reply_markup=get_standard_keyboard(from_user.id))
+    await message.reply_text(_("MESSAGE_DM_INTERNAL_ERROR"), reply_markup=get_standard_keyboard(user.id))
 
 
 async def post_init(application: Application) -> None:
