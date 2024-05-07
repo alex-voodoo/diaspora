@@ -250,7 +250,7 @@ async def detect_language(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     written in non-default languages."""
 
     if (update.effective_message.chat_id != MAIN_CHAT_ID or not hasattr(update.message, "text") or len(
-        update.message.text.split(" ")) < LANGUAGE_MODERATION_MIN_WORD_COUNT):
+            update.message.text.split(" ")) < LANGUAGE_MODERATION_MIN_WORD_COUNT):
         return
 
     global message_languages
@@ -546,11 +546,19 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     if found_spam:
         db.spam_insert(message.text, message.from_user.id, trigger)
 
-        admins = " ".join("@" + admin for admin in ADMINISTRATORS.values())
+        await context.bot.deleteMessage(message_id=message.id, chat_id=message.chat.id)
 
         update_language(DEFAULT_LANGUAGE)
 
-        await message.reply_text(text=_("MESSAGE_MC_SPAM_DETECTED").format(admins=admins))
+        if BOT_IS_MALE:
+            delete_notice = _("MESSAGE_MC_SPAM_DETECTED_M {username}")
+        else:
+            delete_notice = _("MESSAGE_MC_SPAM_DETECTED_F {username}")
+
+        posted_message = await context.bot.send_message(MAIN_CHAT_ID,
+                                                        delete_notice.format(username=message.from_user.full_name),
+                                                        disable_notification=True)
+        context.job_queue.run_once(delete_message, 15, data=(posted_message, False))
         return
 
     logger.info("Nothing wrong with this message.")
