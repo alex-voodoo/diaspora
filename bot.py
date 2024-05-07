@@ -19,7 +19,7 @@ from collections import deque
 
 import httpx
 from langdetect import detect
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, User
+from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, User, MenuButtonCommands, BotCommand
 from telegram.constants import ParseMode
 from telegram.ext import (Application, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters,
                           CallbackQueryHandler, )
@@ -340,19 +340,24 @@ async def handle_command_admin(update: Update, context: ContextTypes.DEFAULT_TYP
     message = update.effective_message
     user = message.from_user
 
-    update_language(user)
-
     if user.id not in ADMINISTRATORS.keys():
         logging.info("User {username} tried to invoke the admin UI".format(username=user.username))
+        return
 
-    await context.bot.deleteMessage(message_id=message.id, chat_id=message.chat.id)
+    if not talking_private(update, context):
+        await context.bot.deleteMessage(message_id=message.id, chat_id=message.chat.id)
 
+    update_language(user)
     await context.bot.send_message(chat_id=user.id, text=_("MESSAGE_DM_ADMIN"), reply_markup=get_admin_keyboard())
 
 
 async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> [None, int]:
     query = update.callback_query
     user = query.from_user
+
+    if user.id not in ADMINISTRATORS.keys():
+        logging.error("User {username} is not listed as administrator!".format(username=user.username))
+        return
 
     await query.answer()
 
@@ -372,6 +377,11 @@ async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 
 async def received_antispam_keywords(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    user = update.callback_query.from_user
+    if user.id not in ADMINISTRATORS.keys():
+        logging.error("User {username} is not listed as administrator!".format(username=user.username))
+        return ConversationHandler.END
+
     document = update.message.effective_attachment
 
     if document.mime_type != "text/plain":
@@ -661,13 +671,25 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     await message.reply_text(_("MESSAGE_DM_INTERNAL_ERROR"), reply_markup=get_standard_keyboard(from_user.id))
 
 
+async def post_init(application: Application) -> None:
+    bot = application.bot
+
+    update_language(DEFAULT_LANGUAGE)
+
+    await bot.set_my_commands([BotCommand(command=COMMAND_START, description=_("COMMAND_DESCRIPTION_START")),
+                               BotCommand(command=COMMAND_ADMIN, description=_("COMMAND_DESCRIPTION_ADMIN"))])
+
+    for chat_id in ADMINISTRATORS.keys():
+        await bot.set_chat_menu_button(chat_id, MenuButtonCommands())
+
+
 def main() -> None:
     """Run the bot"""
 
     db.connect()
 
     # Create the Application and pass it your bot's token.
-    application = Application.builder().token(BOT_TOKEN).build()
+    application = Application.builder().token(BOT_TOKEN).post_init(post_init).build()
 
     application.add_handler(CommandHandler(COMMAND_START, handle_command_start))
     application.add_handler(CommandHandler(COMMAND_HELP, handle_command_help))

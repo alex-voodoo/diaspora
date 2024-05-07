@@ -1,44 +1,44 @@
-#: bot.py:154
+#: bot.py:149
 msgid "MESSAGE_MC_LET_US_TALK_PRIVATE"
 msgstr "Напишите мне личное сообщение"
 
-#: bot.py:175
+#: bot.py:170
 msgid "BUTTON_WHO"
 msgstr "Показать список контактов"
 
-#: bot.py:175
+#: bot.py:170
 msgid "BUTTON_ENROLL"
 msgstr "Добавиться в список"
 
-#: bot.py:176
+#: bot.py:171
 msgid "BUTTON_UPDATE"
 msgstr "Править запись"
 
-#: bot.py:176
+#: bot.py:171
 msgid "BUTTON_RETIRE"
 msgstr "Удалить запись"
 
-#: bot.py:208 bot.py:216
+#: bot.py:203 bot.py:211
 msgid "BUTTON_YES"
 msgstr "Да"
 
-#: bot.py:208 bot.py:216
+#: bot.py:203 bot.py:211
 msgid "BUTTON_NO"
 msgstr "Нет"
 
-#: bot.py:224
+#: bot.py:219
 msgid "BUTTON_DOWNLOAD_SPAM"
 msgstr "Выгрузить спам"
 
-#: bot.py:225
+#: bot.py:220
 msgid "BUTTON_DOWNLOAD_ANTISPAM_KEYWORDS"
 msgstr "Выгрузить стоп-слова"
 
-#: bot.py:226
+#: bot.py:221
 msgid "BUTTON_UPLOAD_ANTISPAM_KEYWORDS"
 msgstr "Загрузить стоп-слова"
 
-#: bot.py:242
+#: bot.py:235
 msgid "MESSAGE_ADMIN_APPROVE_USER_DATA {username}"
 msgstr ""
 "Пользователь @{username} изменил свою запись.\n"
@@ -46,7 +46,7 @@ msgstr ""
 "Местонахождение: {location}\n"
 "Принять изменения?"
 
-#: bot.py:259
+#: bot.py:252
 msgid "MESSAGE_MC_GREETING_M {user_first_name} {bot_first_name}"
 msgstr ""
 "Добро пожаловать, {user_first_name}!\n"
@@ -57,7 +57,7 @@ msgstr ""
 "\n"
 "<em>Я удалю это сообщение через пять минут.</em>"
 
-#: bot.py:259
+#: bot.py:252
 msgid "MESSAGE_MC_GREETING_F {user_first_name} {bot_first_name}"
 msgstr ""
 "Добро пожаловать, {user_first_name}!\n"
@@ -68,11 +68,11 @@ msgstr ""
 "\n"
 "<em>Я удалю это сообщение через пять минут.</em>"
 
-#: bot.py:289
+#: bot.py:281
 msgid "MESSAGE_MC_SPEAK_DEFAULT_LANGUAGE"
 msgstr "❗ Пожалуйста, следуйте правилам группы и пишите по-русски, чтобы вас понимали все участники."
 
-#: bot.py:302
+#: bot.py:294
 msgid "MESSAGE_MC_HELP"
 msgstr ""
 "Я записываю пользователей, которые предлагают услуги, и показываю их список всем участникам чата.\n"
@@ -81,7 +81,7 @@ msgstr ""
 "\n"
 "<em>Я скоро удалю это сообщение, чтобы не засорять чат.</em>"
 
-#: bot.py:308
+#: bot.py:300
 msgid "MESSAGE_DM_HELP"
 msgstr ""
 "Я записываю пользователей, которые предлагают услуги, и показываю их список всем участникам чата.\n"
@@ -90,19 +90,19 @@ msgstr ""
 "\n"
 "С помощью кнопок ниже можно посмотреть список контактов, добавиться в него, изменить или удалить свою запись."
 
-#: bot.py:325
+#: bot.py:317
 msgid "MESSAGE_ADMIN_MAIN_CHAT_ID {title} {id}"
 msgstr "ID группы «{title}»: {id}"
 
-#: bot.py:340
+#: bot.py:332
 msgid "MESSAGE_DM_HELLO {bot_first_name} {main_chat_name}"
 msgstr "Привет, я бот {bot_first_name} — хранитель полезных контактов группы «{main_chat_name}». Подскажу, кто будет полезен вам, или помогу найти клиентов. Добавляйтесь!"
 
-#: bot.py:359
+#: bot.py:351
 msgid "MESSAGE_DM_ADMIN"
 msgstr "Чего изволите?"
 
-#: bot.py:379
+#: bot.py:374
 msgid "MESSAGE_DM_ADMIN_REQUEST_KEYWORDS"
 msgstr "Ожидаю текстовый файл с ключевыми словами."
 
@@ -183,4 +183,12 @@ msgstr "Вы удалены из списка."
 #: bot.py:671
 msgid "MESSAGE_DM_INTERNAL_ERROR"
 msgstr "Что-то сломалось (во мне). Я сообщу моему администратору. Попробуйте нажать какую-нибудь кнопку, вдруг получится."
+
+#: bot.py:679
+msgid "COMMAND_DESCRIPTION_START"
+msgstr "Главное меню"
+
+#: bot.py:680
+msgid "COMMAND_DESCRIPTION_ADMIN"
+msgstr "Меню администратора"
 

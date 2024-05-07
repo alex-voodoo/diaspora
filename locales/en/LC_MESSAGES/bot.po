@@ -1,44 +1,44 @@
-#: bot.py:154
+#: bot.py:149
 msgid "MESSAGE_MC_LET_US_TALK_PRIVATE"
 msgstr "Let's talk private!"
 
-#: bot.py:175
+#: bot.py:170
 msgid "BUTTON_WHO"
 msgstr "Show records"
 
-#: bot.py:175
+#: bot.py:170
 msgid "BUTTON_ENROLL"
 msgstr "Register yourself"
 
-#: bot.py:176
+#: bot.py:171
 msgid "BUTTON_UPDATE"
 msgstr "Update your record"
 
-#: bot.py:176
+#: bot.py:171
 msgid "BUTTON_RETIRE"
 msgstr "Remove your record"
 
-#: bot.py:208 bot.py:216
+#: bot.py:203 bot.py:211
 msgid "BUTTON_YES"
 msgstr "Yes"
 
-#: bot.py:208 bot.py:216
+#: bot.py:203 bot.py:211
 msgid "BUTTON_NO"
 msgstr "No"
 
-#: bot.py:224
+#: bot.py:219
 msgid "BUTTON_DOWNLOAD_SPAM"
 msgstr "Download spam"
 
-#: bot.py:225
+#: bot.py:220
 msgid "BUTTON_DOWNLOAD_ANTISPAM_KEYWORDS"
 msgstr "Download stop words"
 
-#: bot.py:226
+#: bot.py:221
 msgid "BUTTON_UPLOAD_ANTISPAM_KEYWORDS"
 msgstr "Upload stop words"
 
-#: bot.py:242
+#: bot.py:235
 msgid "MESSAGE_ADMIN_APPROVE_USER_DATA {username}"
 msgstr ""
 "User @{username} has updated their data.\n"
@@ -46,7 +46,7 @@ msgstr ""
 "Location: {location}\n"
 "Approve it?"
 
-#: bot.py:259
+#: bot.py:252
 msgid "MESSAGE_MC_GREETING_M {user_first_name} {bot_first_name}"
 msgstr ""
 "Welcome, {user_first_name}!\n"
@@ -57,7 +57,7 @@ msgstr ""
 "\n"
 "<em>I will delete this message in five minutes.</em>"
 
-#: bot.py:259
+#: bot.py:252
 msgid "MESSAGE_MC_GREETING_F {user_first_name} {bot_first_name}"
 msgstr ""
 "Welcome, {user_first_name}!\n"
@@ -68,11 +68,11 @@ msgstr ""
 "\n"
 "<em>I will delete this message in five minutes.</em>"
 
-#: bot.py:289
+#: bot.py:281
 msgid "MESSAGE_MC_SPEAK_DEFAULT_LANGUAGE"
 msgstr "❗ Please follow the rules of this group and write in English, so that every other member would understand you."
 
-#: bot.py:302
+#: bot.py:294
 msgid "MESSAGE_MC_HELP"
 msgstr ""
 "I keep records of users who would like to offer something to others, and provide that information to everyone in this chat.\n"
@@ -81,7 +81,7 @@ msgstr ""
 "\n"
 "<em>Soon I will delete this message to keep this chat clean.</em>"
 
-#: bot.py:308
+#: bot.py:300
 msgid "MESSAGE_DM_HELP"
 msgstr ""
 "I keep records of users of the chat who would like to offer something to others, and provide that information to everyone in the chat.\n"
@@ -90,19 +90,19 @@ msgstr ""
 "\n"
 "Use the buttons below to see the records, to add yourself or update your data, and to remove your record (of course if you have one)."
 
-#: bot.py:325
+#: bot.py:317
 msgid "MESSAGE_ADMIN_MAIN_CHAT_ID {title} {id}"
 msgstr "The ID of the \"{title}\" group is {id}"
 
-#: bot.py:340
+#: bot.py:332
 msgid "MESSAGE_DM_HELLO {bot_first_name} {main_chat_name}"
 msgstr "Hello!  I am {bot_first_name}, the bookkeeper bot of the \"{main_chat_name}\" group."
 
-#: bot.py:359
+#: bot.py:351
 msgid "MESSAGE_DM_ADMIN"
 msgstr "At your service."
 
-#: bot.py:379
+#: bot.py:374
 msgid "MESSAGE_DM_ADMIN_REQUEST_KEYWORDS"
 msgstr "Awaiting a text file."
 
@@ -183,4 +183,12 @@ msgstr "I am sorry to see you go."
 #: bot.py:671
 msgid "MESSAGE_DM_INTERNAL_ERROR"
 msgstr "An internal error occurred.  I have notified my administrator about the error.  Please use the buttons below, hopefully it will work."
+
+#: bot.py:679
+msgid "COMMAND_DESCRIPTION_START"
+msgstr "Main menu"
+
+#: bot.py:680
+msgid "COMMAND_DESCRIPTION_ADMIN"
+msgstr "Administrator's menu"
 
