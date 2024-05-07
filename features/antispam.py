@@ -4,13 +4,16 @@ Antispam
 
 import io
 import logging
+import pathlib
 import string
 
 import joblib
 import numpy as np
 from openai import OpenAI
 
-KEYWORDS_FILE_PATH = "features/resources/bad_keywords.txt"
+from settings import ANTISPAM_OPENAI_CONFIDENCE_THRESHOLD
+
+KEYWORDS_FILE_PATH = pathlib.Path(__file__).parent / "resources" / "bad_keywords.txt"
 
 keywords = None
 openai_model = None
@@ -58,7 +61,10 @@ def save_new_keywords(data: io.BytesIO) -> None:
 
 
 def detect_openai(text, api_key, threshold=0.5) -> bool:
-    """Detect spam using the OpenAI model"""
+    """Detect spam using the OpenAI model
+
+    Return whether the confidence has been over `OPENAI_CONFIDENCE_THRESHOLD`
+    """
 
     global openai_model
 
@@ -84,4 +90,4 @@ def detect_openai(text, api_key, threshold=0.5) -> bool:
     logger.info(
         "Spam confidence: {confidence} and threshold: {threshold}".format(confidence=pred_conf, threshold=threshold))
 
-    return pred_conf > threshold  # Return the predicted label
+    return pred_conf > ANTISPAM_OPENAI_CONFIDENCE_THRESHOLD

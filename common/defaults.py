@@ -78,6 +78,8 @@ ANTISPAM_STOP_WORDS_ENABLED = False
 ANTISPAM_OPENAI_ENABLED = False
 # Whether to use OpenAI-backed filter
 ANTISPAM_OPENAI_API_KEY = ""
+# Confidence threshold for the OpenAI model
+ANTISPAM_OPENAI_CONFIDENCE_THRESHOLD = 0.5
 
 # ----------------------------------------------------------------------------------------------------------------------
 # General settings

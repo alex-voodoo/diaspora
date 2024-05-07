@@ -156,8 +156,10 @@ MAIN_CHAT_ID = 0
 # ANTISPAM_STOP_WORDS_ENABLED = False
 # Whether to use OpenAI-backed filter.  Default is False.
 # ANTISPAM_OPENAI_ENABLED = False
-# API key for the OpenAI API
+# API key for the OpenAI API.  Mandatory for the model to work.
 # ANTISPAM_OPENAI_API_KEY = ""
+# Confidence threshold for the OpenAI model.  Default is 0.5.
+# ANTISPAM_OPENAI_CONFIDENCE_THRESHOLD = 0.5
 
 # ----------------------------------------------------------------------------------------------------------------------
 # General settings
