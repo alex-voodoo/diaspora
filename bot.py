@@ -18,7 +18,7 @@ import traceback
 from collections import deque
 
 import httpx
-from langdetect import detect
+from langdetect import detect, lang_detect_exception
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, User, MenuButtonCommands, BotCommand
 from telegram.constants import ParseMode, ChatType
 from telegram.ext import (Application, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters,
@@ -255,7 +255,11 @@ async def detect_language(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     global message_languages
 
-    message_languages.append(detect(update.message.text))
+    try:
+        message_languages.append(detect(update.message.text))
+    except lang_detect_exception.LangDetectException:
+        logger.warning("Caught LangDetectException while processing a message")
+        return
 
     if len(message_languages) < LANGUAGE_MODERATION_MAX_FOREIGN_MESSAGE_COUNT:
         return

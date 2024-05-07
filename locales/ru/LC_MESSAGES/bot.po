@@ -68,11 +68,11 @@ msgstr ""
 "\n"
 "<em>Я удалю это сообщение через пять минут.</em>"
 
-#: bot.py:269
+#: bot.py:273
 msgid "MESSAGE_MC_SPEAK_DEFAULT_LANGUAGE"
 msgstr "❗ Пожалуйста, следуйте правилам группы и пишите по-русски, чтобы вас понимали все участники."
 
-#: bot.py:282
+#: bot.py:286
 msgid "MESSAGE_MC_HELP"
 msgstr ""
 "Я записываю пользователей, которые предлагают услуги, и показываю их список всем участникам чата.\n"
@@ -81,7 +81,7 @@ msgstr ""
 "\n"
 "<em>Я скоро удалю это сообщение, чтобы не засорять чат.</em>"
 
-#: bot.py:288
+#: bot.py:292
 msgid "MESSAGE_DM_HELP"
 msgstr ""
 "Я записываю пользователей, которые предлагают услуги, и показываю их список всем участникам чата.\n"
@@ -90,107 +90,107 @@ msgstr ""
 "\n"
 "С помощью кнопок ниже можно посмотреть список контактов, добавиться в него, изменить или удалить свою запись."
 
-#: bot.py:305
+#: bot.py:309
 msgid "MESSAGE_ADMIN_MAIN_CHAT_ID {title} {id}"
 msgstr "ID группы «{title}»: {id}"
 
-#: bot.py:320
+#: bot.py:324
 msgid "MESSAGE_DM_HELLO {bot_first_name} {main_chat_name}"
 msgstr "Привет, я бот {bot_first_name} — хранитель полезных контактов группы «{main_chat_name}». Подскажу, кто будет полезен вам, или помогу найти клиентов. Добавляйтесь!"
 
-#: bot.py:339
+#: bot.py:343
 msgid "MESSAGE_DM_ADMIN"
 msgstr "Чего изволите?"
 
-#: bot.py:362
+#: bot.py:366
 msgid "MESSAGE_DM_ADMIN_REQUEST_KEYWORDS"
 msgstr "Ожидаю текстовый файл с ключевыми словами."
 
-#: bot.py:376
+#: bot.py:380
 msgid "MESSAGE_DM_ADMIN_KEYWORDS_WRONG_FILE_TYPE"
 msgstr "Файл имеет неверный тип. Я могу принять только текстовый файл."
 
-#: bot.py:400
+#: bot.py:404
 msgid "MESSAGE_DM_WHO_LIST_HEADING"
 msgstr "Вот кого я знаю:"
 
-#: bot.py:408
+#: bot.py:412
 msgid "MESSAGE_DM_WHO_EMPTY"
 msgstr "Пока никто не записался, будьте первым!"
 
-#: bot.py:426
+#: bot.py:430
 msgid "MESSAGE_DM_ENROLL_USERNAME_REQUIRED"
 msgstr ""
 "В вашем профиле Телеграм не задано имя пользователя. Добавьте его в настройках, чтобы другие участники могли написать вам, не зная вашего номера.\n"
 "\n"
 "После этого я смогу добавить вас в список."
 
-#: bot.py:430
+#: bot.py:434
 msgid "MESSAGE_DM_ENROLL_ASK_OCCUPATION"
 msgstr ""
 "Давайте знакомиться!\n"
 "\n"
 "Сформулируйте коротко, кто вы (например, «Парикмахер», «Няня») или что вы делаете («Учу сёрфингу», «Помогаю с уборкой»)."
 
-#: bot.py:443
+#: bot.py:447
 msgid "MESSAGE_DM_ENROLL_ASK_LOCATION"
 msgstr ""
 "Где вы оказываете услуги?\n"
 "\n"
 "Укажите город по-русски: Сантьяго, Корунья, Виго и др. Если городов несколько, пишите «Галисия»."
 
-#: bot.py:456
+#: bot.py:460
 msgid "MESSAGE_DM_ENROLL_CONFIRM_LEGALITY"
 msgstr ""
 "И последнее: подтвердите, что не нарушаете местные законы и правила.\n"
 "\n"
 "Ваша услуга легальна?"
 
-#: bot.py:486
+#: bot.py:490
 msgid "MESSAGE_DM_ENROLL_COMPLETED"
 msgstr "Готово, вы добавлены в список!"
 
-#: bot.py:488
+#: bot.py:492
 msgid "MESSAGE_DM_ENROLL_COMPLETED_POST_MODERATION"
 msgstr "Готово, вы добавлены в список! Обратите внимание, модераторы могут скрыть вашу запись, если она нарушает правила группы."
 
-#: bot.py:490
+#: bot.py:494
 msgid "MESSAGE_DM_ENROLL_COMPLETED_PRE_MODERATION"
 msgstr "Готово! Я добавлю вас в список после проверки модераторами."
 
-#: bot.py:502
+#: bot.py:506
 msgid "MESSAGE_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"
 msgstr "Извините, я не могу добавлять нелегальные услуги."
 
-#: bot.py:554
+#: bot.py:558
 msgid "MESSAGE_MC_SPAM_DETECTED_M {username}"
 msgstr "⛔️ Я удалил сообщение пользователя {username}, похожее на спам. Если я ошибся, напишите администраторам."
 
-#: bot.py:556
+#: bot.py:560
 msgid "MESSAGE_MC_SPAM_DETECTED_F {username}"
 msgstr "⛔️ Я удалила сообщение пользователя {username}, похожее на спам. Если я ошиблась, напишите администраторам."
 
-#: bot.py:588
+#: bot.py:592
 msgid "MESSAGE_ADMIN_USER_RECORD_APPROVED"
 msgstr "Одобрено."
 
-#: bot.py:597
+#: bot.py:601
 msgid "MESSAGE_ADMIN_USER_RECORD_SUSPENDED"
 msgstr "Данные пользователя скрыты. Свяжитесь с ним и сообщите, что нужно поправить данные."
 
-#: bot.py:616
+#: bot.py:620
 msgid "MESSAGE_DM_RETIRE"
 msgstr "Вы удалены из списка."
 
-#: bot.py:667
+#: bot.py:671
 msgid "MESSAGE_DM_INTERNAL_ERROR"
 msgstr "Что-то сломалось (во мне). Я сообщу моему администратору. Попробуйте нажать какую-нибудь кнопку, вдруг получится."
 
-#: bot.py:675
+#: bot.py:679
 msgid "COMMAND_DESCRIPTION_START"
 msgstr "Главное меню"
 
-#: bot.py:676
+#: bot.py:680
 msgid "COMMAND_DESCRIPTION_ADMIN"
 msgstr "Меню администратора"
 

@@ -68,11 +68,11 @@ msgstr ""
 "\n"
 "<em>I will delete this message in five minutes.</em>"
 
-#: bot.py:269
+#: bot.py:273
 msgid "MESSAGE_MC_SPEAK_DEFAULT_LANGUAGE"
 msgstr "❗ Please follow the rules of this group and write in English, so that every other member would understand you."
 
-#: bot.py:282
+#: bot.py:286
 msgid "MESSAGE_MC_HELP"
 msgstr ""
 "I keep records of users who would like to offer something to others, and provide that information to everyone in this chat.\n"
@@ -81,7 +81,7 @@ msgstr ""
 "\n"
 "<em>Soon I will delete this message to keep this chat clean.</em>"
 
-#: bot.py:288
+#: bot.py:292
 msgid "MESSAGE_DM_HELP"
 msgstr ""
 "I keep records of users of the chat who would like to offer something to others, and provide that information to everyone in the chat.\n"
@@ -90,107 +90,107 @@ msgstr ""
 "\n"
 "Use the buttons below to see the records, to add yourself or update your data, and to remove your record (of course if you have one)."
 
-#: bot.py:305
+#: bot.py:309
 msgid "MESSAGE_ADMIN_MAIN_CHAT_ID {title} {id}"
 msgstr "The ID of the \"{title}\" group is {id}"
 
-#: bot.py:320
+#: bot.py:324
 msgid "MESSAGE_DM_HELLO {bot_first_name} {main_chat_name}"
 msgstr "Hello!  I am {bot_first_name}, the bookkeeper bot of the \"{main_chat_name}\" group."
 
-#: bot.py:339
+#: bot.py:343
 msgid "MESSAGE_DM_ADMIN"
 msgstr "At your service."
 
-#: bot.py:362
+#: bot.py:366
 msgid "MESSAGE_DM_ADMIN_REQUEST_KEYWORDS"
 msgstr "Awaiting a text file."
 
-#: bot.py:376
+#: bot.py:380
 msgid "MESSAGE_DM_ADMIN_KEYWORDS_WRONG_FILE_TYPE"
 msgstr "The file has wrong type.  I can work with text files only."
 
-#: bot.py:400
+#: bot.py:404
 msgid "MESSAGE_DM_WHO_LIST_HEADING"
 msgstr "Here is the directory:"
 
-#: bot.py:408
+#: bot.py:412
 msgid "MESSAGE_DM_WHO_EMPTY"
 msgstr "Nobody has registered themselves so far :-( ."
 
-#: bot.py:426
+#: bot.py:430
 msgid "MESSAGE_DM_ENROLL_USERNAME_REQUIRED"
 msgstr ""
 "Your Telegram profile does not have a username.  I need it to show people a link to your profile.\n"
 "\n"
 "Please register a username for your profile and try again."
 
-#: bot.py:430
+#: bot.py:434
 msgid "MESSAGE_DM_ENROLL_ASK_OCCUPATION"
 msgstr ""
 "Let us start!  What do you do?\n"
 "\n"
 "Please give a short and simple answer, like \"Teach how to surf\" or \"Help with the immigrations\"."
 
-#: bot.py:443
+#: bot.py:447
 msgid "MESSAGE_DM_ENROLL_ASK_LOCATION"
 msgstr ""
 "Where are you based?\n"
 "\n"
 "Just the name of the place is enough, like \"A Coruña\""
 
-#: bot.py:456
+#: bot.py:460
 msgid "MESSAGE_DM_ENROLL_CONFIRM_LEGALITY"
 msgstr ""
 "Finally, please confirm that what you do is legal and does not violate any laws or local regulations.\n"
 "\n"
 "Is your service legal?"
 
-#: bot.py:486
+#: bot.py:490
 msgid "MESSAGE_DM_ENROLL_COMPLETED"
 msgstr "We are done, you are now registered!"
 
-#: bot.py:488
+#: bot.py:492
 msgid "MESSAGE_DM_ENROLL_COMPLETED_POST_MODERATION"
 msgstr "We are done, you are now registered!  Please note that moderators may hide your record if it violates rules of the group."
 
-#: bot.py:490
+#: bot.py:494
 msgid "MESSAGE_DM_ENROLL_COMPLETED_PRE_MODERATION"
 msgstr "We are done!  I will add your record to the list after the moderators approve it."
 
-#: bot.py:502
+#: bot.py:506
 msgid "MESSAGE_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"
 msgstr "I am sorry.  I cannot register services that do not comply with the laws and local regulations."
 
-#: bot.py:554
+#: bot.py:558
 msgid "MESSAGE_MC_SPAM_DETECTED_M {username}"
 msgstr "⛔️ I have deleted a message sent by {username} because it looked like spam.  If you think that it was a mistake, talk to administrators."
 
-#: bot.py:556
+#: bot.py:560
 msgid "MESSAGE_MC_SPAM_DETECTED_F {username}"
 msgstr "⛔️ I have deleted a message sent by {username} because it looked like spam.  If you think that it was a mistake, talk to administrators."
 
-#: bot.py:588
+#: bot.py:592
 msgid "MESSAGE_ADMIN_USER_RECORD_APPROVED"
 msgstr "Approved."
 
-#: bot.py:597
+#: bot.py:601
 msgid "MESSAGE_ADMIN_USER_RECORD_SUSPENDED"
 msgstr "The user's record is suspended.  Contact them to fix their data."
 
-#: bot.py:616
+#: bot.py:620
 msgid "MESSAGE_DM_RETIRE"
 msgstr "I am sorry to see you go."
 
-#: bot.py:667
+#: bot.py:671
 msgid "MESSAGE_DM_INTERNAL_ERROR"
 msgstr "An internal error occurred.  I have notified my administrator about the error.  Please use the buttons below, hopefully it will work."
 
-#: bot.py:675
+#: bot.py:679
 msgid "COMMAND_DESCRIPTION_START"
 msgstr "Main menu"
 
-#: bot.py:676
+#: bot.py:680
 msgid "COMMAND_DESCRIPTION_ADMIN"
 msgstr "Administrator's menu"
 
