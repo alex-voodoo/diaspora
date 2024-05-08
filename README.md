@@ -15,6 +15,7 @@ In addition, the bot provides a set of moderation and housekeeping features, all
 - Pre- or post-moderation of input from the users.  Every time a user sends new data, the bot asks the moderators if the new content is acceptable.  The content that did not pass the moderation will not be shown to other users.
 - Greeting new users.  The bot may react when a new user joins the group by sending a greeting message to the group.
 - Language moderation.  The bot may detect language of messages posted by the users, and post a warning about preferred (or required) language if too many messages were sent in other languages.
+- Antispam.  The bot may delete messages that meet certain criteria.
 
 The bot deletes most of its own messages some time after posting them, to keep the chat clean of automatic replies.  Users are supposed to talk to bot using private messages.
 
