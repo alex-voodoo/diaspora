@@ -336,7 +336,7 @@ async def handle_command_admin(update: Update, context: ContextTypes.DEFAULT_TYP
         logging.info("User {username} tried to invoke the admin UI".format(username=user.username))
         return
 
-    if not talking_private(update, context):
+    if not await talking_private(update, context):
         await context.bot.deleteMessage(message_id=message.id, chat_id=message.chat.id)
 
     update_language(user)
