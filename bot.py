@@ -40,11 +40,12 @@ logger = logging.getLogger(__name__)
 COMMAND_START, COMMAND_HELP, COMMAND_WHO, COMMAND_ENROLL, COMMAND_RETIRE = ("start", "help", "who", "enroll", "retire")
 COMMAND_ADMIN = "admin"
 TYPING_OCCUPATION, TYPING_LOCATION, CONFIRMING_LEGALITY = range(3)
-UPLOADING_ANTISPAM_KEYWORDS = 1
+UPLOADING_ANTISPAM_KEYWORDS, UPLOADING_ANTISPAM_OPENAI = range(2)
 RESPONSE_YES, RESPONSE_NO = ("yes", "no")
 MODERATOR_APPROVE, MODERATOR_DECLINE = ("approve", "decline")
-QUERY_ADMIN_DOWNLOAD_SPAM, QUERY_ADMIN_DOWNLOAD_ANTISPAM_KEYWORDS, QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS = (
-    "download-spam", "download-antispam-keywords", "upload-antispam-keywords")
+(QUERY_ADMIN_DOWNLOAD_SPAM, QUERY_ADMIN_DOWNLOAD_ANTISPAM_KEYWORDS, QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS,
+ QUERY_ADMIN_UPLOAD_ANTISPAM_OPENAI) = (
+    "download-spam", "download-antispam-keywords", "upload-antispam-keywords", "upload-antispam-openai")
 
 # Global translation context.  Updated by update_language() depending on the locale of the current user.
 _ = gettext.gettext
@@ -206,11 +207,13 @@ def get_moderation_keyboard(tg_id):
 def get_admin_keyboard() -> InlineKeyboardMarkup:
     response_buttons = {_("BUTTON_DOWNLOAD_SPAM"): QUERY_ADMIN_DOWNLOAD_SPAM,
                         _("BUTTON_DOWNLOAD_ANTISPAM_KEYWORDS"): QUERY_ADMIN_DOWNLOAD_ANTISPAM_KEYWORDS,
-                        _("BUTTON_UPLOAD_ANTISPAM_KEYWORDS"): QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS}
-    button_download_spam, button_download_keywords, button_upload_keywords = (
+                        _("BUTTON_UPLOAD_ANTISPAM_KEYWORDS"): QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS,
+                        _("BUTTON_UPLOAD_ANTISPAM_OPENAI"): QUERY_ADMIN_UPLOAD_ANTISPAM_OPENAI}
+    button_download_spam, button_download_keywords, button_upload_keywords, button_upload_openai = (
         InlineKeyboardButton(text, callback_data=command) for text, command in response_buttons.items())
 
-    return InlineKeyboardMarkup(((button_download_spam,), (button_download_keywords,), (button_upload_keywords,)))
+    return InlineKeyboardMarkup(((button_download_spam,), (button_download_keywords,), (button_upload_keywords,),
+                                 (button_upload_openai,)))
 
 
 # noinspection PyUnusedLocal
@@ -358,18 +361,22 @@ async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE)
     if query.data == QUERY_ADMIN_DOWNLOAD_SPAM:
         spam = [record for record in db.spam_select_all()]
         await user.send_document(json.dumps(spam, ensure_ascii=False, indent=2).encode("utf-8"), filename="spam.json",
-                                 reply_markup=get_admin_keyboard())
+                                 reply_markup=None)
     elif query.data == QUERY_ADMIN_DOWNLOAD_ANTISPAM_KEYWORDS:
         await user.send_document(antispam.get_keywords(), filename="bad_keywords.txt",
-                                 reply_markup=get_admin_keyboard())
+                                 reply_markup=None)
     elif query.data == QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS:
         await query.message.reply_text(_("MESSAGE_DM_ADMIN_REQUEST_KEYWORDS"))
 
         return UPLOADING_ANTISPAM_KEYWORDS
+    elif query.data == QUERY_ADMIN_UPLOAD_ANTISPAM_OPENAI:
+        await query.message.reply_text(_("MESSAGE_DM_ADMIN_REQUEST_OPENAI"))
+
+        return UPLOADING_ANTISPAM_OPENAI
 
 
 async def received_antispam_keywords(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    user = update.callback_query.from_user
+    user = update.effective_user
     if user.id not in ADMINISTRATORS.keys():
         logging.error("User {username} is not listed as administrator!".format(username=user.username))
         return ConversationHandler.END
@@ -384,9 +391,34 @@ async def received_antispam_keywords(update: Update, context: ContextTypes.DEFAU
     keywords_file = await document.get_file()
     data = io.BytesIO()
     await keywords_file.download_to_memory(data)
-    data.seek(0)
 
-    antispam.save_new_keywords(data)
+    if antispam.save_new_keywords(data):
+        await update.effective_message.reply_text(_("MESSAGE_DM_ADMIN_KEYWORDS_UPDATED"), reply_markup=None)
+    else:
+        await update.effective_message.reply_text(_("MESSAGE_DM_ADMIN_KEYWORDS_CANNOT_USE"),
+                                                  reply_markup=get_admin_keyboard())
+
+    return ConversationHandler.END
+
+
+async def received_antispam_openai(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    user = update.effective_user
+    if user.id not in ADMINISTRATORS.keys():
+        logging.error("User {username} is not listed as administrator!".format(username=user.username))
+        return ConversationHandler.END
+
+    document = update.message.effective_attachment
+
+    openai_file = await document.get_file()
+    data = io.BytesIO()
+    await openai_file.download_to_memory(data)
+
+    if antispam.save_new_openai(data):
+        await update.effective_message.reply_text(_("MESSAGE_DM_ADMIN_OPENAI_UPDATED"), reply_markup=None)
+    else:
+        await update.effective_message.reply_text(_("MESSAGE_DM_ADMIN_OPENAI_CANNOT_USE"),
+                                                  reply_markup=get_admin_keyboard())
+
 
     return ConversationHandler.END
 
@@ -703,6 +735,10 @@ def main() -> None:
     application.add_handler(ConversationHandler(
         entry_points=[CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS)],
         states={UPLOADING_ANTISPAM_KEYWORDS: [MessageHandler(filters.ATTACHMENT, received_antispam_keywords)]},
+        fallbacks=[]))
+    application.add_handler(ConversationHandler(
+        entry_points=[CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_UPLOAD_ANTISPAM_OPENAI)],
+        states={UPLOADING_ANTISPAM_OPENAI: [MessageHandler(filters.ATTACHMENT, received_antispam_openai)]},
         fallbacks=[]))
 
     # Add conversation handler that questions the user about his profile

@@ -6,6 +6,7 @@ import io
 import logging
 import pathlib
 import string
+import tempfile
 
 import joblib
 import numpy as np
@@ -14,6 +15,7 @@ from openai import OpenAI
 from settings import ANTISPAM_OPENAI_CONFIDENCE_THRESHOLD
 
 KEYWORDS_FILE_PATH = pathlib.Path(__file__).parent / "resources" / "bad_keywords.txt"
+OPENAI_FILE_PATH = pathlib.Path(__file__).parent / "resources" / "svm_model.joblib"
 
 keywords = None
 openai_model = None
@@ -49,15 +51,18 @@ def get_keywords() -> io.BytesIO:
         return data
 
 
-def save_new_keywords(data: io.BytesIO) -> None:
+def save_new_keywords(data: io.BytesIO) -> bool:
     """Reset the keywords file with new contents.  The new list will be used on the next call to `detect_keywords()`."""
 
+    data.seek(0)
     with open(KEYWORDS_FILE_PATH, "wb") as outp:
         outp.write(data.read())
 
     global keywords
 
     keywords = None
+
+    return True
 
 
 def detect_openai(text, api_key, threshold=0.5) -> bool:
@@ -71,8 +76,7 @@ def detect_openai(text, api_key, threshold=0.5) -> bool:
     # Load the model using joblib
     if openai_model is None:
         logger.info("Loading the OpenAI model")
-        filename = "features/resources/svm_model.joblib"
-        openai_model = joblib.load(filename)
+        openai_model = joblib.load(OPENAI_FILE_PATH)
 
     # embedding
     client = OpenAI(api_key=api_key)
@@ -91,3 +95,26 @@ def detect_openai(text, api_key, threshold=0.5) -> bool:
         "Spam confidence: {confidence} and threshold: {threshold}".format(confidence=pred_conf, threshold=threshold))
 
     return pred_conf > ANTISPAM_OPENAI_CONFIDENCE_THRESHOLD
+
+
+def save_new_openai(data: io.BytesIO) -> bool:
+    """Tries to load the new OpenAI model from `data`
+
+    Returns whether it could load the new model.  On failure, the existing model is preserved.
+    """
+
+    data.seek(0)
+    try:
+        new_model = joblib.load(data)
+    except Exception:
+        return False
+
+    global openai_model
+
+    openai_model = new_model
+
+    data.seek(0)
+    with open(OPENAI_FILE_PATH, "wb") as outp:
+        outp.write(data.read())
+
+    return True
