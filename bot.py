@@ -548,6 +548,7 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         logger.warning("The update does not have any message, cannot detect spam")
         return
     message = update.effective_message
+    user = message.from_user
 
     if message.chat_id != MAIN_CHAT_ID:
         logger.info("The message does not belong to the main chat, will not detect spam")
@@ -557,48 +558,31 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         logger.info("The message does not have text, cannot detect spam")
         return
 
-    if db.is_good_member(message.from_user.id):
+    if db.is_good_member(user.id):
+        logger.info("The message comes from a known user, will not detect spam")
         return
 
-    logger.info("User ID {user_id} posts their first message".format(user_id=message.from_user.id))
-
-    found_spam = False
-    trigger = ""
-
-    if ANTISPAM_STOP_WORDS_ENABLED:
-        if antispam.detect_keywords(message.text):
-            logger.info("SPAM detected by stop words in the first message from user ID {user_id}".format(
-                user_id=message.from_user.id))
-            found_spam = True
-            trigger = "keyword"
-
-    if not found_spam and ANTISPAM_OPENAI_ENABLED:
-        if antispam.detect_openai(message.text, ANTISPAM_OPENAI_API_KEY):
-            logger.info("SPAM detected by OpenAI in the first message from user ID {user_id}".format(
-                user_id=message.from_user.id))
-            found_spam = True
-            trigger = "openai"
-
-    if found_spam:
-        db.spam_insert(message.text, message.from_user.id, trigger)
-
-        await context.bot.deleteMessage(message_id=message.id, chat_id=message.chat.id)
-
-        update_language(DEFAULT_LANGUAGE)
-
-        if BOT_IS_MALE:
-            delete_notice = _("MESSAGE_MC_SPAM_DETECTED_M {username}")
-        else:
-            delete_notice = _("MESSAGE_MC_SPAM_DETECTED_F {username}")
-
-        posted_message = await context.bot.send_message(MAIN_CHAT_ID,
-                                                        delete_notice.format(username=message.from_user.full_name),
-                                                        disable_notification=True)
-        context.job_queue.run_once(delete_message, 15, data=(posted_message, False))
+    if not antispam.is_spam(message.text, user.id):
+        logger.info("User {full_name} (ID {id}) posts their first message which looks good".format(
+            full_name=user.full_name, id=user.id))
+        db.register_good_member(user.id)
         return
 
-    logger.info("Nothing wrong with this message.")
-    db.register_good_member(message.from_user.id)
+    logger.info("SPAM detected in the first message from user ID {user_id}".format(user_id=user.id))
+
+    await context.bot.deleteMessage(message_id=message.id, chat_id=message.chat.id)
+
+    update_language(DEFAULT_LANGUAGE)
+
+    if BOT_IS_MALE:
+        delete_notice = _("MESSAGE_MC_SPAM_DETECTED_M {username}")
+    else:
+        delete_notice = _("MESSAGE_MC_SPAM_DETECTED_F {username}")
+
+    posted_message = await context.bot.send_message(MAIN_CHAT_ID,
+                                                    delete_notice.format(username=message.from_user.full_name),
+                                                    disable_notification=True)
+    context.job_queue.run_once(delete_message, 15, data=(posted_message, False))
 
 
 # noinspection PyUnusedLocal

@@ -6,13 +6,13 @@ import io
 import logging
 import pathlib
 import string
-import tempfile
 
 import joblib
 import numpy as np
 from openai import OpenAI
 
-from settings import ANTISPAM_OPENAI_CONFIDENCE_THRESHOLD
+from common import db
+from settings import ANTISPAM_OPENAI_API_KEY, ANTISPAM_OPENAI_CONFIDENCE_THRESHOLD
 
 KEYWORDS_FILE_PATH = pathlib.Path(__file__).parent / "resources" / "bad_keywords.txt"
 OPENAI_FILE_PATH = pathlib.Path(__file__).parent / "resources" / "svm_model.joblib"
@@ -65,7 +65,7 @@ def save_new_keywords(data: io.BytesIO) -> bool:
     return True
 
 
-def detect_openai(text, api_key, threshold=0.5) -> bool:
+def detect_openai(text, threshold=0.5) -> bool:
     """Detect spam using the OpenAI model
 
     Return whether the confidence has been over `OPENAI_CONFIDENCE_THRESHOLD`
@@ -79,7 +79,7 @@ def detect_openai(text, api_key, threshold=0.5) -> bool:
         openai_model = joblib.load(OPENAI_FILE_PATH)
 
     # embedding
-    client = OpenAI(api_key=api_key)
+    client = OpenAI(api_key=ANTISPAM_OPENAI_API_KEY)
 
     response = client.embeddings.create(input=text, model="text-embedding-3-small")
     embedding = response.data[0].embedding
@@ -116,5 +116,23 @@ def save_new_openai(data: io.BytesIO) -> bool:
     data.seek(0)
     with open(OPENAI_FILE_PATH, "wb") as outp:
         outp.write(data.read())
+
+    return True
+
+
+def is_spam(text, tg_id) -> bool:
+    """Evaluates `text` and returns whether it looks like spam
+
+    The evaluation is two-step: first the keywords are looked for, and if there were any, the OpenAI model is called.
+    Only messages that tested positive on both levels are classified as spam.
+    """
+
+    if not detect_keywords(text):
+        return False
+
+    if not detect_openai(text):
+        return False
+
+    db.spam_insert(text, tg_id, "keywords, openai")
 
     return True
