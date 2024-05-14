@@ -137,22 +137,22 @@ def is_good_member(tg_id) -> bool:
         return False
 
 
-def spam_insert(text, from_user_tg_id, trigger) -> None:
+def spam_insert(text, from_user_tg_id, trigger, confidence) -> None:
     """Save a message that triggered antispam"""
 
     with LogTime("INSERT INTO spam"):
         c = db_connection.cursor()
 
-        c.execute("INSERT INTO spam (text, from_user_tg_id, trigger) VALUES(?, ?, ?)",
-                  (text, from_user_tg_id, trigger))
+        c.execute("INSERT INTO spam (text, from_user_tg_id, trigger, openai_confidence) VALUES(?, ?, ?, ?)",
+                  (text, from_user_tg_id, trigger, confidence))
 
         db_connection.commit()
 
 def spam_select_all() -> Iterator:
     """Query all records from the `spam` table"""
 
-    with LogTime("SELECT text, from_user_tg_id, trigger, timestamp FROM spam"):
+    with LogTime("SELECT text, from_user_tg_id, trigger, timestamp, openai_confidence FROM spam"):
         c = db_connection.cursor()
 
-        for row in c.execute("SELECT text, from_user_tg_id, trigger, timestamp FROM spam"):
+        for row in c.execute("SELECT text, from_user_tg_id, trigger, timestamp, openai_confidence FROM spam"):
             yield {key: value for (key, value) in zip((i[0] for i in c.description), row)}

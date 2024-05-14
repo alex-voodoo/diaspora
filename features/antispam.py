@@ -65,7 +65,7 @@ def save_new_keywords(data: io.BytesIO) -> bool:
     return True
 
 
-def detect_openai(text, threshold=0.5) -> bool:
+def detect_openai(text) -> float:
     """Detect spam using the OpenAI model
 
     Return whether the confidence has been over `OPENAI_CONFIDENCE_THRESHOLD`
@@ -89,12 +89,7 @@ def detect_openai(text, threshold=0.5) -> bool:
     # Predict using the SVM model
     prediction = openai_model.predict_proba(embedding)
 
-    pred_conf = prediction[0][1]
-
-    logger.info(
-        "Spam confidence: {confidence} and threshold: {threshold}".format(confidence=pred_conf, threshold=threshold))
-
-    return pred_conf > ANTISPAM_OPENAI_CONFIDENCE_THRESHOLD
+    return prediction[0][1]
 
 
 def save_new_openai(data: io.BytesIO) -> bool:
@@ -130,9 +125,12 @@ def is_spam(text, tg_id) -> bool:
     if not detect_keywords(text):
         return False
 
-    if not detect_openai(text):
+    confidence = detect_openai(text)
+    if confidence < ANTISPAM_OPENAI_CONFIDENCE_THRESHOLD:
         return False
 
-    db.spam_insert(text, tg_id, "keywords, openai")
+    logger.info("Spam confidence: {confidence}".format(confidence=confidence))
+
+    db.spam_insert(text, tg_id, "keywords, openai", confidence)
 
     return True
