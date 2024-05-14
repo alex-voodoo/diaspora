@@ -1,0 +1,2 @@
+ALTER TABLE "spam"
+ADD COLUMN "openai_confidence" REAL;
