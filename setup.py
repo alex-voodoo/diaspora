@@ -150,12 +150,11 @@ MAIN_CHAT_ID = 0
 # good user before sending spam.  Therefore, to eliminate most spam, it should be enough to evaluate the first message
 # sent by a new user to the group.
 #
-# Whether the feature is enabled.  Default is False.
-# ANTISPAM_ENABLED = False
-# Whether to use simple filter that triggers on a single word.  Default is False.
-# ANTISPAM_STOP_WORDS_ENABLED = False
-# Whether to use OpenAI-backed filter.  Default is False.
-# ANTISPAM_OPENAI_ENABLED = False
+# List of layers of spam detection.  Can include 'keywords' and 'openai'.  Default is empty tuple, which means that
+# antispam is disabled.
+# The order of checking the layers is fixed: the first one is keywords, the second one is openai.  If both layers are
+# listed, they both must trigger to mark the message as spam.
+# ANTISPAM_ENABLED = tuple()
 # API key for the OpenAI API.  Mandatory for the model to work.
 # ANTISPAM_OPENAI_API_KEY = ""
 # Confidence threshold for the OpenAI model.  Default is 0.5.

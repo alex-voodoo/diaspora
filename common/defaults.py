@@ -70,12 +70,8 @@ LANGUAGE_MODERATION_MIN_WORD_COUNT = 3
 # good user before sending spam.  Therefore, to eliminate most spam, it should be enough to evaluate the first message a
 # new user sends to the group.
 #
-# Whether the feature is enabled
-ANTISPAM_ENABLED = False
-# Whether to use simple filter that triggers on a single word
-ANTISPAM_STOP_WORDS_ENABLED = False
-# Whether to use OpenAI-backed filter
-ANTISPAM_OPENAI_ENABLED = False
+# List of layers of spam detection
+ANTISPAM_ENABLED = tuple()
 # Whether to use OpenAI-backed filter
 ANTISPAM_OPENAI_API_KEY = ""
 # Confidence threshold for the OpenAI model

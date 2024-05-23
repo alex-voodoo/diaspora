@@ -12,7 +12,7 @@ import numpy as np
 from openai import OpenAI
 
 from common import db
-from settings import ANTISPAM_OPENAI_API_KEY, ANTISPAM_OPENAI_CONFIDENCE_THRESHOLD
+from settings import ANTISPAM_ENABLED, ANTISPAM_OPENAI_API_KEY, ANTISPAM_OPENAI_CONFIDENCE_THRESHOLD
 
 KEYWORDS_FILE_PATH = pathlib.Path(__file__).parent / "resources" / "bad_keywords.txt"
 OPENAI_FILE_PATH = pathlib.Path(__file__).parent / "resources" / "svm_model.joblib"
@@ -122,15 +122,23 @@ def is_spam(text, tg_id) -> bool:
     Only messages that tested positive on both levels are classified as spam.
     """
 
-    if not detect_keywords(text):
-        return False
+    layers = []
+    confidence = 0
 
-    confidence = detect_openai(text)
-    if confidence < ANTISPAM_OPENAI_CONFIDENCE_THRESHOLD:
-        return False
+    if 'keywords' in ANTISPAM_ENABLED:
+        if not detect_keywords(text):
+            return False
+        confidence = 1
+        layers.append('keywords')
+
+    if 'openai' in ANTISPAM_ENABLED:
+        confidence = detect_openai(text)
+        if confidence < ANTISPAM_OPENAI_CONFIDENCE_THRESHOLD:
+            return False
+        layers.append('openai')
 
     logger.info("Spam confidence: {confidence}".format(confidence=confidence))
 
-    db.spam_insert(text, tg_id, "keywords, openai", confidence)
+    db.spam_insert(text, tg_id, ", ".join(layers), confidence)
 
     return True
