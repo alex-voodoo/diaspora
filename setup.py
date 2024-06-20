@@ -40,6 +40,18 @@ def main() -> None:
               "\"timestamp\" DATETIME DEFAULT CURRENT_TIMESTAMP,"
               "PRIMARY KEY(\"id\" AUTOINCREMENT))")
 
+    # ToDo Раскоментировать при создании бота с 0
+    # c.execute("CREATE TABLE \"dict\" ("
+    #           "\"dict_id\" INTEGER NOT NULL,"
+    #           "\"term\" TEXT NOT NULL,"
+    #           "\"dsc\" VARCHAR NULL,"
+    #           "CONSTRAINT PK_DICT PRIMARY KEY (\"dict_id\"))")
+    # c.execute("CREATE TABLE \"dict_data\" ("
+    #           "\"code_id\" INTEGER NOT NULL,"
+    #           "\"dict_id\" INTEGER NOT NULL,"
+    #           "\"term\" TEXT NOT NULL,"
+    #           "\"dsc\" TEXT NULL,"
+    #           "CONSTRAINT PK_DICT_DATA PRIMARY KEY (\"code_id\"))")
     conn.commit()
     conn.close()
 

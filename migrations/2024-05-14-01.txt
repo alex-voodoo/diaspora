@@ -1,2 +1,20 @@
 ALTER TABLE "spam"
 ADD COLUMN "openai_confidence" REAL;
+
+create table if not exist dict (
+   dict_id              INTEGER not null,
+   term                 TEXT    not null,
+   dsc                  TEXT    null,
+   constraint PK_DICT primary key (dict_id)
+);
+
+create table if not exist dict_data (
+   code_id              INTEGER not null,
+   dict_id              INTEGER not null,
+   term                 TEXT    not null,
+   dsc                  TEXT    null,
+   constraint PK_DICT_DATA primary key (code_id)
+);
+
+ALTER TABLE "people"
+ADD COLUMN "industry" INTEGER;

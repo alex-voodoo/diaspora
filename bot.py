@@ -481,6 +481,18 @@ async def received_occupation(update: Update, context: ContextTypes.DEFAULT_TYPE
     return TYPING_LOCATION
 
 
+# async def received_industry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+#     """Store info provided by user and ask for the industry of service"""
+#
+#     update_language(update.message.from_user)
+#
+#     user_data = context.user_data
+#     user_data["occupation"] = update.message.text
+#
+#     await update.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_LOCATION"))
+#     # ToDo запросить варианты словаря
+#     return TYPING_LOCATION
+
 async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Store info provided by user and ask for the legality"""
 
