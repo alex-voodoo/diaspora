@@ -26,6 +26,7 @@ from telegram.ext import (Application, CommandHandler, ContextTypes, Conversatio
 
 from common import db
 from common.checks import is_member_of_main_chat
+
 from features import antispam
 from settings import *
 
@@ -39,7 +40,7 @@ logger = logging.getLogger(__name__)
 # Commands, sequences, and responses
 COMMAND_START, COMMAND_HELP, COMMAND_WHO, COMMAND_ENROLL, COMMAND_RETIRE = ("start", "help", "who", "enroll", "retire")
 COMMAND_ADMIN = "admin"
-TYPING_OCCUPATION, TYPING_LOCATION, CONFIRMING_LEGALITY = range(3)
+TYPING_OCCUPATION, TYPING_INDUSTRY, TYPING_LOCATION, CONFIRMING_LEGALITY = range(3)
 UPLOADING_ANTISPAM_KEYWORDS, UPLOADING_ANTISPAM_OPENAI = range(2)
 RESPONSE_YES, RESPONSE_NO = ("yes", "no")
 MODERATOR_APPROVE, MODERATOR_DECLINE = ("approve", "decline")
@@ -195,6 +196,24 @@ def get_yesno_keyboard():
 
     return InlineKeyboardMarkup(((response_button_yes, response_button_no),))
 
+def get_industry_keyboard():
+    """Builds the INDUSTRY keyboard used in the step where the user input his industry
+
+    +-------------+--------------+
+    | FIRST CHAIR | SECOND CHAIR |
+    +------------+--------------+
+
+    Returns an instance of InlineKeyboardMarkup.
+    """
+    industries = list(db.select_industry_data())
+    industry_list = [industry["term"] for industry in industries]
+
+    response_buttons = {industry: industry for industry in industry_list}
+
+    response_buttons_list = [InlineKeyboardButton(text, callback_data=command)
+                             for text, command in response_buttons.items()]
+
+    return InlineKeyboardMarkup([[button] for button in response_buttons_list])
 
 def get_moderation_keyboard(tg_id):
     response_buttons = {_("BUTTON_YES"): MODERATOR_APPROVE, _("BUTTON_NO"): MODERATOR_DECLINE}
@@ -436,9 +455,10 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_list = [_("MESSAGE_DM_WHO_LIST_HEADING")]
 
     for record in db.people_select_all():
-        user_list.append("@{username} ({location}): {occupation}".format(username=record["tg_username"],
-                                                                         occupation=record["occupation"],
-                                                                         location=record["location"]))
+        user_list.append("@{username} ({location}): {industry}: {occupation}".format(username=record["tg_username"],
+                                                                                     occupation=record["occupation"],
+                                                                                     location=record["location"],
+                                                                                     industry=record["industry"]))
 
     if len(user_list) == 1:
         user_list = [_("MESSAGE_DM_WHO_EMPTY")]
@@ -463,7 +483,20 @@ async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                                        reply_markup=get_standard_keyboard(query.from_user.id))
         return ConversationHandler.END
 
-    await query.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_OCCUPATION"))
+    await query.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_INDUSTRY"), reply_markup=get_industry_keyboard())
+
+    return TYPING_INDUSTRY
+
+
+async def received_industry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Store the industry chosen by the user"""
+    update_language(update.message.from_user)
+
+    user_data = context.user_data
+    user_data["industry"] = update.message.text
+
+    # Запись данных в таблицу user_data
+    await update.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_OCCUPATION"))
 
     return TYPING_OCCUPATION
 
@@ -476,22 +509,11 @@ async def received_occupation(update: Update, context: ContextTypes.DEFAULT_TYPE
     user_data = context.user_data
     user_data["occupation"] = update.message.text
 
+
     await update.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_LOCATION"))
 
     return TYPING_LOCATION
 
-
-# async def received_industry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-#     """Store info provided by user and ask for the industry of service"""
-#
-#     update_language(update.message.from_user)
-#
-#     user_data = context.user_data
-#     user_data["occupation"] = update.message.text
-#
-#     await update.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_LOCATION"))
-#     # ToDo запросить варианты словаря
-#     return TYPING_LOCATION
 
 async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Store info provided by user and ask for the legality"""
@@ -739,9 +761,13 @@ def main() -> None:
 
     # Add conversation handler that questions the user about his profile
     application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(enroll, pattern=COMMAND_ENROLL)],
-                                                states={TYPING_OCCUPATION: [
-                                                    MessageHandler(filters.TEXT, received_occupation)],
-                                                    TYPING_LOCATION: [MessageHandler(filters.TEXT, received_location)],
+                                                states={
+                                                    TYPING_OCCUPATION: [
+                                                        MessageHandler(filters.TEXT, received_occupation)],
+                                                    TYPING_INDUSTRY: [
+                                                        MessageHandler(filters.TEXT, received_industry)],
+                                                    TYPING_LOCATION: [
+                                                        MessageHandler(filters.TEXT, received_location)],
                                                     CONFIRMING_LEGALITY: [CallbackQueryHandler(confirm_legality)]},
                                                 fallbacks=[]))
 

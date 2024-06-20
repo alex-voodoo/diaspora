@@ -163,6 +163,16 @@ msgstr ""
 "\n"
 "Укажите город по-русски: Сантьяго, Корунья, Виго и др. Если городов несколько, пишите «Галисия»."
 
+
+#: bot.py:480
+msgid "MESSAGE_DM_ENROLL_ASK_INDUSTRY"
+msgstr ""
+"Выберите вашу сферу оказания услуг.\n"
+
+
+
+
+
 #: bot.py:492
 msgid "MESSAGE_DM_ENROLL_CONFIRM_LEGALITY"
 msgstr ""

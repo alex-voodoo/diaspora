@@ -156,3 +156,13 @@ def spam_select_all() -> Iterator:
 
         for row in c.execute("SELECT text, from_user_tg_id, trigger, timestamp, openai_confidence FROM spam"):
             yield {key: value for (key, value) in zip((i[0] for i in c.description), row)}
+
+
+def select_industry_data() -> Iterator:
+    """Query all records from the `dict_data` table industry dictionary"""
+
+    with LogTime("SELECT term FROM dict_data where dict_id = 1"):
+        c = db_connection.cursor()
+
+        for row in c.execute("SELECT term FROM dict_data where dict_id = 1"):
+            yield {key: value for (key, value) in zip((i[0] for i in c.description), row)}
