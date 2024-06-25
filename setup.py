@@ -58,6 +58,8 @@ Custom configuration of the bot.
 This is where you keep all your secrets, and also here you can override the default settings.
 """
 
+from common.defaults import *
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Mandatory settings
 #
