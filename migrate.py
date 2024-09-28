@@ -1,3 +1,5 @@
+#!./venv/bin/python
+
 import os
 import pathlib
 import sqlite3
@@ -24,8 +26,9 @@ def main() -> None:
             continue
 
         with open(migrations_directory / migration_filename) as inp:
-            sql = inp.read()
-            c.execute(sql)
+            migration = inp.read().split(";")
+            for sql in migration:
+                c.execute(sql)
 
             c.execute("INSERT INTO migrations(name) VALUES(?)", (migration_filename,))
 

@@ -435,16 +435,41 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     user_list = [_("MESSAGE_DM_WHO_LIST_HEADING")]
 
-    for record in db.people_select_all():
-        user_list.append("@{username} ({location}): {occupation}".format(username=record["tg_username"],
-                                                                         occupation=record["occupation"],
-                                                                         location=record["location"]))
+    categorised_people = {0: {"title": _("MESSAGE_DM_WHO_CATEGORY_DEFAULT"), "people": []}}
+
+    for category in db.people_category_select_all():
+        categorised_people[category["id"]] = {"title": category["title"], "people": []}
+
+    for person in db.people_select_all():
+        if "category_id" not in person or person["category_id"] not in categorised_people:
+            person["category_id"] = 0
+        categorised_people[person["category_id"]]["people"].append(person)
+
+    filtered_people = [{"title": c["title"], "people": c["people"]}
+                       for i, c in categorised_people.items() if i != 0 and c["people"]]
+    if categorised_people[0]["people"]:
+        filtered_people.append(categorised_people[0])
+
+    def people_to_message(people):
+        for person in people:
+            user_list.append("@{username} ({location}): {occupation}".format(username=person["tg_username"],
+                                                                             occupation=person["occupation"],
+                                                                             location=person["location"]))
+
+    if len(filtered_people) == 1:
+        people_to_message(filtered_people[0]["people"])
+    else:
+        for category in filtered_people:
+            user_list.append("<b>{t}</b>".format(t=category["title"]))
+            people_to_message(category["people"])
 
     if len(user_list) == 1:
         user_list = [_("MESSAGE_DM_WHO_EMPTY")]
 
     await query.edit_message_reply_markup(None)
-    await query.message.reply_text(text="\n".join(user_list), reply_markup=get_standard_keyboard(query.from_user.id))
+    await query.message.reply_text(text="\n".join(user_list),
+                                   reply_markup=get_standard_keyboard(query.from_user.id),
+                                   parse_mode=ParseMode.HTML)
 
 
 # noinspection PyUnusedLocal

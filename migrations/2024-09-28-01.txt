@@ -1,0 +1,8 @@
+CREATE TABLE "people_category" (
+    "id"	INTEGER,
+    "title"	TEXT UNIQUE,
+    PRIMARY KEY("id" AUTOINCREMENT)
+);
+
+ALTER TABLE "people"
+ADD COLUMN  "category_id"   INTEGER;

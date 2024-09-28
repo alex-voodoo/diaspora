@@ -110,7 +110,19 @@ def people_select_all() -> Iterator:
     with LogTime("SELECT * FROM people"):
         c = db_connection.cursor()
 
-        for row in c.execute("SELECT tg_id, tg_username, occupation, location FROM people WHERE is_suspended=0"):
+        for row in c.execute("SELECT tg_id, tg_username, occupation, location, category_id FROM people "
+                             "WHERE is_suspended=0 "
+                             "ORDER BY tg_username COLLATE NOCASE"):
+            yield {key: value for (key, value) in zip((i[0] for i in c.description), row)}
+
+
+def people_category_select_all() -> Iterator:
+    """Query all non-suspended records from the `people` table"""
+
+    with LogTime("SELECT * FROM people_category"):
+        c = db_connection.cursor()
+
+        for row in c.execute("SELECT id, title FROM people_category"):
             yield {key: value for (key, value) in zip((i[0] for i in c.description), row)}
 
 
