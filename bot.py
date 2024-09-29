@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 # Commands, sequences, and responses
 COMMAND_START, COMMAND_HELP, COMMAND_WHO, COMMAND_ENROLL, COMMAND_RETIRE = ("start", "help", "who", "enroll", "retire")
 COMMAND_ADMIN = "admin"
-TYPING_OCCUPATION, TYPING_LOCATION, CONFIRMING_LEGALITY = range(3)
+SELECTING_CATEGORY, TYPING_OCCUPATION, TYPING_LOCATION, CONFIRMING_LEGALITY = range(4)
 UPLOADING_ANTISPAM_KEYWORDS, UPLOADING_ANTISPAM_OPENAI = range(2)
 RESPONSE_YES, RESPONSE_NO = ("yes", "no")
 MODERATOR_APPROVE, MODERATOR_DECLINE = ("approve", "decline")
@@ -179,6 +179,37 @@ def get_standard_keyboard(tg_id, hidden_commands=None):
     return InlineKeyboardMarkup(buttons)
 
 
+def get_category_keyboard():
+    """Builds the keyboard for selecting a category when enrolling or updating data
+
+    If there is at least one category in the `people_category` table, returns an instance of InlineKeyboardMarkup that
+    contains a vertically aligned set of buttons:
+
+    +------------+
+    | Category 1 |
+    +------------+
+    | Category 2 |
+    +------------+
+    | ...        |
+    +------------+
+    | Default    |
+    +------------+
+
+    Each button has the category ID in its callback data.  The "Default" item means "no category", its callback data is
+    set to 0.
+
+    If no categories are defined in the DB, this function returns None.
+    """
+
+    buttons=[]
+    for category in db.people_category_select_all():
+        buttons.append((InlineKeyboardButton(category["title"], callback_data=category["id"]),))
+    if not buttons:
+        return None
+    buttons.append((InlineKeyboardButton(_("BUTTON_ENROLL_CATEGORY_DEFAULT"), callback_data=0), ))
+    return InlineKeyboardMarkup(buttons)
+
+
 def get_yesno_keyboard():
     """Builds the YES/NO keyboard used in the step where the user confirms legality of their service
 
@@ -212,8 +243,8 @@ def get_admin_keyboard() -> InlineKeyboardMarkup:
     button_download_spam, button_download_keywords, button_upload_keywords, button_upload_openai = (
         InlineKeyboardButton(text, callback_data=command) for text, command in response_buttons.items())
 
-    return InlineKeyboardMarkup(((button_download_spam,), (button_download_keywords,), (button_upload_keywords,),
-                                 (button_upload_openai,)))
+    return InlineKeyboardMarkup(
+        ((button_download_spam,), (button_download_keywords,), (button_upload_keywords,), (button_upload_openai,)))
 
 
 # noinspection PyUnusedLocal
@@ -363,8 +394,7 @@ async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE)
         await user.send_document(json.dumps(spam, ensure_ascii=False, indent=2).encode("utf-8"), filename="spam.json",
                                  reply_markup=None)
     elif query.data == QUERY_ADMIN_DOWNLOAD_ANTISPAM_KEYWORDS:
-        await user.send_document(antispam.get_keywords(), filename="bad_keywords.txt",
-                                 reply_markup=None)
+        await user.send_document(antispam.get_keywords(), filename="bad_keywords.txt", reply_markup=None)
     elif query.data == QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS:
         await query.message.reply_text(_("MESSAGE_DM_ADMIN_REQUEST_KEYWORDS"))
 
@@ -419,7 +449,6 @@ async def received_antispam_openai(update: Update, context: ContextTypes.DEFAULT
         await update.effective_message.reply_text(_("MESSAGE_DM_ADMIN_OPENAI_CANNOT_USE"),
                                                   reply_markup=get_admin_keyboard())
 
-
     return ConversationHandler.END
 
 
@@ -445,8 +474,8 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             person["category_id"] = 0
         categorised_people[person["category_id"]]["people"].append(person)
 
-    filtered_people = [{"title": c["title"], "people": c["people"]}
-                       for i, c in categorised_people.items() if i != 0 and c["people"]]
+    filtered_people = [{"title": c["title"], "people": c["people"]} for i, c in categorised_people.items() if
+                       i != 0 and c["people"]]
     if categorised_people[0]["people"]:
         filtered_people.append(categorised_people[0])
 
@@ -467,8 +496,7 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         user_list = [_("MESSAGE_DM_WHO_EMPTY")]
 
     await query.edit_message_reply_markup(None)
-    await query.message.reply_text(text="\n".join(user_list),
-                                   reply_markup=get_standard_keyboard(query.from_user.id),
+    await query.message.reply_text(text="\n".join(user_list), reply_markup=get_standard_keyboard(query.from_user.id),
                                    parse_mode=ParseMode.HTML)
 
 
@@ -487,6 +515,37 @@ async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         await query.message.reply_text(_("MESSAGE_DM_ENROLL_USERNAME_REQUIRED"),
                                        reply_markup=get_standard_keyboard(query.from_user.id))
         return ConversationHandler.END
+
+    await query.message.reply_text(_("MESSAGE_DM_ENROLL_START"))
+
+    category_buttons = get_category_keyboard()
+
+    if category_buttons:
+        await query.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_CATEGORY"),
+                                       reply_markup=get_category_keyboard())
+
+        return SELECTING_CATEGORY
+    else:
+        user_data = context.user_data
+        user_data["category_id"] = 0
+
+        await query.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_OCCUPATION"))
+
+        return TYPING_OCCUPATION
+
+
+async def received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Start the conversation and ask user for input"""
+
+    query = update.callback_query
+
+    update_language(query.from_user)
+
+    user_data = context.user_data
+    user_data["category_id"] = query.data
+
+    await query.answer()
+    await query.edit_message_reply_markup(None)
 
     await query.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_OCCUPATION"))
 
@@ -533,7 +592,7 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     if query.data == RESPONSE_YES:
         db.people_insert_or_update(from_user.id, from_user.username, user_data["occupation"], user_data["location"],
-                                   (0 if MODERATION_IS_LAZY else 1))
+                                   (0 if MODERATION_IS_LAZY else 1), user_data["category_id"])
 
         saved_user_data = copy.deepcopy(user_data)
         user_data.clear()
@@ -588,8 +647,9 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         return
 
     if not antispam.is_spam(message.text, user.id):
-        logger.info("User {full_name} (ID {id}) posts their first message which looks good".format(
-            full_name=user.full_name, id=user.id))
+        logger.info(
+            "User {full_name} (ID {id}) posts their first message which looks good".format(full_name=user.full_name,
+                id=user.id))
         db.register_good_member(user.id)
         return
 
@@ -752,8 +812,9 @@ def main() -> None:
 
     # Add conversation handler that questions the user about his profile
     application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(enroll, pattern=COMMAND_ENROLL)],
-                                                states={TYPING_OCCUPATION: [
-                                                    MessageHandler(filters.TEXT, received_occupation)],
+                                                states={SELECTING_CATEGORY: [CallbackQueryHandler(received_category)],
+                                                    TYPING_OCCUPATION: [
+                                                        MessageHandler(filters.TEXT, received_occupation)],
                                                     TYPING_LOCATION: [MessageHandler(filters.TEXT, received_location)],
                                                     CONFIRMING_LEGALITY: [CallbackQueryHandler(confirm_legality)]},
                                                 fallbacks=[]))

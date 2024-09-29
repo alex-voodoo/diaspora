@@ -70,14 +70,16 @@ def people_exists(td_ig) -> bool:
         return False
 
 
-def people_insert_or_update(tg_id, tg_username, occupation, location, is_suspended) -> None:
+def people_insert_or_update(tg_id, tg_username, occupation, location, is_suspended, category_id) -> None:
     """Create a new or update the existing record identified by `tg_id` in the `people` table"""
 
     with LogTime("INSERT OR REPLACE INTO people"):
         c = db_connection.cursor()
 
-        c.execute("INSERT OR REPLACE INTO people (tg_id, tg_username, occupation, location, is_suspended) "
-                  "VALUES(?, ?, ?, ?, ?)", (tg_id, tg_username, occupation, location, is_suspended))
+        c.execute("INSERT OR REPLACE INTO people "
+                  "(tg_id, tg_username, occupation, location, is_suspended, category_id) "
+                  "VALUES(?, ?, ?, ?, ?, ?)",
+                  (tg_id, tg_username, occupation, location, is_suspended, category_id))
 
         db_connection.commit()
 
