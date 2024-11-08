@@ -489,6 +489,7 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         people_to_message(filtered_people[0]["people"])
     else:
         for category in filtered_people:
+            user_list.append("")
             user_list.append("<b>{t}</b>".format(t=category["title"]))
             people_to_message(category["people"])
 
