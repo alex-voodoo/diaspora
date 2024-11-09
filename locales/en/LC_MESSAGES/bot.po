@@ -146,91 +146,91 @@ msgstr "Here is the directory:"
 msgid "MESSAGE_DM_WHO_CATEGORY_DEFAULT"
 msgstr "Other"
 
-#: bot.py:496
+#: bot.py:497
 msgid "MESSAGE_DM_WHO_EMPTY"
 msgstr "Nobody has registered themselves so far :-( ."
 
-#: bot.py:515
+#: bot.py:516
 msgid "MESSAGE_DM_ENROLL_USERNAME_REQUIRED"
 msgstr ""
 "Your Telegram profile does not have a username.  I need it to show people a link to your profile.\n"
 "\n"
 "Please register a username for your profile and try again."
 
-#: bot.py:519
+#: bot.py:520
 msgid "MESSAGE_DM_ENROLL_START"
 msgstr "Let us start!"
 
-#: bot.py:524
+#: bot.py:525
 msgid "MESSAGE_DM_ENROLL_ASK_CATEGORY"
 msgstr "Please select a category that matches your service the best."
 
-#: bot.py:532 bot.py:550
+#: bot.py:533 bot.py:551
 msgid "MESSAGE_DM_ENROLL_ASK_OCCUPATION"
 msgstr ""
 "Let us start!  What do you do?\n"
 "\n"
 "Please give a short and simple answer, like \"Teach how to surf\" or \"Help with the immigrations\"."
 
-#: bot.py:563
+#: bot.py:564
 msgid "MESSAGE_DM_ENROLL_ASK_LOCATION"
 msgstr ""
 "Where are you based?\n"
 "\n"
 "Just the name of the place is enough, like \"A Coruña\""
 
-#: bot.py:576
+#: bot.py:577
 msgid "MESSAGE_DM_ENROLL_CONFIRM_LEGALITY"
 msgstr ""
 "Finally, please confirm that what you do is legal and does not violate any laws or local regulations.\n"
 "\n"
 "Is your service legal?"
 
-#: bot.py:606
+#: bot.py:607
 msgid "MESSAGE_DM_ENROLL_COMPLETED"
 msgstr "We are done, you are now registered!"
 
-#: bot.py:608
+#: bot.py:609
 msgid "MESSAGE_DM_ENROLL_COMPLETED_POST_MODERATION"
 msgstr "We are done, you are now registered!  Please note that moderators may hide your record if it violates rules of the group."
 
-#: bot.py:610
+#: bot.py:611
 msgid "MESSAGE_DM_ENROLL_COMPLETED_PRE_MODERATION"
 msgstr "We are done!  I will add your record to the list after the moderators approve it."
 
-#: bot.py:622
+#: bot.py:623
 msgid "MESSAGE_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"
 msgstr "I am sorry.  I cannot register services that do not comply with the laws and local regulations."
 
-#: bot.py:663
+#: bot.py:670
 msgid "MESSAGE_MC_SPAM_DETECTED_M {username}"
 msgstr "⛔️ I have deleted a message sent by {username} because it looked like spam.  If you think that it was a mistake, talk to administrators."
 
-#: bot.py:665
+#: bot.py:672
 msgid "MESSAGE_MC_SPAM_DETECTED_F {username}"
 msgstr "⛔️ I have deleted a message sent by {username} because it looked like spam.  If you think that it was a mistake, talk to administrators."
 
-#: bot.py:693
+#: bot.py:700
 msgid "MESSAGE_ADMIN_USER_RECORD_APPROVED"
 msgstr "Approved."
 
-#: bot.py:702
+#: bot.py:709
 msgid "MESSAGE_ADMIN_USER_RECORD_SUSPENDED"
 msgstr "The user's record is suspended.  Contact them to fix their data."
 
-#: bot.py:721
+#: bot.py:728
 msgid "MESSAGE_DM_RETIRE"
 msgstr "I am sorry to see you go."
 
-#: bot.py:772
+#: bot.py:779
 msgid "MESSAGE_DM_INTERNAL_ERROR"
 msgstr "An internal error occurred.  I have notified my administrator about the error.  Please use the buttons below, hopefully it will work."
 
-#: bot.py:780
+#: bot.py:787
 msgid "COMMAND_DESCRIPTION_START"
 msgstr "Main menu"
 
-#: bot.py:781
+#: bot.py:788
 msgid "COMMAND_DESCRIPTION_ADMIN"
 msgstr "Administrator's menu"
 

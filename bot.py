@@ -647,11 +647,17 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         logger.info("The message comes from a known user, will not detect spam")
         return
 
-    if not antispam.is_spam(message.text, user.id):
-        logger.info(
-            "User {full_name} (ID {id}) posts their first message which looks good".format(full_name=user.full_name,
-                id=user.id))
-        db.register_good_member(user.id)
+    try:
+        if not antispam.is_spam(message.text, user.id):
+            logger.info(
+                "User {full_name} (ID {id}) posts their first message which looks good".format(full_name=user.full_name,
+                    id=user.id))
+            db.register_good_member(user.id)
+            return
+    except Exception as e:
+        logger.error("Exception while trying to detect spam:", exc_info=e)
+
+        await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID, text=str(e))
         return
 
     logger.info("SPAM detected in the first message from user ID {user_id}".format(user_id=user.id))
