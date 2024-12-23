@@ -347,6 +347,11 @@ async def handle_command_start(update: Update, context: ContextTypes.DEFAULT_TYP
     if not await talking_private(update, context):
         return
 
+    if MAIN_CHAT_ID == 0:
+        logger.info("Welcoming user {username} (chat ID {chat_id}), is this the admin?".format(
+            username=user.username, chat_id=user.id))
+        return
+
     if not await is_member_of_main_chat(user, context):
         return
 

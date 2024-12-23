@@ -28,7 +28,7 @@ Follow the [official documentation](https://core.telegram.org/bots#how-do-i-crea
 Now you need to configure your instance of the bot.  Follow these steps to complete this process:
 1. Open the command terminal and activate the virtual environment that you created above
 2. Run `python setup.py` and provide your token when requested.  The script will render `settings.py` that is necessary for the bot to run.
-3. Run `python bot.py`.  Find your bot in Telegram and talk to it in private.  Initiate the conversation by clicking the Start button in the direct message chat.  The bot will welcome you and show the buttons for its functions.  In the terminal you will see a log message: `"INFO Welcoming user {username} (chat ID {id})"`.  Copy the chat ID, open `settings.py` and paste that number as the new value of the `DEVELOPER_CHAT_ID` parameter.  Stop the bot by pressing `Ctrl+C` in the terminal.
+3. Run `python bot.py`.  Find your bot in Telegram and talk to it in private.  Initiate the conversation by clicking the Start button in the direct message chat.  The bot will welcome you and show the buttons for its functions.  In the terminal you will see a log message: `"Welcoming user {username} (chat ID {chat_id}), is this the admin?"`.  Copy the chat ID, open `settings.py` and paste that number as the new value of the `DEVELOPER_CHAT_ID` parameter.  Stop the bot by pressing `Ctrl+C` in the terminal.
 
 Finally, complete the setup from the Telegram side.
 
