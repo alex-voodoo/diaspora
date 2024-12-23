@@ -503,7 +503,7 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     await query.edit_message_reply_markup(None)
     await query.message.reply_text(text="\n".join(user_list), reply_markup=get_standard_keyboard(query.from_user.id),
-                                   parse_mode=ParseMode.HTML)
+                                   parse_mode=ParseMode.HTML, disable_web_page_preview=True)
 
 
 # noinspection PyUnusedLocal
