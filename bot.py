@@ -652,6 +652,9 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         logger.info("The message comes from a known user, will not detect spam")
         return
 
+    logger.info("Will try to detect spam")
+    logger.info(message.text)
+
     try:
         if not antispam.is_spam(message.text, user.id):
             logger.info(
@@ -669,7 +672,7 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
     await context.bot.deleteMessage(message_id=message.id, chat_id=message.chat.id)
 
-    update_language(DEFAULT_LANGUAGE)
+    update_language_by_code(DEFAULT_LANGUAGE)
 
     if BOT_IS_MALE:
         delete_notice = _("MESSAGE_MC_SPAM_DETECTED_M {username}")
