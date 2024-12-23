@@ -782,7 +782,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 async def post_init(application: Application) -> None:
     bot = application.bot
 
-    update_language(DEFAULT_LANGUAGE)
+    update_language_by_code(DEFAULT_LANGUAGE)
 
     await bot.set_my_commands([BotCommand(command=COMMAND_START, description=_("COMMAND_DESCRIPTION_START")),
                                BotCommand(command=COMMAND_ADMIN, description=_("COMMAND_DESCRIPTION_ADMIN"))])
