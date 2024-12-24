@@ -137,6 +137,9 @@ def is_spam(text, tg_id) -> bool:
             return False
         layers.append('openai')
 
+    if len(layers) == 0:
+        return False
+
     logger.info("Spam confidence: {confidence}".format(confidence=confidence))
 
     db.spam_insert(text, tg_id, ", ".join(layers), confidence)

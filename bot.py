@@ -654,6 +654,10 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
     logger.info("Will try to detect spam")
     logger.info(message.text)
+    if hasattr(message, "entities"):
+        logger.info(message.entities)
+    if hasattr(message, "text_html;"):
+        logger.info(message.text_html)
 
     try:
         if not antispam.is_spam(message.text, user.id):
