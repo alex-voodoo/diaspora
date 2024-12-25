@@ -652,15 +652,8 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         logger.info("The message comes from a known user, will not detect spam")
         return
 
-    logger.info("Will try to detect spam")
-    logger.info(message.text)
-    if hasattr(message, "entities"):
-        logger.info(message.entities)
-    if hasattr(message, "text_html;"):
-        logger.info(message.text_html)
-
     try:
-        if not antispam.is_spam(message.text, user.id):
+        if not antispam.is_spam(message):
             logger.info(
                 "User {full_name} (ID {id}) posts their first message which looks good".format(full_name=user.full_name,
                     id=user.id))
@@ -671,8 +664,6 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
         await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID, text=str(e))
         return
-
-    logger.info("SPAM detected in the first message from user ID {user_id}".format(user_id=user.id))
 
     await context.bot.deleteMessage(message_id=message.id, chat_id=message.chat.id)
 

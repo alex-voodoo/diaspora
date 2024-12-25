@@ -9,10 +9,12 @@ import string
 
 import joblib
 import numpy as np
+import telegram
 from openai import OpenAI
 
 from common import db
-from settings import ANTISPAM_ENABLED, ANTISPAM_OPENAI_API_KEY, ANTISPAM_OPENAI_CONFIDENCE_THRESHOLD
+from settings import (ANTISPAM_ENABLED, ANTISPAM_EMOJIS_MAX_CUSTOM_EMOJI_COUNT, ANTISPAM_OPENAI_API_KEY,
+                      ANTISPAM_OPENAI_CONFIDENCE_THRESHOLD)
 
 KEYWORDS_FILE_PATH = pathlib.Path(__file__).parent / "resources" / "bad_keywords.txt"
 OPENAI_FILE_PATH = pathlib.Path(__file__).parent / "resources" / "svm_model.joblib"
@@ -65,6 +67,21 @@ def save_new_keywords(data: io.BytesIO) -> bool:
     return True
 
 
+def detect_emojis(message: telegram.Message) -> bool:
+    """Detect spam that uses custom emojis"""
+
+    if not hasattr(message, "entities"):
+        return False
+
+    custom_emoji_count = 0
+    for e in message.entities:
+        if e.type == telegram.MessageEntity.CUSTOM_EMOJI:
+            custom_emoji_count += 1
+            if custom_emoji_count > ANTISPAM_EMOJIS_MAX_CUSTOM_EMOJI_COUNT:
+                return True
+    return False
+
+
 def detect_openai(text) -> float:
     """Detect spam using the OpenAI model
 
@@ -115,7 +132,7 @@ def save_new_openai(data: io.BytesIO) -> bool:
     return True
 
 
-def is_spam(text, tg_id) -> bool:
+def is_spam(message: telegram.Message) -> bool:
     """Evaluates `text` and returns whether it looks like spam
 
     The evaluation is two-step: first the keywords are looked for, and if there were any, the OpenAI model is called.
@@ -125,23 +142,26 @@ def is_spam(text, tg_id) -> bool:
     layers = []
     confidence = 0
 
-    if 'keywords' in ANTISPAM_ENABLED:
-        if not detect_keywords(text):
-            return False
+    if 'keywords' in ANTISPAM_ENABLED and detect_keywords(message.text):
         confidence = 1
         layers.append('keywords')
 
+    if 'emojis' in ANTISPAM_ENABLED and detect_emojis(message):
+        confidence = 1
+        layers.append('emojis')
+
     if 'openai' in ANTISPAM_ENABLED:
-        confidence = detect_openai(text)
-        if confidence < ANTISPAM_OPENAI_CONFIDENCE_THRESHOLD:
-            return False
-        layers.append('openai')
+        confidence = detect_openai(message.text)
+        if confidence > ANTISPAM_OPENAI_CONFIDENCE_THRESHOLD:
+            layers.append('openai')
 
     if len(layers) == 0:
         return False
 
-    logger.info("Spam confidence: {confidence}".format(confidence=confidence))
+    user = message.from_user
+    logger.info("SPAM in the first message from user ID {n} (ID {i}) by layer(s) {l} with confidence: {c}".format(
+        c=confidence, i=user.id, l=", ".join(layers), n=user.full_name))
 
-    db.spam_insert(text, tg_id, ", ".join(layers), confidence)
+    db.spam_insert(message.text, user.id, ", ".join(layers), confidence)
 
     return True

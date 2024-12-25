@@ -72,6 +72,8 @@ LANGUAGE_MODERATION_MIN_WORD_COUNT = 3
 #
 # List of layers of spam detection
 ANTISPAM_ENABLED = tuple()
+# Maximum number of custom emojis in a message
+ANTISPAM_EMOJIS_MAX_CUSTOM_EMOJI_COUNT = 5
 # Whether to use OpenAI-backed filter
 ANTISPAM_OPENAI_API_KEY = ""
 # Confidence threshold for the OpenAI model
