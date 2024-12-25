@@ -11,6 +11,12 @@ from sqlite3 import Connection
 
 db_connection: Connection
 
+db_logger = logging.getLogger("db")
+db_logging_handler = logging.FileHandler("db.log")
+db_logging_handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s"))
+db_logger.addHandler(db_logging_handler)
+db_logger.propagate = False
+
 class LogTime:
     """Time measuring context manager, logs time elapsed while executing the context
 
@@ -30,8 +36,7 @@ class LogTime:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         elapsed = (time.perf_counter() - self.started_at) * 1000
-        time_logger = logging.getLogger("time")
-        time_logger.info("{name} took {elapsed} ms".format(name=self.name, elapsed=elapsed))
+        db_logger.info("{name} took {elapsed} ms".format(name=self.name, elapsed=elapsed))
 
 
 def apply_migrations(migrations_directory) -> None:
