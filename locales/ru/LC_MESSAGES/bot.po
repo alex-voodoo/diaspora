@@ -202,35 +202,35 @@ msgstr "Готово! Я добавлю вас в список после про
 msgid "MESSAGE_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"
 msgstr "Извините, я не могу добавлять нелегальные услуги."
 
-#: bot.py:673
+#: bot.py:669
 msgid "MESSAGE_MC_SPAM_DETECTED_M {username}"
 msgstr "⛔️ Я удалил сообщение пользователя {username}, похожее на спам. Если я ошибся, напишите администраторам."
 
-#: bot.py:675
+#: bot.py:671
 msgid "MESSAGE_MC_SPAM_DETECTED_F {username}"
 msgstr "⛔️ Я удалила сообщение пользователя {username}, похожее на спам. Если я ошиблась, напишите администраторам."
 
-#: bot.py:703
+#: bot.py:699
 msgid "MESSAGE_ADMIN_USER_RECORD_APPROVED"
 msgstr "Одобрено."
 
-#: bot.py:712
+#: bot.py:708
 msgid "MESSAGE_ADMIN_USER_RECORD_SUSPENDED"
 msgstr "Данные пользователя скрыты. Свяжитесь с ним и сообщите, что нужно поправить данные."
 
-#: bot.py:731
+#: bot.py:727
 msgid "MESSAGE_DM_RETIRE"
 msgstr "Вы удалены из списка."
 
-#: bot.py:782
+#: bot.py:778
 msgid "MESSAGE_DM_INTERNAL_ERROR"
 msgstr "Что-то сломалось (во мне). Я сообщу моему администратору. Попробуйте нажать какую-нибудь кнопку, вдруг получится."
 
-#: bot.py:790
+#: bot.py:786
 msgid "COMMAND_DESCRIPTION_START"
 msgstr "Главное меню"
 
-#: bot.py:791
+#: bot.py:787
 msgid "COMMAND_DESCRIPTION_ADMIN"
 msgstr "Меню администратора"
 

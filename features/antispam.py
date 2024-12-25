@@ -139,6 +139,13 @@ def is_spam(message: telegram.Message) -> bool:
     Only messages that tested positive on both levels are classified as spam.
     """
 
+    user = message.from_user
+
+    if not hasattr(message, "text"):
+        logger.warning("A message from user ID {n} (ID {i}) does not have text, cannot detect spam".format(
+            i=user.id, n=user.full_name))
+        return False
+
     layers = []
     confidence = 0
 
@@ -158,8 +165,7 @@ def is_spam(message: telegram.Message) -> bool:
     if len(layers) == 0:
         return False
 
-    user = message.from_user
-    logger.info("SPAM in the first message from user ID {n} (ID {i}) by layer(s) {l} with confidence: {c}".format(
+    logger.info("SPAM in a message from user ID {n} (ID {i}).  Layer(s): {l}.  Confidence: {c}.".format(
         c=confidence, i=user.id, l=", ".join(layers), n=user.full_name))
 
     db.spam_insert(message.text, user.id, ", ".join(layers), confidence)

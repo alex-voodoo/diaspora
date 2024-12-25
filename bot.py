@@ -201,12 +201,12 @@ def get_category_keyboard():
     If no categories are defined in the DB, this function returns None.
     """
 
-    buttons=[]
+    buttons = []
     for category in db.people_category_select_all():
         buttons.append((InlineKeyboardButton(category["title"], callback_data=category["id"]),))
     if not buttons:
         return None
-    buttons.append((InlineKeyboardButton(_("BUTTON_ENROLL_CATEGORY_DEFAULT"), callback_data=0), ))
+    buttons.append((InlineKeyboardButton(_("BUTTON_ENROLL_CATEGORY_DEFAULT"), callback_data=0),))
     return InlineKeyboardMarkup(buttons)
 
 
@@ -641,22 +641,18 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     user = message.from_user
 
     if message.chat_id != MAIN_CHAT_ID:
-        logger.info("The message does not belong to the main chat, will not detect spam")
-        return
-
-    if not hasattr(message, "text"):
-        logger.info("The message does not have text, cannot detect spam")
+        # The message does not belong to the main chat, will not detect spam.
         return
 
     if db.is_good_member(user.id):
-        logger.info("The message comes from a known user, will not detect spam")
+        # The message comes from a known user, will not detect spam.
         return
 
     try:
         if not antispam.is_spam(message):
             logger.info(
-                "User {full_name} (ID {id}) posts their first message which looks good".format(full_name=user.full_name,
-                    id=user.id))
+                "The first message from user {full_name} (ID {id}) looks good".format(full_name=user.full_name,
+                                                                                      id=user.id))
             db.register_good_member(user.id)
             return
     except Exception as e:
@@ -823,10 +819,11 @@ def main() -> None:
     # Add conversation handler that questions the user about his profile
     application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(enroll, pattern=COMMAND_ENROLL)],
                                                 states={SELECTING_CATEGORY: [CallbackQueryHandler(received_category)],
-                                                    TYPING_OCCUPATION: [
-                                                        MessageHandler(filters.TEXT, received_occupation)],
-                                                    TYPING_LOCATION: [MessageHandler(filters.TEXT, received_location)],
-                                                    CONFIRMING_LEGALITY: [CallbackQueryHandler(confirm_legality)]},
+                                                        TYPING_OCCUPATION: [
+                                                            MessageHandler(filters.TEXT, received_occupation)],
+                                                        TYPING_LOCATION: [
+                                                            MessageHandler(filters.TEXT, received_location)],
+                                                        CONFIRMING_LEGALITY: [CallbackQueryHandler(confirm_legality)]},
                                                 fallbacks=[]))
 
     if GREETING_ENABLED:
