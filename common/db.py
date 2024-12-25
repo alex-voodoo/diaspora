@@ -3,13 +3,13 @@ Database stuff
 """
 
 import logging
+import os
 import sqlite3
 import time
 from collections.abc import Iterator
 from sqlite3 import Connection
 
 db_connection: Connection
-
 
 class LogTime:
     """Time measuring context manager, logs time elapsed while executing the context
@@ -32,6 +32,37 @@ class LogTime:
         elapsed = (time.perf_counter() - self.started_at) * 1000
         time_logger = logging.getLogger("time")
         time_logger.info("{name} took {elapsed} ms".format(name=self.name, elapsed=elapsed))
+
+
+def apply_migrations(migrations_directory) -> None:
+    conn = sqlite3.connect("people.db")
+    c = conn.cursor()
+
+    c.execute("CREATE TABLE IF NOT EXISTS \"migrations\" ("
+              "\"name\" TEXT UNIQUE,"
+              "PRIMARY KEY(\"name\")"
+              ")")
+
+    migration_filenames = sorted(filename for filename in os.listdir(migrations_directory) if filename.endswith(".txt"))
+    for migration_filename in migration_filenames:
+        skip = False
+        for _ in c.execute("SELECT name FROM migrations WHERE name=?", (migration_filename,)):
+            print("Migration {filename} is already applied, skipping".format(filename=migration_filename))
+            skip = True
+
+        if skip:
+            continue
+
+        with open(migrations_directory / migration_filename) as inp:
+            migration = inp.read().split(";")
+            for sql in migration:
+                c.execute(sql)
+
+            print("Applying migration {filename}".format(filename=migration_filename))
+            c.execute("INSERT INTO migrations(name) VALUES(?)", (migration_filename,))
+
+    conn.commit()
+    conn.close()
 
 
 def connect() -> None:
@@ -161,6 +192,7 @@ def spam_insert(text, from_user_tg_id, trigger, confidence) -> None:
                   (text, from_user_tg_id, trigger, confidence))
 
         db_connection.commit()
+
 
 def spam_select_all() -> Iterator:
     """Query all records from the `spam` table"""

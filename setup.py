@@ -1,5 +1,8 @@
 import os.path
+import pathlib
 import sqlite3
+
+from common.db import apply_migrations
 
 
 def main() -> None:
@@ -8,7 +11,7 @@ def main() -> None:
         return
 
     # Create settings.py
-    bot_token = input("Please enter your bot's token: ")
+    bot_token = input("Please enter the API token of your bot: ")
 
     with open(__file__, "r") as this_file:
         secret_lines = this_file.read()
@@ -44,6 +47,8 @@ def main() -> None:
     conn.close()
 
     print("- Created people.db: the empty database")
+
+    apply_migrations(pathlib.Path(__file__).parent / "migrations")
 
     print("The first step of your setup is complete.  Refer to README.md for more information.")
 
