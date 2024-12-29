@@ -63,6 +63,7 @@ Custom configuration of the bot.
 This is where you keep all your secrets, and also here you can override the default settings.
 """
 
+# noinspection PyUnresolvedReferences
 from common.defaults import *
 
 # ----------------------------------------------------------------------------------------------------------------------

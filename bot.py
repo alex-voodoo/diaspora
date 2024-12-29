@@ -31,6 +31,7 @@ from settings import *
 
 # Configure logging
 # Set higher logging level for httpx to avoid all GET and POST requests being logged.
+# noinspection SpellCheckingInspection
 logging.basicConfig(format="[%(asctime)s %(levelname)s %(name)s %(filename)s:%(lineno)d] %(message)s",
                     level=logging.INFO, filename="bot.log")
 logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -111,7 +112,8 @@ async def delete_message(context: ContextTypes.DEFAULT_TYPE) -> None:
                                         chat_id=message_to_delete.chat.id)
 
 
-async def self_destructing_reply(update, context, message_body, timeout, delete_reply_to=True):
+async def self_destructing_reply(update: Update, context: ContextTypes.DEFAULT_TYPE, message_body: str, timeout: int,
+                                 delete_reply_to=True):
     """Replies to the message contained in the update.  If `timeout` is greater than zero, schedules the reply to be
     deleted."""
 
@@ -125,7 +127,7 @@ async def self_destructing_reply(update, context, message_body, timeout, delete_
         context.job_queue.run_once(delete_message, timeout, data=(posted_message, delete_reply_to))
 
 
-async def talking_private(update: Update, context) -> bool:
+async def talking_private(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
     """Helper for handlers that require private conversation
 
     Most features of the bot should not be accessed from the chat, instead users should talk to the bot directly via
@@ -140,7 +142,7 @@ async def talking_private(update: Update, context) -> bool:
     return True
 
 
-def get_standard_keyboard(tg_id, hidden_commands=None):
+def get_standard_keyboard(tg_id: int, hidden_commands=None):
     """Builds the standard keyboard for the user identified by `td_id`
 
     The standard keyboard looks like this:
@@ -227,7 +229,7 @@ def get_yesno_keyboard():
     return InlineKeyboardMarkup(((response_button_yes, response_button_no),))
 
 
-def get_moderation_keyboard(tg_id):
+def get_moderation_keyboard(tg_id: int):
     response_buttons = {_("BUTTON_YES"): MODERATOR_APPROVE, _("BUTTON_NO"): MODERATOR_DECLINE}
     response_button_yes, response_button_no = (InlineKeyboardButton(text, callback_data="{}:{}".format(command, tg_id))
                                                for text, command in response_buttons.items())
@@ -382,6 +384,7 @@ async def handle_command_admin(update: Update, context: ContextTypes.DEFAULT_TYP
     await context.bot.send_message(chat_id=user.id, text=_("MESSAGE_DM_ADMIN"), reply_markup=get_admin_keyboard())
 
 
+# noinspection PyUnusedLocal
 async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> [None, int]:
     query = update.callback_query
     user = query.from_user
@@ -410,6 +413,7 @@ async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return UPLOADING_ANTISPAM_OPENAI
 
 
+# noinspection PyUnusedLocal
 async def received_antispam_keywords(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user = update.effective_user
     if user.id not in ADMINISTRATORS.keys():
@@ -436,6 +440,7 @@ async def received_antispam_keywords(update: Update, context: ContextTypes.DEFAU
     return ConversationHandler.END
 
 
+# noinspection PyUnusedLocal
 async def received_antispam_openai(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user = update.effective_user
     if user.id not in ADMINISTRATORS.keys():
@@ -485,10 +490,10 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         filtered_people.append(categorised_people[0])
 
     def people_to_message(people):
-        for person in people:
-            user_list.append("@{username} ({location}): {occupation}".format(username=person["tg_username"],
-                                                                             occupation=person["occupation"],
-                                                                             location=person["location"]))
+        for p in people:
+            user_list.append("@{username} ({location}): {occupation}".format(username=p["tg_username"],
+                                                                             occupation=p["occupation"],
+                                                                             location=p["location"]))
 
     if len(filtered_people) == 1:
         people_to_message(filtered_people[0]["people"])
@@ -687,6 +692,7 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     await query.answer()
 
     command, tg_id = query.data.split(":")
+    tg_id = int(tg_id)
 
     if command == MODERATOR_APPROVE:
         logger.info("Moderator ID {moderator_id} approves new data from user ID {user_id}".format(
@@ -741,7 +747,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     exception = context.error
 
     if isinstance(exception, httpx.RemoteProtocolError):
-        # Connection errors occur every now and then, and they are caused by reasons external to the bot, so it makes no
+        # Connection errors happen regularly, and they are caused by reasons external to the bot, so it makes no
         # sense notifying the developer about them.  Log an error and bail out.
         logger.error(exception)
         return
@@ -754,7 +760,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     tb_string = "".join(traceback.format_exception(None, exception, exception.__traceback__))
 
     # Build the message with some markup and additional information about what happened.
-    # You might need to add some logic to deal with messages longer than the 4096 character limit.
+    # TODO: add logic to deal with messages longer than 4096 characters (Telegram has that limit).
     update_str = update.to_dict() if isinstance(update, Update) else str(update)
     error_message = (f"<pre>{html.escape(tb_string)}</pre>"
                      f"<pre>update = {html.escape(json.dumps(update_str, indent=2, ensure_ascii=False))}</pre>\n\n"

@@ -25,7 +25,7 @@ openai_model = None
 logger = logging.getLogger(__name__)
 
 
-def detect_keywords(text) -> bool:
+def detect_keywords(text: str) -> bool:
     """Detect spam using keywords"""
 
     global keywords
@@ -57,8 +57,8 @@ def save_new_keywords(data: io.BytesIO) -> bool:
     """Reset the keywords file with new contents.  The new list will be used on the next call to `detect_keywords()`."""
 
     data.seek(0)
-    with open(KEYWORDS_FILE_PATH, "wb") as outp:
-        outp.write(data.read())
+    with open(KEYWORDS_FILE_PATH, "wb") as out_file:
+        out_file.write(data.read())
 
     global keywords
 
@@ -82,7 +82,7 @@ def detect_emojis(message: telegram.Message) -> bool:
     return False
 
 
-def detect_openai(text) -> float:
+def detect_openai(text: str) -> float:
     """Detect spam using the OpenAI model
 
     Return whether the confidence has been over `OPENAI_CONFIDENCE_THRESHOLD`
@@ -116,6 +116,7 @@ def save_new_openai(data: io.BytesIO) -> bool:
     """
 
     data.seek(0)
+    # noinspection PyBroadException
     try:
         new_model = joblib.load(data)
     except Exception:
@@ -126,8 +127,8 @@ def save_new_openai(data: io.BytesIO) -> bool:
     openai_model = new_model
 
     data.seek(0)
-    with open(OPENAI_FILE_PATH, "wb") as outp:
-        outp.write(data.read())
+    with open(OPENAI_FILE_PATH, "wb") as out_file:
+        out_file.write(data.read())
 
     return True
 
