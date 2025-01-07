@@ -1,3 +1,12 @@
+"""
+Sets up a new instance of the bot
+
+This script creates a new empty database and renders `settings.py` based on `common/defaults.py` and the Telegram API
+key provided by the user at the run time.
+
+TODO implement updating the settings.py with updated defaults
+"""
+
 import os.path
 import pathlib
 import sqlite3
