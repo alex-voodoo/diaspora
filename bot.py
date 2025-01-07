@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 # Commands, sequences, and responses
 COMMAND_START, COMMAND_HELP, COMMAND_WHO, COMMAND_ENROLL, COMMAND_RETIRE = ("start", "help", "who", "enroll", "retire")
 COMMAND_ADMIN = "admin"
-SELECTING_CATEGORY, TYPING_OCCUPATION, TYPING_LOCATION, CONFIRMING_LEGALITY = range(4)
+SELECTING_CATEGORY, TYPING_OCCUPATION, TYPING_LOCATION, CONFIRMING_LEGALITY, WHO_SELECTING_CATEGORY = range(5)
 UPLOADING_ANTISPAM_KEYWORDS, UPLOADING_ANTISPAM_OPENAI = range(2)
 RESPONSE_YES, RESPONSE_NO = ("yes", "no")
 MODERATOR_APPROVE, MODERATOR_DECLINE = ("approve", "decline")
@@ -462,8 +462,71 @@ async def received_antispam_openai(update: Update, context: ContextTypes.DEFAULT
     return ConversationHandler.END
 
 
+def who_people_to_message(user_list: list, people: list):
+    for p in people:
+        user_list.append("@{username} ({location}): {occupation}".format(username=p["tg_username"],
+                                                                         occupation=p["occupation"],
+                                                                         location=p["location"]))
+
+
+async def who_request_category(update: Update, context: ContextTypes.DEFAULT_TYPE, filtered_people: list) -> int:
+    """Ask user for a category to show"""
+
+    query = update.callback_query
+
+    update_language(query.from_user)
+
+    await query.answer()
+    await query.edit_message_reply_markup(None)
+
+    category_list = []
+
+    for c in filtered_people:
+        category_list.append("{t}: {c}".format(t=c["title"], c=len(c["people"])))
+
+    await query.message.reply_text(_("MESSAGE_DM_WHO_CATEGORY_LIST").format(categories="\n".join(category_list)),
+                                   reply_markup=get_category_keyboard())
+
+    context.user_data["who_request_category"] = filtered_people
+
+    return WHO_SELECTING_CATEGORY
+
+
+async def who_received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """List users in the category that the user selected previously"""
+
+    query = update.callback_query
+
+    await query.answer()
+    await query.edit_message_reply_markup(None)
+
+    update_language(query.from_user)
+
+    filtered_people = context.user_data["who_request_category"]
+
+    category = None
+    for c in filtered_people:
+        if c["category_id"] == int(query.data):
+            category = c
+            break
+    if not category:
+        await query.message.reply_text(text=_("MESSAGE_DM_WHO_CATEGORY_EMPTY"),
+                                       reply_markup=get_standard_keyboard(query.from_user.id),
+                                       parse_mode=ParseMode.HTML)
+        return ConversationHandler.END
+
+    user_list = ["<b>{t}</b>".format(t=category["title"])]
+    who_people_to_message(user_list, category["people"])
+
+    await query.message.reply_text(text="\n".join(user_list), reply_markup=get_standard_keyboard(query.from_user.id),
+                                           parse_mode=ParseMode.HTML, disable_web_page_preview=True)
+
+    del context.user_data["who_request_category"]
+    return ConversationHandler.END
+
+
 # noinspection PyUnusedLocal
-async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Show the current registry"""
 
     query = update.callback_query
@@ -474,7 +537,7 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     user_list = [_("MESSAGE_DM_WHO_LIST_HEADING")]
 
-    categorised_people = {0: {"title": _("MESSAGE_DM_WHO_CATEGORY_DEFAULT"), "people": []}}
+    categorised_people = {0: {"title": _("MESSAGE_DM_WHO_CATEGORY_DEFAULT"), "category_id": 0, "people": []}}
 
     for category in db.people_category_select_all():
         categorised_people[category["id"]] = {"title": category["title"], "people": []}
@@ -484,31 +547,33 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             person["category_id"] = 0
         categorised_people[person["category_id"]]["people"].append(person)
 
-    filtered_people = [{"title": c["title"], "people": c["people"]} for i, c in categorised_people.items() if
-                       i != 0 and c["people"]]
+    filtered_people = [{"title": c["title"], "category_id": i, "people": c["people"]}
+                       for i, c in categorised_people.items() if i != 0 and c["people"]]
     if categorised_people[0]["people"]:
         filtered_people.append(categorised_people[0])
 
-    def people_to_message(people):
-        for p in people:
-            user_list.append("@{username} ({location}): {occupation}".format(username=p["tg_username"],
-                                                                             occupation=p["occupation"],
-                                                                             location=p["location"]))
-
-    if len(filtered_people) == 1:
-        people_to_message(filtered_people[0]["people"])
+    if SHOW_CATEGORIES_ALWAYS and len(filtered_people) > 1:
+        return await who_request_category(update, context, filtered_people)
     else:
-        for category in filtered_people:
-            user_list.append("")
-            user_list.append("<b>{t}</b>".format(t=category["title"]))
-            people_to_message(category["people"])
+        if len(filtered_people) == 1:
+            who_people_to_message(user_list, filtered_people[0]["people"])
+        else:
+            for category in filtered_people:
+                user_list.append("")
+                user_list.append("<b>{t}</b>".format(t=category["title"]))
+                who_people_to_message(user_list, category["people"])
 
-    if len(user_list) == 1:
-        user_list = [_("MESSAGE_DM_WHO_EMPTY")]
+        if len(user_list) == 1:
+            user_list = [_("MESSAGE_DM_WHO_EMPTY")]
 
-    await query.edit_message_reply_markup(None)
-    await query.message.reply_text(text="\n".join(user_list), reply_markup=get_standard_keyboard(query.from_user.id),
-                                   parse_mode=ParseMode.HTML, disable_web_page_preview=True)
+        united_message = "\n".join(user_list)
+        if len(united_message) < MAX_MESSAGE_LENGTH:
+            await query.edit_message_reply_markup(None)
+            await query.message.reply_text(text=united_message, reply_markup=get_standard_keyboard(query.from_user.id),
+                                           parse_mode=ParseMode.HTML, disable_web_page_preview=True)
+            return ConversationHandler.END
+        else:
+            return await who_request_category(update, context, filtered_people)
 
 
 # noinspection PyUnusedLocal
@@ -808,7 +873,11 @@ def main() -> None:
     application.add_handler(CommandHandler(COMMAND_HELP, handle_command_help))
     application.add_handler(CommandHandler(COMMAND_ADMIN, handle_command_admin))
 
-    application.add_handler(CallbackQueryHandler(who, pattern=COMMAND_WHO))
+    application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(who, pattern=COMMAND_WHO)],
+                                                states={WHO_SELECTING_CATEGORY: [
+                                                    CallbackQueryHandler(who_received_category)]},
+                                                fallbacks=[]))
+
     application.add_handler(CallbackQueryHandler(retire, pattern=COMMAND_RETIRE))
 
     application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_DOWNLOAD_SPAM))
