@@ -182,7 +182,7 @@ def get_standard_keyboard(tg_id: int, hidden_commands=None):
     return InlineKeyboardMarkup(buttons)
 
 
-def get_category_keyboard():
+def get_category_keyboard(categories=None):
     """Builds the keyboard for selecting a category when enrolling or updating data
 
     If there is at least one category in the `people_category` table, returns an instance of InlineKeyboardMarkup that
@@ -205,11 +205,12 @@ def get_category_keyboard():
     """
 
     buttons = []
-    for category in db.people_category_select_all():
+    for category in categories if categories else db.people_category_select_all():
         buttons.append((InlineKeyboardButton(category["title"], callback_data=category["id"]),))
     if not buttons:
         return None
-    buttons.append((InlineKeyboardButton(_("BUTTON_ENROLL_CATEGORY_DEFAULT"), callback_data=0),))
+    if not categories:
+        buttons.append((InlineKeyboardButton(_("BUTTON_ENROLL_CATEGORY_DEFAULT"), callback_data=0),))
     return InlineKeyboardMarkup(buttons)
 
 
@@ -483,10 +484,14 @@ async def who_request_category(update: Update, context: ContextTypes.DEFAULT_TYP
     category_list = []
 
     for c in filtered_people:
-        category_list.append("{t}: {c}".format(t=c["title"], c=len(c["people"])))
+        category_list.append({
+            "id": c["category_id"],
+            "title": c["title"],
+            "text": "{t}: {c}".format(t=c["title"], c=len(c["people"]))})
 
-    await query.message.reply_text(_("MESSAGE_DM_WHO_CATEGORY_LIST").format(categories="\n".join(category_list)),
-                                   reply_markup=get_category_keyboard())
+    await query.message.reply_text(_("MESSAGE_DM_WHO_CATEGORY_LIST").format(
+        categories="\n".join([c["text"] for c in category_list])),
+        reply_markup=get_category_keyboard(category_list))
 
     context.user_data["who_request_category"] = filtered_people
 
@@ -520,7 +525,7 @@ async def who_received_category(update: Update, context: ContextTypes.DEFAULT_TY
     who_people_to_message(user_list, category["people"])
 
     await query.message.reply_text(text="\n".join(user_list), reply_markup=get_standard_keyboard(query.from_user.id),
-                                           parse_mode=ParseMode.HTML, disable_web_page_preview=True)
+                                   parse_mode=ParseMode.HTML, disable_web_page_preview=True)
 
     del context.user_data["who_request_category"]
     return ConversationHandler.END
