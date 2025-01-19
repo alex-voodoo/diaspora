@@ -40,8 +40,7 @@ logger = logging.getLogger(__name__)
 # Commands, sequences, and responses
 COMMAND_START, COMMAND_HELP, COMMAND_WHO, COMMAND_ENROLL, COMMAND_RETIRE = ("start", "help", "who", "enroll", "retire")
 COMMAND_ADMIN = "admin"
-SELECTING_CATEGORY, TYPING_OCCUPATION, TYPING_LOCATION, CONFIRMING_LEGALITY = range(4)
-WHO_SELECTING_CATEGORY = 1
+SELECTING_CATEGORY, TYPING_OCCUPATION, TYPING_LOCATION, CONFIRMING_LEGALITY, WHO_SELECTING_CATEGORY = range(5)
 UPLOADING_ANTISPAM_KEYWORDS, UPLOADING_ANTISPAM_OPENAI = range(2)
 RESPONSE_YES, RESPONSE_NO = ("yes", "no")
 MODERATOR_APPROVE, MODERATOR_DECLINE = ("approve", "decline")
@@ -855,6 +854,20 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     await message.reply_text(_("MESSAGE_DM_INTERNAL_ERROR"), reply_markup=get_standard_keyboard(user.id))
 
 
+async def abort_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    context.user_data.clear()
+
+    user = update.effective_message.from_user
+
+    update_language(user)
+
+    await update.effective_message.reply_text(
+        _("MESSAGE_DM_CONVERSATION_CANCELLED"),
+        reply_markup=get_standard_keyboard(user.id))
+
+    return ConversationHandler.END
+
+
 async def post_init(application: Application) -> None:
     bot = application.bot
 
@@ -872,46 +885,53 @@ def main() -> None:
 
     db.connect()
 
-    # Create the Application and pass it your bot's token.
     application = Application.builder().token(BOT_TOKEN).post_init(post_init).build()
 
-    application.add_handler(CommandHandler(COMMAND_START, handle_command_start))
-    application.add_handler(CommandHandler(COMMAND_HELP, handle_command_help))
-    application.add_handler(CommandHandler(COMMAND_ADMIN, handle_command_admin))
+    #-------------------------------------------------------------------------------------------------------------------
+    # Stateful conversation handlers should go first, to act correctly if the user does something unexpected during the
+    # conversation.
+
+    # Enrolling
+    application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(enroll, pattern=COMMAND_ENROLL)],
+                                                states={SELECTING_CATEGORY: [CallbackQueryHandler(received_category)],
+                                                        TYPING_OCCUPATION: [
+                                                            MessageHandler(filters.TEXT & (~ filters.COMMAND),
+                                                                           received_occupation)],
+                                                        TYPING_LOCATION: [
+                                                            MessageHandler(filters.TEXT & (~ filters.COMMAND),
+                                                                           received_location)],
+                                                        CONFIRMING_LEGALITY: [CallbackQueryHandler(confirm_legality)]},
+                                                fallbacks=[MessageHandler(filters.ALL, abort_conversation)]))
 
     application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(who, pattern=COMMAND_WHO)],
                                                 states={WHO_SELECTING_CATEGORY: [
                                                     CallbackQueryHandler(who_received_category)]},
-                                                fallbacks=[]))
+                                                fallbacks=[MessageHandler(filters.ALL, abort_conversation)]))
 
-    application.add_handler(CallbackQueryHandler(retire, pattern=COMMAND_RETIRE))
-
-    application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_DOWNLOAD_SPAM))
-    application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_DOWNLOAD_ANTISPAM_KEYWORDS))
     application.add_handler(ConversationHandler(
         entry_points=[CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS)],
         states={UPLOADING_ANTISPAM_KEYWORDS: [MessageHandler(filters.ATTACHMENT, received_antispam_keywords)]},
         fallbacks=[]))
+
     application.add_handler(ConversationHandler(
         entry_points=[CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_UPLOAD_ANTISPAM_OPENAI)],
         states={UPLOADING_ANTISPAM_OPENAI: [MessageHandler(filters.ATTACHMENT, received_antispam_openai)]},
         fallbacks=[]))
 
-    # Add conversation handler that questions the user about his profile
-    application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(enroll, pattern=COMMAND_ENROLL)],
-                                                states={SELECTING_CATEGORY: [CallbackQueryHandler(received_category)],
-                                                        TYPING_OCCUPATION: [
-                                                            MessageHandler(filters.TEXT, received_occupation)],
-                                                        TYPING_LOCATION: [
-                                                            MessageHandler(filters.TEXT, received_location)],
-                                                        CONFIRMING_LEGALITY: [CallbackQueryHandler(confirm_legality)]},
-                                                fallbacks=[]))
+    application.add_handler(CommandHandler(COMMAND_START, handle_command_start))
+    application.add_handler(CommandHandler(COMMAND_HELP, handle_command_help))
+    application.add_handler(CommandHandler(COMMAND_ADMIN, handle_command_admin))
+
+    application.add_handler(CallbackQueryHandler(retire, pattern=COMMAND_RETIRE))
+
+    application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_DOWNLOAD_SPAM))
+    application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_DOWNLOAD_ANTISPAM_KEYWORDS))
 
     if GREETING_ENABLED:
         application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, greet_new_member))
 
     if ANTISPAM_ENABLED:
-        application.add_handler(MessageHandler(filters.TEXT, detect_spam), group=1)
+        application.add_handler(MessageHandler(filters.TEXT & (~ filters.COMMAND), detect_spam), group=1)
 
     if MODERATION_ENABLED:
         application.add_handler(CallbackQueryHandler(confirm_user_data, pattern=re.compile(
@@ -921,7 +941,7 @@ def main() -> None:
         global message_languages
         message_languages = deque()
 
-        application.add_handler(MessageHandler(filters.TEXT, detect_language), group=3)
+        application.add_handler(MessageHandler(filters.TEXT & (~ filters.COMMAND), detect_language), group=3)
 
     application.add_error_handler(error_handler)
 
