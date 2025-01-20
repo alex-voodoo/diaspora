@@ -18,6 +18,7 @@ import traceback
 from collections import deque
 
 import httpx
+import telegram.error
 from langdetect import detect, lang_detect_exception
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, User, MenuButtonCommands, BotCommand
 from telegram.constants import ParseMode, ChatType
@@ -94,6 +95,18 @@ def update_language(user: User):
     update_language_by_code(user_lang if user_lang in SUPPORTED_LANGUAGES else DEFAULT_LANGUAGE)
 
 
+async def safe_delete_message(context: ContextTypes.DEFAULT_TYPE, message_id: int, chat_id: int) -> None:
+    """Try to delete a message and log possible exception
+
+    It is quite common situation when a message disappears before the bot tries to delete it.  Trying to proceed results
+    in an exception raised, which this function handles (logs the event)."""
+
+    try:
+        await context.bot.deleteMessage(message_id=message_id, chat_id=chat_id)
+    except telegram.error.BadRequest as e:
+        logger.warning(e)
+
+
 async def delete_message(context: ContextTypes.DEFAULT_TYPE) -> None:
     """Delete the message contained in the data of the context job
 
@@ -105,11 +118,9 @@ async def delete_message(context: ContextTypes.DEFAULT_TYPE) -> None:
 
     message_to_delete, delete_reply_to = context.job.data
 
-    await context.bot.deleteMessage(message_id=message_to_delete.message_id, chat_id=message_to_delete.chat.id)
-
+    await safe_delete_message(context, message_to_delete.message_id, message_to_delete.chat.id)
     if delete_reply_to:
-        await context.bot.deleteMessage(message_id=message_to_delete.reply_to_message.message_id,
-                                        chat_id=message_to_delete.chat.id)
+        await safe_delete_message(context, message_to_delete.reply_to_message.message_id, message_to_delete.chat.id)
 
 
 async def self_destructing_reply(update: Update, context: ContextTypes.DEFAULT_TYPE, message_body: str, timeout: int,
@@ -341,7 +352,7 @@ async def handle_command_start(update: Update, context: ContextTypes.DEFAULT_TYP
         logger.info("This is the admin user {username} talking from \"{chat_name}\" (chat ID {chat_id})".format(
             username=user.username, chat_name=message.chat.title, chat_id=message.chat.id))
 
-        await context.bot.deleteMessage(message_id=message.id, chat_id=message.chat.id)
+        await safe_delete_message(context, message.id, message.chat.id)
         await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID,
                                        text=_("MESSAGE_ADMIN_MAIN_CHAT_ID {title} {id}").format(
                                            title=message.chat.title, id=str(message.chat.id)))
@@ -379,7 +390,7 @@ async def handle_command_admin(update: Update, context: ContextTypes.DEFAULT_TYP
         return
 
     if not await talking_private(update, context):
-        await context.bot.deleteMessage(message_id=message.id, chat_id=message.chat.id)
+        await safe_delete_message(context, message.id, message.chat.id)
 
     update_language(user)
     await context.bot.send_message(chat_id=user.id, text=_("MESSAGE_DM_ADMIN"), reply_markup=get_admin_keyboard())
@@ -736,7 +747,7 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID, text=str(e))
         return
 
-    await context.bot.deleteMessage(message_id=message.id, chat_id=message.chat.id)
+    await safe_delete_message(context, message.id, message.chat.id)
 
     update_language_by_code(DEFAULT_LANGUAGE)
 
