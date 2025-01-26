@@ -5,10 +5,11 @@ Database stuff
 import logging
 import os
 import sqlite3
-import time
 from collections.abc import Iterator
 from pathlib import Path
 from sqlite3 import Connection
+
+from common.log_time import LogTime
 
 db_connection: Connection
 
@@ -18,28 +19,6 @@ db_logging_handler = logging.FileHandler("db.log")
 db_logging_handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s"))
 db_logger.addHandler(db_logging_handler)
 db_logger.propagate = False
-
-
-class LogTime:
-    """Time measuring context manager, logs time elapsed while executing the context
-
-    Usage:
-
-        with LogTime("<task>"):
-            ...
-
-    The above will log: "<task> took X ms".
-    """
-
-    def __init__(self, name):
-        self.name = name
-
-    def __enter__(self):
-        self.started_at = time.perf_counter()
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        elapsed = (time.perf_counter() - self.started_at) * 1000
-        db_logger.info("{name} took {elapsed} ms".format(name=self.name, elapsed=elapsed))
 
 
 def apply_migrations(migrations_directory: Path) -> None:
@@ -89,7 +68,7 @@ def disconnect() -> None:
 def people_delete(tg_id: int) -> None:
     """Delete the user record identified by `tg_id`"""
 
-    with LogTime("DELETE FROM people WHERE tg_id=?"):
+    with LogTime("DELETE FROM people WHERE tg_id=?", db_logger):
         c = db_connection.cursor()
 
         c.execute("DELETE FROM people WHERE tg_id=?", (tg_id,))
@@ -100,7 +79,7 @@ def people_delete(tg_id: int) -> None:
 def people_exists(td_ig: int) -> bool:
     """Return whether there a user record identified by `tg_id` exists in the `people` table"""
 
-    with LogTime("SELECT FROM people WHERE tg_id=?"):
+    with LogTime("SELECT FROM people WHERE tg_id=?", db_logger):
         c = db_connection.cursor()
 
         for _ in c.execute("SELECT tg_username, occupation, location FROM people WHERE tg_id=?", (td_ig,)):
@@ -113,7 +92,7 @@ def people_insert_or_update(tg_id: int, tg_username: str, occupation: str, locat
                             category_id: int) -> None:
     """Create a new or update the existing record identified by `tg_id` in the `people` table"""
 
-    with LogTime("INSERT OR REPLACE INTO people"):
+    with LogTime("INSERT OR REPLACE INTO people", db_logger):
         c = db_connection.cursor()
 
         c.execute("INSERT OR REPLACE INTO people "
@@ -127,7 +106,7 @@ def people_insert_or_update(tg_id: int, tg_username: str, occupation: str, locat
 def people_approve(tg_id: int) -> None:
     """Set `is_suspended` to 0 for the user record identified by `tg_id`"""
 
-    with LogTime("UPDATE people SET is_suspended=0"):
+    with LogTime("UPDATE people SET is_suspended=0", db_logger):
         c = db_connection.cursor()
 
         c.execute("UPDATE people SET is_suspended=0 WHERE tg_id=?", (tg_id,))
@@ -138,7 +117,7 @@ def people_approve(tg_id: int) -> None:
 def people_suspend(tg_id: int) -> None:
     """Set `is_suspended` to 1 for the user record identified by `tg_id`"""
 
-    with LogTime("UPDATE people SET is_suspended=1"):
+    with LogTime("UPDATE people SET is_suspended=1", db_logger):
         c = db_connection.cursor()
 
         c.execute("UPDATE people SET is_suspended=1 WHERE tg_id=?", (tg_id,))
@@ -149,7 +128,7 @@ def people_suspend(tg_id: int) -> None:
 def people_select_all() -> Iterator:
     """Query all non-suspended records from the `people` table"""
 
-    with LogTime("SELECT * FROM people"):
+    with LogTime("SELECT * FROM people", db_logger):
         c = db_connection.cursor()
 
         # noinspection SpellCheckingInspection
@@ -162,7 +141,7 @@ def people_select_all() -> Iterator:
 def people_category_select_all() -> Iterator:
     """Query all non-suspended records from the `people` table"""
 
-    with LogTime("SELECT * FROM people_category"):
+    with LogTime("SELECT * FROM people_category", db_logger):
         c = db_connection.cursor()
 
         for row in c.execute("SELECT id, title FROM people_category"):
@@ -172,7 +151,7 @@ def people_category_select_all() -> Iterator:
 def register_good_member(tg_id: int) -> None:
     """Register the user ID in the `antispam_allowlist` table"""
 
-    with LogTime("INSERT OR REPLACE INTO antispam_allowlist"):
+    with LogTime("INSERT OR REPLACE INTO antispam_allowlist", db_logger):
         c = db_connection.cursor()
 
         c.execute("INSERT OR REPLACE INTO antispam_allowlist (tg_id) VALUES(?)", (tg_id,))
@@ -183,7 +162,7 @@ def register_good_member(tg_id: int) -> None:
 def is_good_member(tg_id: int) -> bool:
     """Return whether the user ID exists in the `antispam_allowlist` table"""
 
-    with LogTime("SELECT FROM antispam_allowlist WHERE tg_id=?"):
+    with LogTime("SELECT FROM antispam_allowlist WHERE tg_id=?", db_logger):
         c = db_connection.cursor()
 
         for _ in c.execute("SELECT tg_id FROM antispam_allowlist WHERE tg_id=?", (tg_id,)):
@@ -195,7 +174,7 @@ def is_good_member(tg_id: int) -> bool:
 def spam_insert(text: str, from_user_tg_id: int, trigger: str, confidence: float) -> None:
     """Save a message that triggered antispam"""
 
-    with LogTime("INSERT INTO spam"):
+    with LogTime("INSERT INTO spam", db_logger):
         c = db_connection.cursor()
 
         c.execute("INSERT INTO spam (text, from_user_tg_id, trigger, openai_confidence) VALUES(?, ?, ?, ?)",
@@ -207,7 +186,7 @@ def spam_insert(text: str, from_user_tg_id: int, trigger: str, confidence: float
 def spam_select_all() -> Iterator:
     """Query all records from the `spam` table"""
 
-    with LogTime("SELECT text, from_user_tg_id, trigger, timestamp, openai_confidence FROM spam"):
+    with LogTime("SELECT text, from_user_tg_id, trigger, timestamp, openai_confidence FROM spam", db_logger):
         c = db_connection.cursor()
 
         for row in c.execute("SELECT text, from_user_tg_id, trigger, timestamp, openai_confidence FROM spam"):

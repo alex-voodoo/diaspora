@@ -55,29 +55,6 @@ _ = gettext.gettext
 message_languages: deque
 
 
-class LogTime:
-    """Time measuring context manager, logs time elapsed while executing the context
-
-    Usage:
-
-        with LogTime("<task>"):
-            ...
-
-    The above will log: "<task> took X ms".
-    """
-
-    def __init__(self, name):
-        self.name = name
-
-    def __enter__(self):
-        self.started_at = time.perf_counter()
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        elapsed = (time.perf_counter() - self.started_at) * 1000
-        time_logger = logging.getLogger("time")
-        time_logger.info("{name} took {elapsed} ms".format(name=self.name, elapsed=elapsed))
-
-
 def update_language_by_code(code: str):
     global _
 
