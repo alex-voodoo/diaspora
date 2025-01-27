@@ -13,7 +13,6 @@ import io
 import json
 import logging
 import re
-import time
 import traceback
 from collections import deque
 
@@ -51,17 +50,20 @@ MODERATOR_APPROVE, MODERATOR_DECLINE = ("approve", "decline")
 
 # Global translation context.  Updated by update_language() depending on the locale of the current user.
 _ = gettext.gettext
+ngettext = gettext.ngettext
 
 message_languages: deque
 
 
 def update_language_by_code(code: str):
     global _
+    global ngettext
 
     translation = gettext.translation("bot", localedir="locales", languages=[code])
     translation.install()
 
     _ = translation.gettext
+    ngettext = translation.ngettext
 
 
 def update_language(user: User):
@@ -339,21 +341,36 @@ async def handle_command_start(update: Update, context: ContextTypes.DEFAULT_TYP
         return
 
     if MAIN_CHAT_ID == 0:
-        logger.info("Welcoming user {username} (chat ID {chat_id}), is this the admin?".format(
-            username=user.username, chat_id=user.id))
+        logger.info("Welcoming user {username} (chat ID {chat_id}), is this the admin?".format(username=user.username,
+                                                                                               chat_id=user.id))
         return
 
     if not await is_member_of_main_chat(user, context):
         return
 
-    logger.info("Welcoming user {username} (chat ID {chat_id})".format(username=user.username, chat_id=user.id))
+    records = db.people_records(user.id)
 
-    main_chat = await context.bot.get_chat(MAIN_CHAT_ID)
+    if records:
+        logger.info("This is {username} that has records already".format(username=user.username))
 
-    await message.reply_text(
-        _("MESSAGE_DM_HELLO {bot_first_name} {main_chat_name}").format(bot_first_name=context.bot.first_name,
-                                                                       main_chat_name=main_chat.title),
-        reply_markup=get_standard_keyboard(user.id))
+        text = [ngettext("MESSAGE_DM_HELLO_AGAIN_S {user_first_name}",
+                         "MESSAGE_DM_HELLO_AGAIN_P {user_first_name} {record_count}", len(records)).format(
+            user_first_name=user.first_name, record_count=len(records))]
+        for record in records:
+            text.append(
+                "<b>{c}:</b> {o} ({l})".format(c=record["category"], o=record["occupation"], l=record["location"]))
+
+        await message.reply_text("\n".join(text), reply_markup=get_standard_keyboard(user.id),
+                                 parse_mode=ParseMode.HTML, disable_web_page_preview=True)
+    else:
+        logger.info("Welcoming user {username} (chat ID {chat_id})".format(username=user.username, chat_id=user.id))
+
+        main_chat = await context.bot.get_chat(MAIN_CHAT_ID)
+
+        await message.reply_text(
+            _("MESSAGE_DM_HELLO {bot_first_name} {main_chat_name}").format(bot_first_name=context.bot.first_name,
+                                                                           main_chat_name=main_chat.title),
+            reply_markup=get_standard_keyboard(user.id))
 
 
 async def handle_command_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -453,9 +470,9 @@ async def received_antispam_openai(update: Update, context: ContextTypes.DEFAULT
 
 def who_people_to_message(user_list: list, people: list):
     for p in people:
-        user_list.append("@{username} ({location}): {occupation}".format(username=p["tg_username"],
-                                                                         occupation=p["occupation"],
-                                                                         location=p["location"]))
+        user_list.append(
+            "@{username} ({location}): {occupation}".format(username=p["tg_username"], occupation=p["occupation"],
+                                                            location=p["location"]))
 
 
 async def who_request_category(update: Update, context: ContextTypes.DEFAULT_TYPE, filtered_people: list) -> int:
@@ -471,13 +488,11 @@ async def who_request_category(update: Update, context: ContextTypes.DEFAULT_TYP
     category_list = []
 
     for c in filtered_people:
-        category_list.append({
-            "id": c["category_id"],
-            "title": c["title"],
-            "text": "{t}: {c}".format(t=c["title"], c=len(c["people"]))})
+        category_list.append(
+            {"id": c["category_id"], "title": c["title"], "text": "{t}: {c}".format(t=c["title"], c=len(c["people"]))})
 
-    await query.message.reply_text(_("MESSAGE_DM_WHO_CATEGORY_LIST").format(
-        categories="\n".join([c["text"] for c in category_list])),
+    await query.message.reply_text(
+        _("MESSAGE_DM_WHO_CATEGORY_LIST").format(categories="\n".join([c["text"] for c in category_list])),
         reply_markup=get_category_keyboard(category_list))
 
     context.user_data["who_request_category"] = filtered_people
@@ -540,8 +555,8 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             person["category_id"] = 0
         categorised_people[person["category_id"]]["people"].append(person)
 
-    filtered_people = [{"title": c["title"], "category_id": i, "people": c["people"]}
-                       for i, c in categorised_people.items() if i != 0 and c["people"]]
+    filtered_people = [{"title": c["title"], "category_id": i, "people": c["people"]} for i, c in
+                       categorised_people.items() if i != 0 and c["people"]]
     if categorised_people[0]["people"]:
         filtered_people.append(categorised_people[0])
 
@@ -590,8 +605,7 @@ async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     category_buttons = get_category_keyboard()
 
     if category_buttons:
-        await query.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_CATEGORY"),
-                                       reply_markup=get_category_keyboard())
+        await query.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_CATEGORY"), reply_markup=get_category_keyboard())
 
         return SELECTING_CATEGORY
     else:
@@ -713,9 +727,8 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
     try:
         if not antispam.is_spam(message):
-            logger.info(
-                "The first message from user {full_name} (ID {id}) looks good".format(full_name=user.full_name,
-                                                                                      id=user.id))
+            logger.info("The first message from user {full_name} (ID {id}) looks good".format(full_name=user.full_name,
+                                                                                              id=user.id))
             db.register_good_member(user.id)
             return
     except Exception as e:
@@ -849,9 +862,8 @@ async def abort_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     update_language(user)
 
-    await update.effective_message.reply_text(
-        _("MESSAGE_DM_CONVERSATION_CANCELLED"),
-        reply_markup=get_standard_keyboard(user.id))
+    await update.effective_message.reply_text(_("MESSAGE_DM_CONVERSATION_CANCELLED"),
+                                              reply_markup=get_standard_keyboard(user.id))
 
     return ConversationHandler.END
 
@@ -875,7 +887,7 @@ def main() -> None:
 
     application = Application.builder().token(BOT_TOKEN).post_init(post_init).build()
 
-    #-------------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------------
     # Stateful conversation handlers should go first, to act correctly if the user does something unexpected during the
     # conversation.
 
@@ -884,16 +896,14 @@ def main() -> None:
                                                 states={SELECTING_CATEGORY: [CallbackQueryHandler(received_category)],
                                                         TYPING_OCCUPATION: [
                                                             MessageHandler(filters.TEXT & (~ filters.COMMAND),
-                                                                           received_occupation)],
-                                                        TYPING_LOCATION: [
-                                                            MessageHandler(filters.TEXT & (~ filters.COMMAND),
-                                                                           received_location)],
+                                                                           received_occupation)], TYPING_LOCATION: [
+                                                        MessageHandler(filters.TEXT & (~ filters.COMMAND),
+                                                                       received_location)],
                                                         CONFIRMING_LEGALITY: [CallbackQueryHandler(confirm_legality)]},
                                                 fallbacks=[MessageHandler(filters.ALL, abort_conversation)]))
 
-    application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(who, pattern=COMMAND_WHO)],
-                                                states={WHO_SELECTING_CATEGORY: [
-                                                    CallbackQueryHandler(who_received_category)]},
+    application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(who, pattern=COMMAND_WHO)], states={
+        WHO_SELECTING_CATEGORY: [CallbackQueryHandler(who_received_category)]},
                                                 fallbacks=[MessageHandler(filters.ALL, abort_conversation)]))
 
     application.add_handler(ConversationHandler(

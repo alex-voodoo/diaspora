@@ -88,6 +88,21 @@ def people_exists(td_ig: int) -> bool:
         return False
 
 
+def people_records(td_ig: int) -> list:
+    """Return all records of a user identified by `tg_id` existing in the `people` table"""
+
+    with LogTime("SELECT FROM people WHERE tg_id=?", db_logger):
+        c = db_connection.cursor()
+
+        records = []
+        for record in c.execute("SELECT pc.title, p.occupation, p.location "
+                                "FROM people p JOIN people_category pc ON p.category_id = pc.id "
+                                "WHERE p.tg_id=?", (td_ig,)):
+            records.append({key: value for (key, value) in zip(("category", "occupation", "location"), record)})
+
+        return records
+
+
 def people_insert_or_update(tg_id: int, tg_username: str, occupation: str, location: str, is_suspended: int,
                             category_id: int) -> None:
     """Create a new or update the existing record identified by `tg_id` in the `people` table"""
