@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2025-01-27 22:54+0100\n"
+"POT-Creation-Date: 2025-01-29 17:36+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -255,11 +255,11 @@ msgstr "Одобрено."
 
 #: bot.py:785
 msgid "MESSAGE_ADMIN_USER_RECORD_SUSPENDED"
-msgstr "Данные пользователя скрыты. Свяжитесь с ним и сообщите, что нужно поправить данные."
+msgstr "Запись скрыта."
 
 #: bot.py:804
 msgid "MESSAGE_DM_RETIRE"
-msgstr "Вы удалены из списка."
+msgstr "Запись удалена."
 
 #: bot.py:855
 msgid "MESSAGE_DM_INTERNAL_ERROR"
