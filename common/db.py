@@ -41,11 +41,13 @@ def apply_migrations(migrations_directory: Path) -> None:
             continue
 
         with open(migrations_directory / migration_filename) as inp:
+            print("Applying migration {filename}".format(filename=migration_filename))
+
             migration = inp.read().split(";")
             for sql in migration:
+                print(sql)
                 c.execute(sql)
 
-            print("Applying migration {filename}".format(filename=migration_filename))
             c.execute("INSERT INTO migrations(name) VALUES(?)", (migration_filename,))
 
     conn.commit()
@@ -65,13 +67,14 @@ def disconnect() -> None:
     db_connection.close()
 
 
-def people_delete(tg_id: int) -> None:
+def people_delete(tg_id: int, category_id: int) -> None:
     """Delete the user record identified by `tg_id`"""
 
-    with LogTime("DELETE FROM people WHERE tg_id=?", db_logger):
+    with LogTime("DELETE FROM people WHERE tg_id=? AND category_id=?", db_logger):
         c = db_connection.cursor()
 
-        c.execute("DELETE FROM people WHERE tg_id=?", (tg_id,))
+        c.execute("DELETE FROM people WHERE tg_id=? AND category_id=?",
+                  (tg_id, category_id))
 
         db_connection.commit()
 
@@ -88,19 +91,28 @@ def people_exists(td_ig: int) -> bool:
         return False
 
 
-def people_records(td_ig: int) -> list:
+def people_records(td_ig: int) -> Iterator:
     """Return all records of a user identified by `tg_id` existing in the `people` table"""
 
     with LogTime("SELECT FROM people WHERE tg_id=?", db_logger):
         c = db_connection.cursor()
 
-        records = []
-        for record in c.execute("SELECT pc.title, p.occupation, p.location "
-                                "FROM people p JOIN people_category pc ON p.category_id = pc.id "
+        for record in c.execute("SELECT pc.title, pc.id, p.occupation, p.location "
+                                "FROM people p LEFT JOIN people_category pc ON p.category_id = pc.id "
                                 "WHERE p.tg_id=?", (td_ig,)):
-            records.append({key: value for (key, value) in zip(("category", "occupation", "location"), record)})
+            yield {key: value for (key, value) in zip(("title", "id", "occupation", "location"), record)}
 
-        return records
+
+def people_record(td_ig: int, category_id: int) -> Iterator:
+    """Return a record of a user identified by `tg_id` and `category_id`"""
+
+    with LogTime("SELECT FROM people WHERE tg_id=? AND category_id=?", db_logger):
+        c = db_connection.cursor()
+
+        for record in c.execute("SELECT pc.title, pc.id, p.occupation, p.location "
+                                "FROM people p LEFT JOIN people_category pc ON p.category_id = pc.id "
+                                "WHERE p.tg_id=? AND pc.id=?", (td_ig, category_id)):
+            yield {key: value for (key, value) in zip(("title", "id", "occupation", "location"), record)}
 
 
 def people_insert_or_update(tg_id: int, tg_username: str, occupation: str, location: str, is_suspended: int,

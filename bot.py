@@ -38,9 +38,10 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 # Commands, sequences, and responses
-COMMAND_START, COMMAND_HELP, COMMAND_WHO, COMMAND_ENROLL, COMMAND_RETIRE = ("start", "help", "who", "enroll", "retire")
+COMMAND_START, COMMAND_HELP, COMMAND_WHO, COMMAND_ENROLL, COMMAND_UPDATE, COMMAND_RETIRE = (
+    "start", "help", "who", "update", "enroll", "retire")
 COMMAND_ADMIN = "admin"
-SELECTING_CATEGORY, TYPING_OCCUPATION, TYPING_LOCATION, CONFIRMING_LEGALITY, WHO_SELECTING_CATEGORY = range(5)
+SELECTING_CATEGORY, TYPING_OCCUPATION, TYPING_LOCATION, CONFIRMING_LEGALITY = range(4)
 UPLOADING_ANTISPAM_KEYWORDS, UPLOADING_ANTISPAM_OPENAI = range(2)
 RESPONSE_YES, RESPONSE_NO = ("yes", "no")
 MODERATOR_APPROVE, MODERATOR_DECLINE = ("approve", "decline")
@@ -132,41 +133,44 @@ async def talking_private(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     return True
 
 
-def get_standard_keyboard(tg_id: int, hidden_commands=None):
+def get_standard_keyboard(tg_id: int):
     """Builds the standard keyboard for the user identified by `td_id`
 
-    The standard keyboard looks like this:
+    The standard keyboard is displayed at the start of the conversation (handling the /start command) or in the end of
+    any conversation, and looks like this:
 
     +-----------------+
     | WHO             |
+    +-----------------+
+    | ENROLL (MORE)   |
     +--------+--------+
-    | ENROLL | RETIRE |
+    | UPDATE | RETIRE |
     +--------+--------+
 
-    Depending on the context, certain commands can be omitted.
+    Depending on the context, certain commands can be omitted.  The enroll button is only shown when it is possible to
+    add a new record.  The update and retire buttons are only shown when the user has at least one record.
 
     Returns an instance of InlineKeyboardMarkup.
     """
 
     command_buttons = {_("BUTTON_WHO"): COMMAND_WHO, _("BUTTON_ENROLL"): COMMAND_ENROLL,
-                       _("BUTTON_UPDATE"): COMMAND_ENROLL, _("BUTTON_RETIRE"): COMMAND_RETIRE}
-    button_who, button_enroll, button_update, button_retire = (InlineKeyboardButton(text, callback_data=command) for
-                                                               text, command in command_buttons.items())
+                       _("BUTTON_ENROLL_MORE"): COMMAND_ENROLL, _("BUTTON_UPDATE"): COMMAND_UPDATE,
+                       _("BUTTON_RETIRE"): COMMAND_RETIRE}
+    button_who, button_enroll, button_enroll_more, button_update, button_retire = (
+        InlineKeyboardButton(text, callback_data=command) for text, command in command_buttons.items())
 
-    if hidden_commands is None:
-        hidden_commands = list()
-    buttons = []
-    if COMMAND_WHO not in hidden_commands:
-        buttons.append([button_who])
+    buttons = [[button_who]]
 
-    enrolled = tg_id != 0 and db.people_exists(tg_id)
-    second_row = []
-    if COMMAND_ENROLL not in hidden_commands:
-        second_row.append(button_update if enrolled else button_enroll)
-    if enrolled and COMMAND_RETIRE not in hidden_commands:
-        second_row.append(button_retire)
-    if second_row:
-        buttons.append(second_row)
+    records = [r for r in db.people_records(tg_id)]
+    categories = [c for c in db.people_category_select_all()]
+
+    if not records:
+        buttons.append([button_enroll] if not records else [button_enroll_more])
+    elif len(records) < len(categories):
+        buttons.append([button_enroll_more])
+
+    if len(records) > 0:
+        buttons.append([button_update, button_retire])
 
     return InlineKeyboardMarkup(buttons)
 
@@ -195,7 +199,9 @@ def get_category_keyboard(categories=None):
 
     buttons = []
     for category in categories if categories else db.people_category_select_all():
-        buttons.append((InlineKeyboardButton(category["title"], callback_data=category["id"]),))
+        buttons.append((InlineKeyboardButton(
+            category["title"] if category["title"] else _("BUTTON_ENROLL_CATEGORY_DEFAULT"),
+            callback_data=category["id"] if category["id"] else 0),))
     if not buttons:
         return None
     if not categories:
@@ -301,6 +307,48 @@ async def detect_language(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                                        parse_mode=ParseMode.HTML)
 
 
+async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: telegram.Message, user: User,
+                           prefix="") -> None:
+    """Show the current status of the user"""
+
+    records = [r for r in db.people_records(user.id)]
+
+    if records:
+        logger.info("This is {username} that has records already".format(username=user.username))
+
+        def get_header():
+            if len(records) == 1:
+                return _("MESSAGE_DM_HELLO_AGAIN {user_first_name}").format(user_first_name=user.first_name)
+            return ngettext("MESSAGE_DM_HELLO_AGAIN_S {user_first_name} {record_count}",
+                            "MESSAGE_DM_HELLO_AGAIN_P {user_first_name} {record_count}", len(records)).format(
+                user_first_name=user.first_name, record_count=len(records))
+
+        text = []
+        if prefix:
+            text.append(prefix)
+        text.append(get_header())
+
+        for record in records:
+            text.append("<b>{c}:</b> {o} ({l})".format(
+                c=record["title"] if record["title"] else _("BUTTON_ENROLL_CATEGORY_DEFAULT"), o=record["occupation"],
+                l=record["location"]))
+
+        await message.reply_text("\n".join(text), reply_markup=get_standard_keyboard(user.id),
+                                 parse_mode=ParseMode.HTML, disable_web_page_preview=True)
+    else:
+        logger.info("Welcoming user {username} (chat ID {chat_id})".format(username=user.username, chat_id=user.id))
+
+        if prefix:
+            text = prefix + "\n" + _("MESSAGE_DM_NO_RECORDS")
+        else:
+            main_chat = await context.bot.get_chat(MAIN_CHAT_ID)
+
+            text = _("MESSAGE_DM_HELLO {bot_first_name} {main_chat_name}").format(bot_first_name=context.bot.first_name,
+                                                                                  main_chat_name=main_chat.title)
+
+        await message.reply_text(text, reply_markup=get_standard_keyboard(user.id))
+
+
 async def handle_command_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show the help message"""
 
@@ -348,29 +396,7 @@ async def handle_command_start(update: Update, context: ContextTypes.DEFAULT_TYP
     if not await is_member_of_main_chat(user, context):
         return
 
-    records = db.people_records(user.id)
-
-    if records:
-        logger.info("This is {username} that has records already".format(username=user.username))
-
-        text = [ngettext("MESSAGE_DM_HELLO_AGAIN_S {user_first_name}",
-                         "MESSAGE_DM_HELLO_AGAIN_P {user_first_name} {record_count}", len(records)).format(
-            user_first_name=user.first_name, record_count=len(records))]
-        for record in records:
-            text.append(
-                "<b>{c}:</b> {o} ({l})".format(c=record["category"], o=record["occupation"], l=record["location"]))
-
-        await message.reply_text("\n".join(text), reply_markup=get_standard_keyboard(user.id),
-                                 parse_mode=ParseMode.HTML, disable_web_page_preview=True)
-    else:
-        logger.info("Welcoming user {username} (chat ID {chat_id})".format(username=user.username, chat_id=user.id))
-
-        main_chat = await context.bot.get_chat(MAIN_CHAT_ID)
-
-        await message.reply_text(
-            _("MESSAGE_DM_HELLO {bot_first_name} {main_chat_name}").format(bot_first_name=context.bot.first_name,
-                                                                           main_chat_name=main_chat.title),
-            reply_markup=get_standard_keyboard(user.id))
+    await show_main_status(context, message, user)
 
 
 async def handle_command_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -497,7 +523,7 @@ async def who_request_category(update: Update, context: ContextTypes.DEFAULT_TYP
 
     context.user_data["who_request_category"] = filtered_people
 
-    return WHO_SELECTING_CATEGORY
+    return SELECTING_CATEGORY
 
 
 async def who_received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -586,7 +612,7 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 # noinspection PyUnusedLocal
 async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Start the conversation and ask user for input"""
+    """Start the conversation about adding the first user record"""
 
     query = update.callback_query
 
@@ -605,7 +631,7 @@ async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     category_buttons = get_category_keyboard()
 
     if category_buttons:
-        await query.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_CATEGORY"), reply_markup=get_category_keyboard())
+        await query.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_CATEGORY"), reply_markup=category_buttons)
 
         return SELECTING_CATEGORY
     else:
@@ -615,6 +641,24 @@ async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         await query.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_OCCUPATION"))
 
         return TYPING_OCCUPATION
+
+
+# noinspection PyUnusedLocal
+async def handle_command_update(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Start the conversation about updating an existing user record"""
+
+    query = update.callback_query
+
+    update_language(query.from_user)
+
+    await query.answer()
+    await query.edit_message_reply_markup(None)
+    await query.message.reply_text(_("MESSAGE_DM_SELECT_CATEGORY_FOR_UPDATE"),
+                                   reply_markup=get_category_keyboard(db.people_records(query.from_user.id)))
+
+    context.user_data["mode"] = "update"
+
+    return SELECTING_CATEGORY
 
 
 async def received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -630,7 +674,16 @@ async def received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     await query.answer()
     await query.edit_message_reply_markup(None)
 
-    await query.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_OCCUPATION"))
+    if "mode" in context.user_data and context.user_data["mode"] == "update":
+        records = [r for r in db.people_record(query.from_user.id, int(query.data))]
+        await query.message.reply_text(
+            _("MESSAGE_DM_UPDATE_OCCUPATION {title} {occupation}").format(title=records[0]["title"],
+                                                                          occupation=records[0]["occupation"]),
+            parse_mode=ParseMode.HTML)
+        user_data["category_title"] = records[0]["title"]
+        user_data["location"] = records[0]["location"]
+    else:
+        await query.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_OCCUPATION"))
 
     return TYPING_OCCUPATION
 
@@ -643,7 +696,13 @@ async def received_occupation(update: Update, context: ContextTypes.DEFAULT_TYPE
     user_data = context.user_data
     user_data["occupation"] = update.message.text
 
-    await update.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_LOCATION"))
+    if "mode" in context.user_data and context.user_data["mode"] == "update":
+        await update.message.reply_text(
+            _("MESSAGE_DM_UPDATE_LOCATION {title} {location}").format(title=user_data["category_title"],
+                                                                      location=user_data["location"]),
+            parse_mode=ParseMode.HTML)
+    else:
+        await update.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_LOCATION"))
 
     return TYPING_LOCATION
 
@@ -698,12 +757,12 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             await moderate_new_data(update, context, saved_user_data)
 
     elif query.data == RESPONSE_NO:
-        db.people_delete(from_user.id)
+        db.people_delete(from_user.id, int(user_data["category_id"]))
         user_data.clear()
 
         await query.edit_message_reply_markup(None)
         await query.message.reply_text(_("MESSAGE_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"),
-                                       reply_markup=get_standard_keyboard(0, [COMMAND_RETIRE]))
+                                       reply_markup=get_standard_keyboard(from_user.id))
 
     return ConversationHandler.END
 
@@ -789,19 +848,36 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     return ConversationHandler.END
 
 
-# noinspection PyUnusedLocal
-async def retire(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Remove the user from the directory"""
+async def handle_command_retire(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Start the conversation about removing an existing user record"""
 
     query = update.callback_query
 
     update_language(query.from_user)
 
-    db.people_delete(query.from_user.id)
+    await query.answer()
+    await query.edit_message_reply_markup(None)
+    await query.message.reply_text(_("MESSAGE_DM_SELECT_CATEGORY_FOR_RETIRE"),
+                                   reply_markup=get_category_keyboard(db.people_records(query.from_user.id)))
+
+    return SELECTING_CATEGORY
+
+
+async def retire_received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Remove the user record in a category selected on the previous step"""
+
+    query = update.callback_query
 
     await query.answer()
     await query.edit_message_reply_markup(None)
-    await query.message.reply_text(_("MESSAGE_DM_RETIRE"), reply_markup=get_standard_keyboard(0, [COMMAND_RETIRE]))
+
+    update_language(query.from_user)
+
+    db.people_delete(query.from_user.id, int(query.data))
+
+    await show_main_status(context, query.message, query.from_user, _("MESSAGE_DM_RETIRE"))
+
+    return ConversationHandler.END
 
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -862,8 +938,7 @@ async def abort_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     update_language(user)
 
-    await update.effective_message.reply_text(_("MESSAGE_DM_CONVERSATION_CANCELLED"),
-                                              reply_markup=get_standard_keyboard(user.id))
+    await show_main_status(context, update.effective_message, user, _("MESSAGE_DM_CONVERSATION_CANCELLED"))
 
     return ConversationHandler.END
 
@@ -892,7 +967,9 @@ def main() -> None:
     # conversation.
 
     # Enrolling
-    application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(enroll, pattern=COMMAND_ENROLL)],
+    application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(enroll, pattern=COMMAND_ENROLL),
+                                                              CallbackQueryHandler(handle_command_update,
+                                                                                   pattern=COMMAND_UPDATE)],
                                                 states={SELECTING_CATEGORY: [CallbackQueryHandler(received_category)],
                                                         TYPING_OCCUPATION: [
                                                             MessageHandler(filters.TEXT & (~ filters.COMMAND),
@@ -903,8 +980,13 @@ def main() -> None:
                                                 fallbacks=[MessageHandler(filters.ALL, abort_conversation)]))
 
     application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(who, pattern=COMMAND_WHO)], states={
-        WHO_SELECTING_CATEGORY: [CallbackQueryHandler(who_received_category)]},
+        SELECTING_CATEGORY: [CallbackQueryHandler(who_received_category)]},
                                                 fallbacks=[MessageHandler(filters.ALL, abort_conversation)]))
+
+    application.add_handler(
+        ConversationHandler(entry_points=[CallbackQueryHandler(handle_command_retire, pattern=COMMAND_RETIRE)],
+                            states={SELECTING_CATEGORY: [CallbackQueryHandler(retire_received_category)]},
+                            fallbacks=[MessageHandler(filters.ALL, abort_conversation)]))
 
     application.add_handler(ConversationHandler(
         entry_points=[CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS)],
@@ -919,8 +1001,6 @@ def main() -> None:
     application.add_handler(CommandHandler(COMMAND_START, handle_command_start))
     application.add_handler(CommandHandler(COMMAND_HELP, handle_command_help))
     application.add_handler(CommandHandler(COMMAND_ADMIN, handle_command_admin))
-
-    application.add_handler(CallbackQueryHandler(retire, pattern=COMMAND_RETIRE))
 
     application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_DOWNLOAD_SPAM))
     application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_DOWNLOAD_ANTISPAM_KEYWORDS))
