@@ -166,7 +166,7 @@ def get_standard_keyboard(tg_id: int):
 
     if not records:
         buttons.append([button_enroll] if not records else [button_enroll_more])
-    elif len(records) < len(categories):
+    elif len(records) <= len(categories):
         buttons.append([button_enroll_more])
 
     if len(records) > 0:
@@ -499,11 +499,13 @@ async def received_antispam_openai(update: Update, context: ContextTypes.DEFAULT
     return ConversationHandler.END
 
 
-def who_people_to_message(user_list: list, people: list):
+def who_people_to_message(people: list) -> list:
+    result = []
     for p in people:
-        user_list.append(
+        result.append(
             "@{username} ({location}): {occupation}".format(username=p["tg_username"], occupation=p["occupation"],
                                                             location=p["location"]))
+    return result
 
 
 async def who_request_category(update: Update, context: ContextTypes.DEFAULT_TYPE, filtered_people: list) -> int:
@@ -554,8 +556,7 @@ async def who_received_category(update: Update, context: ContextTypes.DEFAULT_TY
                                        parse_mode=ParseMode.HTML)
         return ConversationHandler.END
 
-    user_list = ["<b>{t}</b>".format(t=category["title"])]
-    who_people_to_message(user_list, category["people"])
+    user_list = ["<b>{t}</b>".format(t=category["title"])] + who_people_to_message(category["people"])
 
     await query.message.reply_text(text="\n".join(user_list), reply_markup=get_standard_keyboard(query.from_user.id),
                                    parse_mode=ParseMode.HTML, disable_web_page_preview=True)
@@ -595,12 +596,12 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         return await who_request_category(update, context, filtered_people)
     else:
         if len(filtered_people) == 1:
-            who_people_to_message(user_list, filtered_people[0]["people"])
+            user_list += who_people_to_message(filtered_people[0]["people"])
         else:
             for category in filtered_people:
                 user_list.append("")
                 user_list.append("<b>{t}</b>".format(t=category["title"]))
-                who_people_to_message(user_list, category["people"])
+                user_list += who_people_to_message(category["people"])
 
         if len(user_list) == 1:
             user_list = [_("MESSAGE_DM_WHO_EMPTY")]
@@ -633,7 +634,10 @@ async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     await query.message.reply_text(_("MESSAGE_DM_ENROLL_START"))
 
-    category_buttons = get_category_keyboard()
+    existing_category_ids = [r["id"] for r in db.people_records(query.from_user.id)]
+    categories = [c for c in db.people_category_select_all() if c["id"] not in existing_category_ids]
+
+    category_buttons = get_category_keyboard(categories)
 
     if category_buttons:
         await query.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_CATEGORY"), reply_markup=category_buttons)
