@@ -176,10 +176,15 @@ def get_standard_keyboard(tg_id: int):
 
 
 def get_category_keyboard(categories=None):
-    """Builds the keyboard for selecting a category when enrolling or updating data
+    """Builds the keyboard for selecting a category
 
-    If there is at least one category in the `people_category` table, returns an instance of InlineKeyboardMarkup that
-    contains a vertically aligned set of buttons:
+    Categories can be provided via the optional `categories` parameter and should be an iterable of dict-like items,
+    where each item should have `id` and `title` keys, holding the ID and the title of the category.
+
+    If `categories` is None or empty, the function will load data from the DB.
+
+    If there is at least one category, returns an instance of InlineKeyboardMarkup that contains a vertically aligned
+    set of buttons:
 
     +------------+
     | Category 1 |
