@@ -214,13 +214,13 @@ def get_yesno_keyboard(user: telegram.User) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(((response_button_yes, response_button_no),))
 
 
-def get_moderation_keyboard(user: telegram.User) -> InlineKeyboardMarkup:
+def get_moderation_keyboard(data) -> InlineKeyboardMarkup:
     trans = i18n.default()
 
     response_buttons = {trans.gettext("BUTTON_YES"): MODERATOR_APPROVE, trans.gettext("BUTTON_NO"): MODERATOR_DECLINE}
     response_button_yes, response_button_no = (
-    InlineKeyboardButton(text, callback_data="{}:{}".format(command, user.id)) for text, command in
-    response_buttons.items())
+        InlineKeyboardButton(text, callback_data="{}:{}:{}".format(command, data["tg_id"], data["category_id"])) for
+        text, command in response_buttons.items())
 
     return InlineKeyboardMarkup(((response_button_yes, response_button_no),))
 
@@ -248,8 +248,7 @@ async def moderate_new_data(update: Update, context: ContextTypes.DEFAULT_TYPE, 
         await context.bot.send_message(chat_id=moderator_id,
                                        text=i18n.default().gettext("MESSAGE_ADMIN_APPROVE_USER_DATA {username}").format(
                                            username=data["tg_username"], occupation=data["occupation"],
-                                           location=data["location"]),
-                                       reply_markup=get_moderation_keyboard(data["tg_id"]))
+                                           location=data["location"]), reply_markup=get_moderation_keyboard(data))
 
 
 async def greet_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -812,26 +811,29 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     await query.answer()
 
-    command, tg_id = query.data.split(":")
+    command, tg_id, category_id = query.data.split(":")
     tg_id = int(tg_id)
+    category_id = int(category_id)
 
     trans = i18n.trans(query.from_user)
 
     if command == MODERATOR_APPROVE:
-        logger.info("Moderator ID {moderator_id} approves new data from user ID {user_id}".format(
-            moderator_id=query.from_user.id, user_id=tg_id))
+        logger.info(
+            "Moderator ID {moderator_id} approves new data from user ID {user_id} in category {category_id}".format(
+                moderator_id=query.from_user.id, user_id=tg_id, category_id=category_id))
 
         if not MODERATION_IS_LAZY:
-            db.people_approve(tg_id)
+            db.people_approve(tg_id, category_id)
 
         await query.edit_message_reply_markup(None)
         await query.message.reply_text(trans.gettext("MESSAGE_ADMIN_USER_RECORD_APPROVED"))
     elif command == MODERATOR_DECLINE:
-        logger.info("Moderator ID {moderator_id} declines new data from user ID {user_id}".format(
-            moderator_id=query.from_user.id, user_id=tg_id))
+        logger.info(
+            "Moderator ID {moderator_id} declines new data from user ID {user_id} in category {category_id}".format(
+                moderator_id=query.from_user.id, user_id=tg_id, category_id=category_id))
 
         if MODERATION_IS_LAZY:
-            db.people_suspend(tg_id)
+            db.people_suspend(tg_id, category_id)
 
         await query.edit_message_reply_markup(None)
         await query.message.reply_text(trans.gettext("MESSAGE_ADMIN_USER_RECORD_SUSPENDED"))
@@ -1009,7 +1011,7 @@ def main() -> None:
 
     if MODERATION_ENABLED:
         application.add_handler(CallbackQueryHandler(confirm_user_data, pattern=re.compile(
-            "^({approve}|{decline}):[0-9]+$".format(approve=MODERATOR_APPROVE, decline=MODERATOR_DECLINE))), group=2)
+            "^({approve}|{decline}):[0-9]+:[0-9]+$".format(approve=MODERATOR_APPROVE, decline=MODERATOR_DECLINE))), group=2)
 
     if LANGUAGE_MODERATION_ENABLED:
         global message_languages
