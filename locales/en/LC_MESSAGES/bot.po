@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2025-02-01 23:54+0100\n"
+"POT-Creation-Date: 2025-02-02 16:29+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -20,59 +20,59 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.16.0\n"
 
-#: bot.py:131
+#: bot.py:107
 msgid "MESSAGE_MC_LET_US_TALK_PRIVATE"
 msgstr "Let's talk private!"
 
-#: bot.py:156
+#: bot.py:135
 msgid "BUTTON_WHO"
 msgstr "Show records"
 
-#: bot.py:156
+#: bot.py:135
 msgid "BUTTON_ENROLL"
 msgstr "Register"
 
-#: bot.py:157
+#: bot.py:136
 msgid "BUTTON_ENROLL_MORE"
 msgstr "Add another record"
 
-#: bot.py:157
+#: bot.py:137
 msgid "BUTTON_UPDATE"
 msgstr "Update a record"
 
-#: bot.py:158
+#: bot.py:137
 msgid "BUTTON_RETIRE"
 msgstr "Remove a record"
 
-#: bot.py:208 bot.py:213 bot.py:338
+#: bot.py:189 bot.py:194 bot.py:327
 msgid "BUTTON_ENROLL_CATEGORY_DEFAULT"
 msgstr "Other"
 
-#: bot.py:227 bot.py:235
+#: bot.py:210 bot.py:220
 msgid "BUTTON_YES"
 msgstr "Yes"
 
-#: bot.py:227 bot.py:235
+#: bot.py:210 bot.py:220
 msgid "BUTTON_NO"
 msgstr "No"
 
-#: bot.py:243
+#: bot.py:231
 msgid "BUTTON_DOWNLOAD_SPAM"
 msgstr "Download spam"
 
-#: bot.py:244
+#: bot.py:232
 msgid "BUTTON_DOWNLOAD_ANTISPAM_KEYWORDS"
 msgstr "Download stop words"
 
-#: bot.py:245
+#: bot.py:233
 msgid "BUTTON_UPLOAD_ANTISPAM_KEYWORDS"
 msgstr "Upload stop words"
 
-#: bot.py:246
+#: bot.py:234
 msgid "BUTTON_UPLOAD_ANTISPAM_OPENAI"
 msgstr "Upload the OpenAI model"
 
-#: bot.py:261
+#: bot.py:249
 msgid "MESSAGE_ADMIN_APPROVE_USER_DATA {username}"
 msgstr ""
 "User @{username} has updated their data.\n"
@@ -80,7 +80,7 @@ msgstr ""
 "Location: {location}\n"
 "Approve it?"
 
-#: bot.py:278
+#: bot.py:264
 msgid "MESSAGE_MC_GREETING_M {user_first_name} {bot_first_name}"
 msgstr ""
 "Welcome, {user_first_name}!\n"
@@ -91,7 +91,7 @@ msgstr ""
 "\n"
 "<em>I will delete this message in five minutes.</em>"
 
-#: bot.py:278
+#: bot.py:265
 msgid "MESSAGE_MC_GREETING_F {user_first_name} {bot_first_name}"
 msgstr ""
 "Welcome, {user_first_name}!\n"
@@ -102,29 +102,29 @@ msgstr ""
 "\n"
 "<em>I will delete this message in five minutes.</em>"
 
-#: bot.py:311
+#: bot.py:298
 msgid "MESSAGE_MC_SPEAK_DEFAULT_LANGUAGE"
 msgstr "❗ Please follow the rules of this group and write in English, so that every other member would understand you."
 
-#: bot.py:326
+#: bot.py:315
 msgid "MESSAGE_DM_HELLO_AGAIN {user_first_name}"
 msgstr "Hello {user_first_name}.  Here is your record.\n"
 
-#: bot.py:328
+#: bot.py:317
 msgid "MESSAGE_DM_HELLO_AGAIN_S {user_first_name} {record_count}"
 msgid_plural "MESSAGE_DM_HELLO_AGAIN_P {user_first_name} {record_count}"
 msgstr[0] "Hello {user_first_name}.  Here is your {record_count} record.\n"
 msgstr[1] "Hello {user_first_name}.  Here are your {record_count} records."
 
-#: bot.py:347
+#: bot.py:336
 msgid "MESSAGE_DM_NO_RECORDS"
 msgstr "You have no records."
 
-#: bot.py:351
+#: bot.py:340
 msgid "MESSAGE_DM_HELLO {bot_first_name} {main_chat_name}"
 msgstr "Hello!  I am {bot_first_name}, the bookkeeper bot of the \"{main_chat_name}\" group."
 
-#: bot.py:366
+#: bot.py:355
 msgid "MESSAGE_MC_HELP"
 msgstr ""
 "I keep records of users who would like to offer something to others, and provide that information to everyone in this chat.\n"
@@ -133,7 +133,7 @@ msgstr ""
 "\n"
 "<em>Soon I will delete this message to keep this chat clean.</em>"
 
-#: bot.py:372
+#: bot.py:361
 msgid "MESSAGE_DM_HELP"
 msgstr ""
 "I keep records of users of the chat who would like to offer something to others, and provide that information to everyone in the chat.\n"
@@ -142,43 +142,43 @@ msgstr ""
 "\n"
 "Use the buttons below to see the records, to add yourself or update your data, and to remove your record (of course if you have one)."
 
-#: bot.py:389
+#: bot.py:376
 msgid "MESSAGE_ADMIN_MAIN_CHAT_ID {title} {id}"
 msgstr "The ID of the \"{title}\" group is {id}"
 
-#: bot.py:421
+#: bot.py:407
 msgid "MESSAGE_DM_ADMIN"
 msgstr "At your service."
 
-#: bot.py:444
+#: bot.py:431
 msgid "MESSAGE_DM_ADMIN_REQUEST_KEYWORDS"
 msgstr "Awaiting a text file."
 
-#: bot.py:448
+#: bot.py:435
 msgid "MESSAGE_DM_ADMIN_REQUEST_OPENAI"
 msgstr "Awaiting a .joblib file."
 
-#: bot.py:463
+#: bot.py:452
 msgid "MESSAGE_DM_ADMIN_KEYWORDS_WRONG_FILE_TYPE"
 msgstr "I can load keywords only from a text file."
 
-#: bot.py:472
+#: bot.py:461
 msgid "MESSAGE_DM_ADMIN_KEYWORDS_UPDATED"
 msgstr "Accepted."
 
-#: bot.py:474
+#: bot.py:463
 msgid "MESSAGE_DM_ADMIN_KEYWORDS_CANNOT_USE"
 msgstr "Could not load the new keywords."
 
-#: bot.py:494
+#: bot.py:485
 msgid "MESSAGE_DM_ADMIN_OPENAI_UPDATED"
 msgstr "Accepted."
 
-#: bot.py:496
+#: bot.py:487
 msgid "MESSAGE_DM_ADMIN_OPENAI_CANNOT_USE"
 msgstr "Could not load the new model.  I will use the old one."
 
-#: bot.py:528
+#: bot.py:516
 msgid "MESSAGE_DM_WHO_CATEGORY_LIST"
 msgstr ""
 "Here are the categories at this moment, each with its number of records:\n"
@@ -187,124 +187,124 @@ msgstr ""
 "\n"
 "Which one to show?"
 
-#: bot.py:554
+#: bot.py:541
 msgid "MESSAGE_DM_WHO_CATEGORY_EMPTY"
 msgstr "This category is already empty."
 
-#: bot.py:578
+#: bot.py:564
 msgid "MESSAGE_DM_WHO_LIST_HEADING"
 msgstr "Here is the directory:"
 
-#: bot.py:580
+#: bot.py:567
 msgid "MESSAGE_DM_WHO_CATEGORY_DEFAULT"
 msgstr "Other"
 
-#: bot.py:607
+#: bot.py:594
 msgid "MESSAGE_DM_WHO_EMPTY"
 msgstr "Nobody has registered themselves so far :-( ."
 
-#: bot.py:631
+#: bot.py:618
 msgid "MESSAGE_DM_ENROLL_USERNAME_REQUIRED"
 msgstr ""
 "Your Telegram profile does not have a username.  I need it to show people a link to your profile.\n"
 "\n"
 "Please register a username for your profile and try again."
 
-#: bot.py:635
+#: bot.py:622
 msgid "MESSAGE_DM_ENROLL_START"
 msgstr "Let us start!"
 
-#: bot.py:643
+#: bot.py:630
 msgid "MESSAGE_DM_ENROLL_ASK_CATEGORY"
 msgstr "Please select a category that matches your service the best."
 
-#: bot.py:650 bot.py:695
+#: bot.py:637 bot.py:682
 msgid "MESSAGE_DM_ENROLL_ASK_OCCUPATION"
 msgstr "What do you do?  Please give a short and simple answer, like \"Teach how to surf\" or \"Help with the immigrations\"."
 
-#: bot.py:665
+#: bot.py:650
 msgid "MESSAGE_DM_SELECT_CATEGORY_FOR_UPDATE"
 msgstr "Select a category to update."
 
-#: bot.py:689
+#: bot.py:675
 msgid "MESSAGE_DM_UPDATE_OCCUPATION {title} {occupation}"
 msgstr ""
 "Enter a new description for your service in the \"{title}\" group.  The current one is:\n"
 "<b>{occupation}</b>"
 
-#: bot.py:710
+#: bot.py:697
 msgid "MESSAGE_DM_UPDATE_LOCATION {title} {location}"
 msgstr ""
 "Enter a new location for your service in the \"{title}\" group.  The current one is:\n"
 "<b>{location}</b>"
 
-#: bot.py:714
+#: bot.py:701
 msgid "MESSAGE_DM_ENROLL_ASK_LOCATION"
 msgstr ""
 "Where are you based?\n"
 "\n"
 "Just the name of the place is enough, like \"A Coruña\""
 
-#: bot.py:727
+#: bot.py:712
 msgid "MESSAGE_DM_ENROLL_CONFIRM_LEGALITY"
 msgstr ""
 "Finally, please confirm that what you do is legal and does not violate any laws or local regulations.\n"
 "\n"
 "Is your service legal?"
 
-#: bot.py:757
+#: bot.py:743
 msgid "MESSAGE_DM_ENROLL_COMPLETED"
 msgstr "We are done, you are now registered!"
 
-#: bot.py:759
+#: bot.py:745
 msgid "MESSAGE_DM_ENROLL_COMPLETED_POST_MODERATION"
 msgstr "We are done, you are now registered!  Please note that moderators may hide your record if it violates rules of the group."
 
-#: bot.py:761
+#: bot.py:747
 msgid "MESSAGE_DM_ENROLL_COMPLETED_PRE_MODERATION"
 msgstr "We are done!  I will add your record to the list after the moderators approve it."
 
-#: bot.py:773
+#: bot.py:759
 msgid "MESSAGE_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"
 msgstr "I am sorry.  I cannot register services that do not comply with the laws and local regulations."
 
-#: bot.py:813
+#: bot.py:797
 msgid "MESSAGE_MC_SPAM_DETECTED_M {username}"
 msgstr "⛔️ I have deleted a message sent by {username} because it looked like spam.  If you think that it was a mistake, talk to administrators."
 
-#: bot.py:815
+#: bot.py:799
 msgid "MESSAGE_MC_SPAM_DETECTED_F {username}"
 msgstr "⛔️ I have deleted a message sent by {username} because it looked like spam.  If you think that it was a mistake, talk to administrators."
 
-#: bot.py:844
+#: bot.py:828
 msgid "MESSAGE_ADMIN_USER_RECORD_APPROVED"
 msgstr "Approved."
 
-#: bot.py:853
+#: bot.py:837
 msgid "MESSAGE_ADMIN_USER_RECORD_SUSPENDED"
 msgstr "The record is hidden."
 
-#: bot.py:869
+#: bot.py:852
 msgid "MESSAGE_DM_SELECT_CATEGORY_FOR_RETIRE"
 msgstr "Select category to delete."
 
-#: bot.py:887
+#: bot.py:870
 msgid "MESSAGE_DM_RETIRE"
 msgstr "The record is deleted."
 
-#: bot.py:940
+#: bot.py:921
 msgid "MESSAGE_DM_INTERNAL_ERROR"
 msgstr "An internal error occurred.  I have notified my administrator about the error.  Please use the buttons below, hopefully it will work."
 
-#: bot.py:950
+#: bot.py:936
 msgid "MESSAGE_DM_CONVERSATION_CANCELLED"
 msgstr "Let us start again."
 
-#: bot.py:960
+#: bot.py:947
 msgid "COMMAND_DESCRIPTION_START"
 msgstr "Main menu"
 
-#: bot.py:961
+#: bot.py:948
 msgid "COMMAND_DESCRIPTION_ADMIN"
 msgstr "Administrator's menu"
 

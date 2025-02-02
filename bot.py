@@ -7,7 +7,6 @@ See README.md for details.
 """
 
 import copy
-import gettext
 import html
 import io
 import json
@@ -24,7 +23,7 @@ from telegram.constants import ParseMode, ChatType
 from telegram.ext import (Application, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters,
                           CallbackQueryHandler, )
 
-from common import db
+from common import db, i18n
 from common.checks import is_member_of_main_chat
 from features import antispam
 from settings import *
@@ -49,30 +48,7 @@ MODERATOR_APPROVE, MODERATOR_DECLINE = ("approve", "decline")
  QUERY_ADMIN_UPLOAD_ANTISPAM_OPENAI) = (
     "download-spam", "download-antispam-keywords", "upload-antispam-keywords", "upload-antispam-openai")
 
-# Global translation context.  Updated by update_language() depending on the locale of the current user.
-_ = gettext.gettext
-ngettext = gettext.ngettext
-
 message_languages: deque
-
-
-def update_language_by_code(code: str):
-    global _
-    global ngettext
-
-    translation = gettext.translation("bot", localedir="locales", languages=[code])
-    translation.install()
-
-    _ = translation.gettext
-    ngettext = translation.ngettext
-
-
-def update_language(user: User):
-    """Load the translation to match the user language"""
-
-    user_lang = user.language_code if SPEAK_USER_LANGUAGE else DEFAULT_LANGUAGE
-
-    update_language_by_code(user_lang if user_lang in SUPPORTED_LANGUAGES else DEFAULT_LANGUAGE)
 
 
 async def safe_delete_message(context: ContextTypes.DEFAULT_TYPE, message_id: int, chat_id: int) -> None:
@@ -121,20 +97,21 @@ async def self_destructing_reply(update: Update, context: ContextTypes.DEFAULT_T
 async def talking_private(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
     """Helper for handlers that require private conversation
 
-    Most features of the bot should not be accessed from the chat, instead users should talk to the bot directly via
-    private conversation.  This function checks if the update came from the private conversation, and if that is not the
-    case, sends a self-destructing reply that suggests talking private.  The caller can simply return if this returned
-    false.
+    Most features of the bot should not be accessed from the main chat, instead users should talk to the bot directly
+    via private conversation.  This function checks if the update came from the private conversation, and if that is not
+    the case, sends a self-destructing reply that suggests talking private.  The caller can simply return if this
+    returned false.
     """
 
     if not update.effective_chat or update.effective_chat.type != ChatType.PRIVATE:
-        await self_destructing_reply(update, context, _("MESSAGE_MC_LET_US_TALK_PRIVATE"), DELETE_MESSAGE_TIMEOUT)
+        await self_destructing_reply(update, context, i18n.trans(update.effective_message.from_user).gettext(
+            "MESSAGE_MC_LET_US_TALK_PRIVATE"), DELETE_MESSAGE_TIMEOUT)
         return False
     return True
 
 
-def get_standard_keyboard(tg_id: int):
-    """Builds the standard keyboard for the user identified by `td_id`
+def get_standard_keyboard(user: telegram.User):
+    """Builds the standard keyboard for the `user`
 
     The standard keyboard is displayed at the start of the conversation (handling the /start command) or in the end of
     any conversation, and looks like this:
@@ -153,15 +130,17 @@ def get_standard_keyboard(tg_id: int):
     Returns an instance of InlineKeyboardMarkup.
     """
 
-    command_buttons = {_("BUTTON_WHO"): COMMAND_WHO, _("BUTTON_ENROLL"): COMMAND_ENROLL,
-                       _("BUTTON_ENROLL_MORE"): COMMAND_ENROLL, _("BUTTON_UPDATE"): COMMAND_UPDATE,
-                       _("BUTTON_RETIRE"): COMMAND_RETIRE}
+    trans = i18n.trans(user)
+
+    command_buttons = {trans.gettext("BUTTON_WHO"): COMMAND_WHO, trans.gettext("BUTTON_ENROLL"): COMMAND_ENROLL,
+                       trans.gettext("BUTTON_ENROLL_MORE"): COMMAND_ENROLL,
+                       trans.gettext("BUTTON_UPDATE"): COMMAND_UPDATE, trans.gettext("BUTTON_RETIRE"): COMMAND_RETIRE}
     button_who, button_enroll, button_enroll_more, button_update, button_retire = (
         InlineKeyboardButton(text, callback_data=command) for text, command in command_buttons.items())
 
     buttons = [[button_who]]
 
-    records = [r for r in db.people_records(tg_id)]
+    records = [r for r in db.people_records(user.id)]
     categories = [c for c in db.people_category_select_all()]
 
     if not records:
@@ -175,7 +154,7 @@ def get_standard_keyboard(tg_id: int):
     return InlineKeyboardMarkup(buttons)
 
 
-def get_category_keyboard(categories=None):
+def get_category_keyboard(user: telegram.User, categories=None):
     """Builds the keyboard for selecting a category
 
     Categories can be provided via the optional `categories` parameter and should be an iterable of dict-like items,
@@ -202,19 +181,21 @@ def get_category_keyboard(categories=None):
     If no categories are defined in the DB, this function returns None.
     """
 
+    trans = i18n.trans(user)
+
     buttons = []
     for category in categories if categories else db.people_category_select_all():
         buttons.append((InlineKeyboardButton(
-            category["title"] if category["title"] else _("BUTTON_ENROLL_CATEGORY_DEFAULT"),
+            category["title"] if category["title"] else trans.gettext("BUTTON_ENROLL_CATEGORY_DEFAULT"),
             callback_data=category["id"] if category["id"] else 0),))
     if not buttons:
         return None
     if not categories:
-        buttons.append((InlineKeyboardButton(_("BUTTON_ENROLL_CATEGORY_DEFAULT"), callback_data=0),))
+        buttons.append((InlineKeyboardButton(trans.gettext("BUTTON_ENROLL_CATEGORY_DEFAULT"), callback_data=0),))
     return InlineKeyboardMarkup(buttons)
 
 
-def get_yesno_keyboard():
+def get_yesno_keyboard(user: telegram.User) -> InlineKeyboardMarkup:
     """Builds the YES/NO keyboard used in the step where the user confirms legality of their service
 
     +-----+----+
@@ -224,26 +205,33 @@ def get_yesno_keyboard():
     Returns an instance of InlineKeyboardMarkup.
     """
 
-    response_buttons = {_("BUTTON_YES"): RESPONSE_YES, _("BUTTON_NO"): RESPONSE_NO}
+    trans = i18n.trans(user)
+
+    response_buttons = {trans.gettext("BUTTON_YES"): RESPONSE_YES, trans.gettext("BUTTON_NO"): RESPONSE_NO}
     response_button_yes, response_button_no = (InlineKeyboardButton(text, callback_data=command) for text, command in
                                                response_buttons.items())
 
     return InlineKeyboardMarkup(((response_button_yes, response_button_no),))
 
 
-def get_moderation_keyboard(tg_id: int):
-    response_buttons = {_("BUTTON_YES"): MODERATOR_APPROVE, _("BUTTON_NO"): MODERATOR_DECLINE}
-    response_button_yes, response_button_no = (InlineKeyboardButton(text, callback_data="{}:{}".format(command, tg_id))
-                                               for text, command in response_buttons.items())
+def get_moderation_keyboard(user: telegram.User) -> InlineKeyboardMarkup:
+    trans = i18n.default()
+
+    response_buttons = {trans.gettext("BUTTON_YES"): MODERATOR_APPROVE, trans.gettext("BUTTON_NO"): MODERATOR_DECLINE}
+    response_button_yes, response_button_no = (
+    InlineKeyboardButton(text, callback_data="{}:{}".format(command, user.id)) for text, command in
+    response_buttons.items())
 
     return InlineKeyboardMarkup(((response_button_yes, response_button_no),))
 
 
-def get_admin_keyboard() -> InlineKeyboardMarkup:
-    response_buttons = {_("BUTTON_DOWNLOAD_SPAM"): QUERY_ADMIN_DOWNLOAD_SPAM,
-                        _("BUTTON_DOWNLOAD_ANTISPAM_KEYWORDS"): QUERY_ADMIN_DOWNLOAD_ANTISPAM_KEYWORDS,
-                        _("BUTTON_UPLOAD_ANTISPAM_KEYWORDS"): QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS,
-                        _("BUTTON_UPLOAD_ANTISPAM_OPENAI"): QUERY_ADMIN_UPLOAD_ANTISPAM_OPENAI}
+def get_admin_keyboard(user: telegram.User) -> InlineKeyboardMarkup:
+    trans = i18n.trans(user)
+
+    response_buttons = {trans.gettext("BUTTON_DOWNLOAD_SPAM"): QUERY_ADMIN_DOWNLOAD_SPAM,
+                        trans.gettext("BUTTON_DOWNLOAD_ANTISPAM_KEYWORDS"): QUERY_ADMIN_DOWNLOAD_ANTISPAM_KEYWORDS,
+                        trans.gettext("BUTTON_UPLOAD_ANTISPAM_KEYWORDS"): QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS,
+                        trans.gettext("BUTTON_UPLOAD_ANTISPAM_OPENAI"): QUERY_ADMIN_UPLOAD_ANTISPAM_OPENAI}
     button_download_spam, button_download_keywords, button_upload_keywords, button_upload_openai = (
         InlineKeyboardButton(text, callback_data=command) for text, command in response_buttons.items())
 
@@ -258,7 +246,7 @@ async def moderate_new_data(update: Update, context: ContextTypes.DEFAULT_TYPE, 
     for moderator_id in moderator_ids:
         logger.info("Sending moderation request to moderator ID {id}".format(id=moderator_id))
         await context.bot.send_message(chat_id=moderator_id,
-                                       text=_("MESSAGE_ADMIN_APPROVE_USER_DATA {username}").format(
+                                       text=i18n.default().gettext("MESSAGE_ADMIN_APPROVE_USER_DATA {username}").format(
                                            username=data["tg_username"], occupation=data["occupation"],
                                            location=data["location"]),
                                        reply_markup=get_moderation_keyboard(data["tg_id"]))
@@ -271,11 +259,10 @@ async def greet_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         if user.is_bot:
             continue
 
-        update_language(user)
-
         logger.info("Greeting new user {username} (chat ID {chat_id})".format(username=user.username, chat_id=user.id))
 
-        greeting_message = _("MESSAGE_MC_GREETING_M {user_first_name} {bot_first_name}") if BOT_IS_MALE else _(
+        greeting_message = i18n.trans(user).gettext(
+            "MESSAGE_MC_GREETING_M {user_first_name} {bot_first_name}") if BOT_IS_MALE else i18n.trans(user).gettext(
             "MESSAGE_MC_GREETING_F {user_first_name} {bot_first_name}")
 
         await self_destructing_reply(update, context, greeting_message.format(user_first_name=user.first_name,
@@ -306,9 +293,9 @@ async def detect_language(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         message_languages.popleft()
 
     if DEFAULT_LANGUAGE not in message_languages:
-        update_language_by_code(DEFAULT_LANGUAGE)
         message_languages = deque()
-        await context.bot.send_message(chat_id=MAIN_CHAT_ID, text=_("MESSAGE_MC_SPEAK_DEFAULT_LANGUAGE"),
+        await context.bot.send_message(chat_id=MAIN_CHAT_ID,
+                                       text=i18n.default().gettext("MESSAGE_MC_SPEAK_DEFAULT_LANGUAGE"),
                                        parse_mode=ParseMode.HTML)
 
 
@@ -318,14 +305,16 @@ async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: telegram
 
     records = [r for r in db.people_records(user.id)]
 
+    trans = i18n.trans(user)
+
     if records:
         logger.info("This is {username} that has records already".format(username=user.username))
 
         def get_header():
             if len(records) == 1:
-                return _("MESSAGE_DM_HELLO_AGAIN {user_first_name}").format(user_first_name=user.first_name)
-            return ngettext("MESSAGE_DM_HELLO_AGAIN_S {user_first_name} {record_count}",
-                            "MESSAGE_DM_HELLO_AGAIN_P {user_first_name} {record_count}", len(records)).format(
+                return trans.gettext("MESSAGE_DM_HELLO_AGAIN {user_first_name}").format(user_first_name=user.first_name)
+            return trans.ngettext("MESSAGE_DM_HELLO_AGAIN_S {user_first_name} {record_count}",
+                                  "MESSAGE_DM_HELLO_AGAIN_P {user_first_name} {record_count}", len(records)).format(
                 user_first_name=user.first_name, record_count=len(records))
 
         text = []
@@ -335,23 +324,23 @@ async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: telegram
 
         for record in records:
             text.append("<b>{c}:</b> {o} ({l})".format(
-                c=record["title"] if record["title"] else _("BUTTON_ENROLL_CATEGORY_DEFAULT"), o=record["occupation"],
-                l=record["location"]))
+                c=record["title"] if record["title"] else trans.gettext("BUTTON_ENROLL_CATEGORY_DEFAULT"),
+                o=record["occupation"], l=record["location"]))
 
-        await message.reply_text("\n".join(text), reply_markup=get_standard_keyboard(user.id),
-                                 parse_mode=ParseMode.HTML, disable_web_page_preview=True)
+        await message.reply_text("\n".join(text), reply_markup=get_standard_keyboard(user), parse_mode=ParseMode.HTML,
+                                 disable_web_page_preview=True)
     else:
         logger.info("Welcoming user {username} (chat ID {chat_id})".format(username=user.username, chat_id=user.id))
 
         if prefix:
-            text = prefix + "\n" + _("MESSAGE_DM_NO_RECORDS")
+            text = prefix + "\n" + trans.gettext("MESSAGE_DM_NO_RECORDS")
         else:
             main_chat = await context.bot.get_chat(MAIN_CHAT_ID)
 
-            text = _("MESSAGE_DM_HELLO {bot_first_name} {main_chat_name}").format(bot_first_name=context.bot.first_name,
-                                                                                  main_chat_name=main_chat.title)
+            text = trans.gettext("MESSAGE_DM_HELLO {bot_first_name} {main_chat_name}").format(
+                bot_first_name=context.bot.first_name, main_chat_name=main_chat.title)
 
-        await message.reply_text(text, reply_markup=get_standard_keyboard(user.id))
+        await message.reply_text(text, reply_markup=get_standard_keyboard(user))
 
 
 async def handle_command_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -360,16 +349,16 @@ async def handle_command_help(update: Update, context: ContextTypes.DEFAULT_TYPE
     message = update.effective_message
     user = message.from_user
 
-    update_language(user)
+    trans = i18n.trans(user)
 
     if message.chat_id != user.id:
-        await self_destructing_reply(update, context, _("MESSAGE_MC_HELP"), DELETE_MESSAGE_TIMEOUT)
+        await self_destructing_reply(update, context, trans.gettext("MESSAGE_MC_HELP"), DELETE_MESSAGE_TIMEOUT)
         return
 
     if not await is_member_of_main_chat(user, context):
         return
 
-    await message.reply_text(_("MESSAGE_DM_HELP"), reply_markup=get_standard_keyboard(user.id))
+    await message.reply_text(trans.gettext("MESSAGE_DM_HELP"), reply_markup=get_standard_keyboard(user))
 
 
 async def handle_command_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -378,15 +367,13 @@ async def handle_command_start(update: Update, context: ContextTypes.DEFAULT_TYP
     message = update.effective_message
     user = message.from_user
 
-    update_language(user)
-
     if user.id == DEVELOPER_CHAT_ID and message.chat.id != DEVELOPER_CHAT_ID:
         logger.info("This is the admin user {username} talking from \"{chat_name}\" (chat ID {chat_id})".format(
             username=user.username, chat_name=message.chat.title, chat_id=message.chat.id))
 
         await safe_delete_message(context, message.id, message.chat.id)
         await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID,
-                                       text=_("MESSAGE_ADMIN_MAIN_CHAT_ID {title} {id}").format(
+                                       text=i18n.trans(user).gettext("MESSAGE_ADMIN_MAIN_CHAT_ID {title} {id}").format(
                                            title=message.chat.title, id=str(message.chat.id)))
         return
 
@@ -417,8 +404,8 @@ async def handle_command_admin(update: Update, context: ContextTypes.DEFAULT_TYP
     if not await talking_private(update, context):
         await safe_delete_message(context, message.id, message.chat.id)
 
-    update_language(user)
-    await context.bot.send_message(chat_id=user.id, text=_("MESSAGE_DM_ADMIN"), reply_markup=get_admin_keyboard())
+    await context.bot.send_message(chat_id=user.id, text=i18n.trans(user).gettext("MESSAGE_DM_ADMIN"),
+                                   reply_markup=get_admin_keyboard(user))
 
 
 # noinspection PyUnusedLocal
@@ -432,7 +419,7 @@ async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     await query.answer()
 
-    update_language(user)
+    trans = i18n.trans(user)
 
     if query.data == QUERY_ADMIN_DOWNLOAD_SPAM:
         spam = [record for record in db.spam_select_all()]
@@ -441,11 +428,11 @@ async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE)
     elif query.data == QUERY_ADMIN_DOWNLOAD_ANTISPAM_KEYWORDS:
         await user.send_document(antispam.get_keywords(), filename="bad_keywords.txt", reply_markup=None)
     elif query.data == QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS:
-        await query.message.reply_text(_("MESSAGE_DM_ADMIN_REQUEST_KEYWORDS"))
+        await query.message.reply_text(trans.gettext("MESSAGE_DM_ADMIN_REQUEST_KEYWORDS"))
 
         return UPLOADING_ANTISPAM_KEYWORDS
     elif query.data == QUERY_ADMIN_UPLOAD_ANTISPAM_OPENAI:
-        await query.message.reply_text(_("MESSAGE_DM_ADMIN_REQUEST_OPENAI"))
+        await query.message.reply_text(trans.gettext("MESSAGE_DM_ADMIN_REQUEST_OPENAI"))
 
         return UPLOADING_ANTISPAM_OPENAI
 
@@ -457,11 +444,13 @@ async def received_antispam_keywords(update: Update, context: ContextTypes.DEFAU
         logging.error("User {username} is not listed as administrator!".format(username=user.username))
         return ConversationHandler.END
 
+    trans = i18n.trans(user)
+
     document = update.message.effective_attachment
 
     if document.mime_type != "text/plain":
-        await update.effective_message.reply_text(_("MESSAGE_DM_ADMIN_KEYWORDS_WRONG_FILE_TYPE"),
-                                                  reply_markup=get_admin_keyboard())
+        await update.effective_message.reply_text(trans.gettext("MESSAGE_DM_ADMIN_KEYWORDS_WRONG_FILE_TYPE"),
+                                                  reply_markup=get_admin_keyboard(user))
         return ConversationHandler.END
 
     keywords_file = await document.get_file()
@@ -469,10 +458,10 @@ async def received_antispam_keywords(update: Update, context: ContextTypes.DEFAU
     await keywords_file.download_to_memory(data)
 
     if antispam.save_new_keywords(data):
-        await update.effective_message.reply_text(_("MESSAGE_DM_ADMIN_KEYWORDS_UPDATED"), reply_markup=None)
+        await update.effective_message.reply_text(trans.gettext("MESSAGE_DM_ADMIN_KEYWORDS_UPDATED"), reply_markup=None)
     else:
-        await update.effective_message.reply_text(_("MESSAGE_DM_ADMIN_KEYWORDS_CANNOT_USE"),
-                                                  reply_markup=get_admin_keyboard())
+        await update.effective_message.reply_text(trans.gettext("MESSAGE_DM_ADMIN_KEYWORDS_CANNOT_USE"),
+                                                  reply_markup=get_admin_keyboard(user))
 
     return ConversationHandler.END
 
@@ -490,11 +479,13 @@ async def received_antispam_openai(update: Update, context: ContextTypes.DEFAULT
     data = io.BytesIO()
     await openai_file.download_to_memory(data)
 
+    trans = i18n.trans(user)
+
     if antispam.save_new_openai(data):
-        await update.effective_message.reply_text(_("MESSAGE_DM_ADMIN_OPENAI_UPDATED"), reply_markup=None)
+        await update.effective_message.reply_text(trans.gettext("MESSAGE_DM_ADMIN_OPENAI_UPDATED"), reply_markup=None)
     else:
-        await update.effective_message.reply_text(_("MESSAGE_DM_ADMIN_OPENAI_CANNOT_USE"),
-                                                  reply_markup=get_admin_keyboard())
+        await update.effective_message.reply_text(trans.gettext("MESSAGE_DM_ADMIN_OPENAI_CANNOT_USE"),
+                                                  reply_markup=get_admin_keyboard(user))
 
     return ConversationHandler.END
 
@@ -513,8 +504,6 @@ async def who_request_category(update: Update, context: ContextTypes.DEFAULT_TYP
 
     query = update.callback_query
 
-    update_language(query.from_user)
-
     await query.answer()
     await query.edit_message_reply_markup(None)
 
@@ -524,9 +513,9 @@ async def who_request_category(update: Update, context: ContextTypes.DEFAULT_TYP
         category_list.append(
             {"id": c["category_id"], "title": c["title"], "text": "{t}: {c}".format(t=c["title"], c=len(c["people"]))})
 
-    await query.message.reply_text(
-        _("MESSAGE_DM_WHO_CATEGORY_LIST").format(categories="\n".join([c["text"] for c in category_list])),
-        reply_markup=get_category_keyboard(category_list))
+    await query.message.reply_text(i18n.trans(query.from_user).gettext("MESSAGE_DM_WHO_CATEGORY_LIST").format(
+        categories="\n".join([c["text"] for c in category_list])),
+        reply_markup=get_category_keyboard(query.from_user, category_list))
 
     context.user_data["who_request_category"] = filtered_people
 
@@ -541,8 +530,6 @@ async def who_received_category(update: Update, context: ContextTypes.DEFAULT_TY
     await query.answer()
     await query.edit_message_reply_markup(None)
 
-    update_language(query.from_user)
-
     filtered_people = context.user_data["who_request_category"]
 
     category = None
@@ -551,14 +538,13 @@ async def who_received_category(update: Update, context: ContextTypes.DEFAULT_TY
             category = c
             break
     if not category:
-        await query.message.reply_text(text=_("MESSAGE_DM_WHO_CATEGORY_EMPTY"),
-                                       reply_markup=get_standard_keyboard(query.from_user.id),
-                                       parse_mode=ParseMode.HTML)
+        await query.message.reply_text(text=i18n.trans(query.from_user).gettext("MESSAGE_DM_WHO_CATEGORY_EMPTY"),
+                                       reply_markup=get_standard_keyboard(query.from_user), parse_mode=ParseMode.HTML)
         return ConversationHandler.END
 
     user_list = ["<b>{t}</b>".format(t=category["title"])] + who_people_to_message(category["people"])
 
-    await query.message.reply_text(text="\n".join(user_list), reply_markup=get_standard_keyboard(query.from_user.id),
+    await query.message.reply_text(text="\n".join(user_list), reply_markup=get_standard_keyboard(query.from_user),
                                    parse_mode=ParseMode.HTML, disable_web_page_preview=True)
 
     del context.user_data["who_request_category"]
@@ -571,13 +557,14 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     query = update.callback_query
 
-    update_language(query.from_user)
-
     await query.answer()
 
-    user_list = [_("MESSAGE_DM_WHO_LIST_HEADING")]
+    trans = i18n.trans(query.from_user)
 
-    categorised_people = {0: {"title": _("MESSAGE_DM_WHO_CATEGORY_DEFAULT"), "category_id": 0, "people": []}}
+    user_list = [trans.gettext("MESSAGE_DM_WHO_LIST_HEADING")]
+
+    categorised_people = {
+        0: {"title": trans.gettext("MESSAGE_DM_WHO_CATEGORY_DEFAULT"), "category_id": 0, "people": []}}
 
     for category in db.people_category_select_all():
         categorised_people[category["id"]] = {"title": category["title"], "people": []}
@@ -604,12 +591,12 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                 user_list += who_people_to_message(category["people"])
 
         if len(user_list) == 1:
-            user_list = [_("MESSAGE_DM_WHO_EMPTY")]
+            user_list = [trans.gettext("MESSAGE_DM_WHO_EMPTY")]
 
         united_message = "\n".join(user_list)
         if len(united_message) < MAX_MESSAGE_LENGTH:
             await query.edit_message_reply_markup(None)
-            await query.message.reply_text(text=united_message, reply_markup=get_standard_keyboard(query.from_user.id),
+            await query.message.reply_text(text=united_message, reply_markup=get_standard_keyboard(query.from_user),
                                            parse_mode=ParseMode.HTML, disable_web_page_preview=True)
             return ConversationHandler.END
         else:
@@ -622,32 +609,32 @@ async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     query = update.callback_query
 
-    update_language(query.from_user)
+    trans = i18n.trans(query.from_user)
 
     await query.answer()
     await query.edit_message_reply_markup(None)
 
     if not query.from_user.username:
-        await query.message.reply_text(_("MESSAGE_DM_ENROLL_USERNAME_REQUIRED"),
-                                       reply_markup=get_standard_keyboard(query.from_user.id))
+        await query.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_USERNAME_REQUIRED"),
+                                       reply_markup=get_standard_keyboard(query.from_user))
         return ConversationHandler.END
 
-    await query.message.reply_text(_("MESSAGE_DM_ENROLL_START"))
+    await query.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_START"))
 
     existing_category_ids = [r["id"] for r in db.people_records(query.from_user.id)]
     categories = [c for c in db.people_category_select_all() if c["id"] not in existing_category_ids]
 
-    category_buttons = get_category_keyboard(categories)
+    category_buttons = get_category_keyboard(query.from_user, categories)
 
     if category_buttons:
-        await query.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_CATEGORY"), reply_markup=category_buttons)
+        await query.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_ASK_CATEGORY"), reply_markup=category_buttons)
 
         return SELECTING_CATEGORY
     else:
         user_data = context.user_data
         user_data["category_id"] = 0
 
-        await query.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_OCCUPATION"))
+        await query.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_ASK_OCCUPATION"))
 
         return TYPING_OCCUPATION
 
@@ -658,12 +645,11 @@ async def handle_command_update(update: Update, context: ContextTypes.DEFAULT_TY
 
     query = update.callback_query
 
-    update_language(query.from_user)
-
     await query.answer()
     await query.edit_message_reply_markup(None)
-    await query.message.reply_text(_("MESSAGE_DM_SELECT_CATEGORY_FOR_UPDATE"),
-                                   reply_markup=get_category_keyboard(db.people_records(query.from_user.id)))
+    await query.message.reply_text(i18n.trans(query.from_user).gettext("MESSAGE_DM_SELECT_CATEGORY_FOR_UPDATE"),
+                                   reply_markup=get_category_keyboard(query.from_user,
+                                                                      db.people_records(query.from_user.id)))
 
     context.user_data["mode"] = "update"
 
@@ -675,7 +661,7 @@ async def received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     query = update.callback_query
 
-    update_language(query.from_user)
+    trans = i18n.trans(query.from_user)
 
     user_data = context.user_data
     user_data["category_id"] = query.data
@@ -686,13 +672,14 @@ async def received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     if "mode" in context.user_data and context.user_data["mode"] == "update":
         records = [r for r in db.people_record(query.from_user.id, int(query.data))]
         await query.message.reply_text(
-            _("MESSAGE_DM_UPDATE_OCCUPATION {title} {occupation}").format(title=records[0]["title"],
-                                                                          occupation=records[0]["occupation"]),
+            trans.gettext("MESSAGE_DM_UPDATE_OCCUPATION {title} {occupation}").format(title=records[0]["title"],
+                                                                                      occupation=records[0][
+                                                                                          "occupation"]),
             parse_mode=ParseMode.HTML)
         user_data["category_title"] = records[0]["title"]
         user_data["location"] = records[0]["location"]
     else:
-        await query.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_OCCUPATION"))
+        await query.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_ASK_OCCUPATION"))
 
     return TYPING_OCCUPATION
 
@@ -700,18 +687,18 @@ async def received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 async def received_occupation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Store info provided by user and ask for the next category"""
 
-    update_language(update.message.from_user)
-
     user_data = context.user_data
     user_data["occupation"] = update.message.text
 
+    trans = i18n.trans(update.message.from_user)
+
     if "mode" in context.user_data and context.user_data["mode"] == "update":
         await update.message.reply_text(
-            _("MESSAGE_DM_UPDATE_LOCATION {title} {location}").format(title=user_data["category_title"],
-                                                                      location=user_data["location"]),
+            trans.gettext("MESSAGE_DM_UPDATE_LOCATION {title} {location}").format(title=user_data["category_title"],
+                                                                                  location=user_data["location"]),
             parse_mode=ParseMode.HTML)
     else:
-        await update.message.reply_text(_("MESSAGE_DM_ENROLL_ASK_LOCATION"))
+        await update.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_ASK_LOCATION"))
 
     return TYPING_LOCATION
 
@@ -719,12 +706,11 @@ async def received_occupation(update: Update, context: ContextTypes.DEFAULT_TYPE
 async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Store info provided by user and ask for the legality"""
 
-    update_language(update.message.from_user)
-
     user_data = context.user_data
     user_data["location"] = update.message.text
 
-    await update.message.reply_text(_("MESSAGE_DM_ENROLL_CONFIRM_LEGALITY"), reply_markup=get_yesno_keyboard())
+    await update.message.reply_text(i18n.trans(update.message.from_user).gettext("MESSAGE_DM_ENROLL_CONFIRM_LEGALITY"),
+                                    reply_markup=get_yesno_keyboard(update.message.from_user))
 
     return CONFIRMING_LEGALITY
 
@@ -735,11 +721,11 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     query = update.callback_query
     from_user = query.from_user
 
-    update_language(from_user)
-
     await query.answer()
 
     user_data = context.user_data
+
+    trans = i18n.trans(query.from_user)
 
     if query.data == RESPONSE_YES:
         db.people_insert_or_update(from_user.id, from_user.username, user_data["occupation"], user_data["location"],
@@ -754,13 +740,13 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         await query.edit_message_reply_markup(None)
 
         if not MODERATION_ENABLED:
-            message = _("MESSAGE_DM_ENROLL_COMPLETED")
+            message = trans.gettext("MESSAGE_DM_ENROLL_COMPLETED")
         elif MODERATION_IS_LAZY:
-            message = _("MESSAGE_DM_ENROLL_COMPLETED_POST_MODERATION")
+            message = trans.gettext("MESSAGE_DM_ENROLL_COMPLETED_POST_MODERATION")
         else:
-            message = _("MESSAGE_DM_ENROLL_COMPLETED_PRE_MODERATION")
+            message = trans.gettext("MESSAGE_DM_ENROLL_COMPLETED_PRE_MODERATION")
 
-        await query.message.reply_text(message, reply_markup=get_standard_keyboard(from_user.id))
+        await query.message.reply_text(message, reply_markup=get_standard_keyboard(from_user))
 
         if MODERATION_ENABLED:
             await moderate_new_data(update, context, saved_user_data)
@@ -770,8 +756,8 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         user_data.clear()
 
         await query.edit_message_reply_markup(None)
-        await query.message.reply_text(_("MESSAGE_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"),
-                                       reply_markup=get_standard_keyboard(from_user.id))
+        await query.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"),
+                                       reply_markup=get_standard_keyboard(from_user))
 
     return ConversationHandler.END
 
@@ -807,12 +793,10 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
     await safe_delete_message(context, message.id, message.chat.id)
 
-    update_language_by_code(DEFAULT_LANGUAGE)
-
     if BOT_IS_MALE:
-        delete_notice = _("MESSAGE_MC_SPAM_DETECTED_M {username}")
+        delete_notice = i18n.default().gettext("MESSAGE_MC_SPAM_DETECTED_M {username}")
     else:
-        delete_notice = _("MESSAGE_MC_SPAM_DETECTED_F {username}")
+        delete_notice = i18n.default().gettext("MESSAGE_MC_SPAM_DETECTED_F {username}")
 
     posted_message = await context.bot.send_message(MAIN_CHAT_ID,
                                                     delete_notice.format(username=message.from_user.full_name),
@@ -826,12 +810,12 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     query = update.callback_query
 
-    update_language(query.from_user)
-
     await query.answer()
 
     command, tg_id = query.data.split(":")
     tg_id = int(tg_id)
+
+    trans = i18n.trans(query.from_user)
 
     if command == MODERATOR_APPROVE:
         logger.info("Moderator ID {moderator_id} approves new data from user ID {user_id}".format(
@@ -841,7 +825,7 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             db.people_approve(tg_id)
 
         await query.edit_message_reply_markup(None)
-        await query.message.reply_text(_("MESSAGE_ADMIN_USER_RECORD_APPROVED"))
+        await query.message.reply_text(trans.gettext("MESSAGE_ADMIN_USER_RECORD_APPROVED"))
     elif command == MODERATOR_DECLINE:
         logger.info("Moderator ID {moderator_id} declines new data from user ID {user_id}".format(
             moderator_id=query.from_user.id, user_id=tg_id))
@@ -850,24 +834,24 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             db.people_suspend(tg_id)
 
         await query.edit_message_reply_markup(None)
-        await query.message.reply_text(_("MESSAGE_ADMIN_USER_RECORD_SUSPENDED"))
+        await query.message.reply_text(trans.gettext("MESSAGE_ADMIN_USER_RECORD_SUSPENDED"))
     else:
         logger.error("Unexpected query data: '{}'".format(query.data))
 
     return ConversationHandler.END
 
 
+# noinspection PyUnusedLocal
 async def handle_command_retire(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation about removing an existing user record"""
 
     query = update.callback_query
 
-    update_language(query.from_user)
-
     await query.answer()
     await query.edit_message_reply_markup(None)
-    await query.message.reply_text(_("MESSAGE_DM_SELECT_CATEGORY_FOR_RETIRE"),
-                                   reply_markup=get_category_keyboard(db.people_records(query.from_user.id)))
+    await query.message.reply_text(i18n.trans(query.from_user).gettext("MESSAGE_DM_SELECT_CATEGORY_FOR_RETIRE"),
+                                   reply_markup=get_category_keyboard(query.from_user,
+                                                                      db.people_records(query.from_user.id)))
 
     return SELECTING_CATEGORY
 
@@ -880,11 +864,10 @@ async def retire_received_category(update: Update, context: ContextTypes.DEFAULT
     await query.answer()
     await query.edit_message_reply_markup(None)
 
-    update_language(query.from_user)
-
     db.people_delete(query.from_user.id, int(query.data))
 
-    await show_main_status(context, query.message, query.from_user, _("MESSAGE_DM_RETIRE"))
+    await show_main_status(context, query.message, query.from_user,
+                           i18n.trans(query.from_user).gettext("MESSAGE_DM_RETIRE"))
 
     return ConversationHandler.END
 
@@ -897,8 +880,6 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
         return
 
     user = update.effective_message.from_user
-
-    update_language(user)
 
     exception = context.error
 
@@ -937,17 +918,22 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
         logger.error("Unexpected state of the update: {}".format(update_str))
         return
 
-    await message.reply_text(_("MESSAGE_DM_INTERNAL_ERROR"), reply_markup=get_standard_keyboard(user.id))
+    await message.reply_text(i18n.trans(user).gettext("MESSAGE_DM_INTERNAL_ERROR"),
+                             reply_markup=get_standard_keyboard(user))
 
 
 async def abort_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Reset the conversation state when it goes off track, and return to the starting point
+
+    Used as fallback handler in stateful conversations with a regular user.
+    """
+
     context.user_data.clear()
 
     user = update.effective_message.from_user
 
-    update_language(user)
-
-    await show_main_status(context, update.effective_message, user, _("MESSAGE_DM_CONVERSATION_CANCELLED"))
+    await show_main_status(context, update.effective_message, user,
+                           i18n.trans(user).gettext("MESSAGE_DM_CONVERSATION_CANCELLED"))
 
     return ConversationHandler.END
 
@@ -955,10 +941,11 @@ async def abort_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def post_init(application: Application) -> None:
     bot = application.bot
 
-    update_language_by_code(DEFAULT_LANGUAGE)
+    trans = i18n.default()
 
-    await bot.set_my_commands([BotCommand(command=COMMAND_START, description=_("COMMAND_DESCRIPTION_START")),
-                               BotCommand(command=COMMAND_ADMIN, description=_("COMMAND_DESCRIPTION_ADMIN"))])
+    await bot.set_my_commands(
+        [BotCommand(command=COMMAND_START, description=trans.gettext("COMMAND_DESCRIPTION_START")),
+         BotCommand(command=COMMAND_ADMIN, description=trans.gettext("COMMAND_DESCRIPTION_ADMIN"))])
 
     for chat_id in ADMINISTRATORS.keys():
         await bot.set_chat_menu_button(chat_id, MenuButtonCommands())
