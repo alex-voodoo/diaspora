@@ -25,7 +25,8 @@ from telegram.ext import (Application, CommandHandler, ContextTypes, Conversatio
 
 from common import db, i18n
 from common.checks import is_member_of_main_chat
-from features import antispam
+from common.messaging_helpers import delete_message, safe_delete_message, self_destructing_reply
+from features import antispam, glossary
 from settings import *
 
 # Configure logging
@@ -49,49 +50,6 @@ MODERATOR_APPROVE, MODERATOR_DECLINE = ("approve", "decline")
     "download-spam", "download-antispam-keywords", "upload-antispam-keywords", "upload-antispam-openai")
 
 message_languages: deque
-
-
-async def safe_delete_message(context: ContextTypes.DEFAULT_TYPE, message_id: int, chat_id: int) -> None:
-    """Try to delete a message and log possible exception
-
-    It is quite common situation when a message disappears before the bot tries to delete it.  Trying to proceed results
-    in an exception raised, which this function handles (logs the event)."""
-
-    try:
-        await context.bot.deleteMessage(message_id=message_id, chat_id=chat_id)
-    except telegram.error.BadRequest as e:
-        logger.warning(e)
-
-
-async def delete_message(context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Delete the message contained in the data of the context job
-
-    This function is called with a delay and is intended to delete a message sent by the bot earlier, and also delete
-    the message that the former one was sent in reply to.  It is used to clean automatically the messages that users
-    send to the bot in the chat: the intended way to use it is communicating via private messages.
-
-    Use `self_destructing_reply()` as a wrapper for this function."""
-
-    message_to_delete, delete_reply_to = context.job.data
-
-    await safe_delete_message(context, message_to_delete.message_id, message_to_delete.chat.id)
-    if delete_reply_to:
-        await safe_delete_message(context, message_to_delete.reply_to_message.message_id, message_to_delete.chat.id)
-
-
-async def self_destructing_reply(update: Update, context: ContextTypes.DEFAULT_TYPE, message_body: str, timeout: int,
-                                 delete_reply_to=True):
-    """Replies to the message contained in the update.  If `timeout` is greater than zero, schedules the reply to be
-    deleted."""
-
-    if update.effective_message.chat_id == update.message.from_user.id:
-        logger.error("Cannot delete messages in private chats!")
-        return
-
-    posted_message = await update.message.reply_text(message_body, parse_mode=ParseMode.HTML)
-
-    if timeout > 0:
-        context.job_queue.run_once(delete_message, timeout, data=(posted_message, delete_reply_to))
 
 
 async def talking_private(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
@@ -952,6 +910,8 @@ async def post_init(application: Application) -> None:
     for chat_id in ADMINISTRATORS.keys():
         await bot.set_chat_menu_button(chat_id, MenuButtonCommands())
 
+    glossary.post_init(application, group=4)
+
 
 def main() -> None:
     """Run the bot"""
@@ -1018,6 +978,8 @@ def main() -> None:
         message_languages = deque()
 
         application.add_handler(MessageHandler(filters.TEXT & (~ filters.COMMAND), detect_language), group=3)
+
+    glossary.init(application, group=4)
 
     application.add_error_handler(error_handler)
 

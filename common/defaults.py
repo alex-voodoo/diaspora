@@ -33,7 +33,7 @@ BOT_IS_MALE = False
 # User directory settings
 #
 # The core function of this bot is to keep records submitted by users, and to render the list of those records at
-# request.  The more users register themselves with the bot, the longer the list becomes, and at some moment it may
+# request.  The more users register themselves with the bot, the longer the list becomes, and at some moment it can
 # exceed the limit that Telegram has for message size.  Should that happen, the bot will switch to two-step mode when
 # displaying the user directory: first only the list of categories will be rendered, and the user will then select a
 # category and get the list of users in that category.
@@ -58,7 +58,7 @@ GREETING_TIMEOUT = 300
 # ----------------------------------------------------------------------------------------------------------------------
 # Moderation
 #
-# The bot may ask the moderators to approve changes made by users to their data records.
+# The bot can ask the moderators to approve changes made by users to their data records.
 #
 # Whether moderation is enabled.  Default is True.
 MODERATION_ENABLED = True
@@ -68,7 +68,7 @@ MODERATION_IS_LAZY = True
 # ----------------------------------------------------------------------------------------------------------------------
 # Language moderation
 #
-# The bot may ask people in the main chat to speak the default language.  If the bot detects too many messages written
+# The bot can ask people in the main chat to speak the default language.  If the bot detects too many messages written
 # in languages other than the default one, it posts a message that reminds the people about rules of the group.
 #
 # Whether bot controls languages.  Default is False.
@@ -83,7 +83,7 @@ LANGUAGE_MODERATION_MIN_WORD_COUNT = 3
 # ----------------------------------------------------------------------------------------------------------------------
 # Antispam
 #
-# The bot may detect and delete spam messages.  Spammers in Telegram are normally regular users that join the group, sit
+# The bot can detect and delete spam messages.  Spammers in Telegram are normally regular users that join the group, sit
 # silent for some time, and then send their junk, hoping that someone will see and buy it before the moderators react.
 # Telegram blocks user accounts that have been reported as spammers, which makes it not worth it trying to mimic the
 # good user before sending spam.  Therefore, to eliminate most spam, it should be enough to evaluate the first message a
@@ -97,6 +97,30 @@ ANTISPAM_EMOJIS_MAX_CUSTOM_EMOJI_COUNT = 5
 ANTISPAM_OPENAI_API_KEY = ""
 # Confidence threshold for the OpenAI model.  Default is 0.5.
 ANTISPAM_OPENAI_CONFIDENCE_THRESHOLD = 0.5
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Glossary
+#
+# The bot can react to messages that contain certain words that may be natural for the community but not easy to
+# understand for newcomers.  Such "local language" often contains lots of loan words which are not properly assimilated
+# into the native language of the community, which creates additional confusion.  This feature helps in such situations.
+#
+# The glossary contains a set of trigger words which are sought for in every message sent to the main chat.  If a
+# trigger word is found, the bot can react one or more way, as configured below.
+#
+# Whether glossary is enabled.  Default is False.
+GLOSSARY_ENABLED = False
+# Whether the bot should send a reply to every message that contains triggers.  Default is False.
+GLOSSARY_REPLY_TO_TRIGGER = False
+# Minimum number of triggers in a message that the bot will reply to.  Default is 3.
+GLOSSARY_REPLY_TO_MIN_TRIGGER_COUNT = 3
+# Delay in seconds for deleting a reply sent if GLOSSARY_REPLY_TO_TRIGGER is True, 0 for not deleting it.
+# Default is 30.
+GLOSSARY_REPLY_TO_TRIGGER_TIMEOUT = 30
+# Whether the bot should react with an emoji to every message that contains a trigger.  Default is False.
+GLOSSARY_REACT_TO_TRIGGER = False
+# Maximum age in seconds of a trigger to explain.  Default is 300.
+GLOSSARY_MAX_TRIGGER_AGE = 300
 
 # ----------------------------------------------------------------------------------------------------------------------
 # General settings

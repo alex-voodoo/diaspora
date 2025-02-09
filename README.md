@@ -35,7 +35,7 @@ Finally, complete the setup from the Telegram side.
 
 1. Add the bot to the Telegram group that you want it to serve (aka "main chat")
 2. In the main chat, grant the bot the administrator privilege to allow the bot to 1) check that the user is eligible for using it, and 2) delete certain messages in the main chat
-3. In the BotFather settings, disallow chats for your bots to prevent random people from finding your bot and adding it to their groups
+3. In the BotFather settings, disallow chats for your bots to prevent random people from finding your bot and adding it to their groups, and disable the inline mode.
 4. Run `python bot.py` again.  In the main chat, issue the `/start` command of your bot, like this: `/start@YourGroupBot`, where `YourGroupBot` is the username of the bot that you registered earlier with BotFather.  The bot will send you the ID of the main chat in a private message.  Note that IDs of Telegram groups can be negative.  Copy that ID and paste it as the new value of the `MAIN_CHAT_ID` parameter in the `settings.py` file.  Stop the bot by pressing `Ctrl+C` in the terminal.
 
 Now the bot is ready to work.  You can start it by running `python bot.py` in a command terminal or adding it to some system auto-run.  The script will run indefinitely, unless something severe causes it to crash.  Should any non-fatal error occur in the bot, it will send error messages to you via private Telegram message.
