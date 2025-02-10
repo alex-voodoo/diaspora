@@ -21,9 +21,21 @@ TERMS_FILE_PATH = pathlib.Path(__file__).parent / "resources" / "glossary_terms.
 
 logger = logging.getLogger(__name__)
 
-triggers = None
-lemmatizer = Mystem()
+# Glossary data.  Dictionary where key is a trigger word, and value is a dictionary with data associated with that
+# trigger, all fields are strings:
+# - standard: trigger in "native" language in its "best" form (properly transliterated, no typos or other errors)
+# - original: word in "foreign" language
+# - explanation: meaning of the term in the default language
+glossary_data = None
+
+# Triggers found recently.  Deque of dictionaries that have two fields: trigger is a trigger word that was found and
+# timestamp is a moment when that happened.
 recent_triggers: deque
+
+# Keys in dictionaries used in the above data structures.
+TRIGGER, STANDARD, ORIGINAL, EXPLANATION, TIMESTAMP = ("trigger", "standard", "original", "explanation", "timestamp")
+
+lemmatizer = Mystem()
 
 
 def collapse_recent_triggers():
@@ -32,7 +44,7 @@ def collapse_recent_triggers():
     global recent_triggers
 
     oldest_timestamp = datetime.datetime.now() - datetime.timedelta(seconds=settings.GLOSSARY_MAX_TRIGGER_AGE)
-    while recent_triggers and recent_triggers[0]["timestamp"] < oldest_timestamp:
+    while recent_triggers and recent_triggers[0][TIMESTAMP] < oldest_timestamp:
         recent_triggers.pop()
 
 
@@ -41,26 +53,31 @@ def format_explanations(keys: list) -> list:
 
     result = []
     for trigger in keys:
-        result.append("<b>{t}</b> <em>({o})</em> — {e}".format(e=triggers[trigger]["explanation"],
-                                                               o=triggers[trigger]["original"], t=trigger))
+        result.append("<b>{t}</b> <em>({o})</em> — {e}".format(e=glossary_data[trigger][EXPLANATION],
+                                                               o=glossary_data[trigger][ORIGINAL],
+                                                               t=glossary_data[trigger][STANDARD]))
     return result
 
 
 async def process_normal_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Search triggers in an incoming message, and react appropriately"""
 
-    global triggers, recent_triggers
+    global glossary_data, recent_triggers
 
-    if triggers is None:
+    if glossary_data is None:
         logger.info("Loading triggers for the glossary")
-        triggers = {}
-        with open(TERMS_FILE_PATH) as f:
-            reader = csv.reader(f)
+        glossary_data = {}
+        with open(TERMS_FILE_PATH, encoding="utf-8") as f:
+            reader = csv.reader(f, delimiter=";")
             for row in reader:
-                term, original, explanation = row
-                triggers[term] = {"original": original, "explanation": explanation}
+                try:
+                    term, standard, original, explanation = row
+                except Exception as e:
+                    logger.warning(e)
+                    continue
+                glossary_data[term.lower()] = {STANDARD: standard, ORIGINAL: original, EXPLANATION: explanation}
 
-    filtered = [term for term in triggers.keys() if term in lemmatizer.lemmatize(update.effective_message.text)]
+    filtered = [term for term in glossary_data.keys() if term in lemmatizer.lemmatize(update.effective_message.text)]
     if not filtered:
         return
 
@@ -68,7 +85,7 @@ async def process_normal_message(update: Update, context: ContextTypes.DEFAULT_T
 
     now = datetime.datetime.now()
     for trigger in filtered:
-        recent_triggers.append({"timestamp": now, "trigger": trigger})
+        recent_triggers.append({TIMESTAMP: now, TRIGGER: trigger})
 
     if settings.GLOSSARY_REPLY_TO_TRIGGER and len(filtered) >= settings.GLOSSARY_REPLY_TO_MIN_TRIGGER_COUNT:
         trans = i18n.default()
@@ -107,7 +124,7 @@ async def process_bot_mention(update: Update, context: ContextTypes.DEFAULT_TYPE
         return
 
     text = [trans.gettext("GLOSSARY_EXPLANATION_HEADER")] + format_explanations(
-        sorted(list(set([t["trigger"] for t in recent_triggers]))))
+        sorted(list(set([t[TRIGGER] for t in recent_triggers]))))
     await update.effective_message.reply_text("\n".join(text), parse_mode=ParseMode.HTML, disable_web_page_preview=True)
 
     recent_triggers = deque()
