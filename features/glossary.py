@@ -95,7 +95,7 @@ async def process_bot_mention(update: Update, context: ContextTypes.DEFAULT_TYPE
              trans.gettext("GLOSSARY_TERM_DECIPHER"), trans.gettext("GLOSSARY_TERM_GLOSSARY"))
 
     if not [term for term in terms if term in lemmatizer.lemmatize(update.effective_message.text)]:
-        await update.effective_message.reply_text(trans.gettext("GLOSSARY_UNKNOWN_TERM"))
+        await update.effective_message.reply_text(trans.gettext("GLOSSARY_UNKNOWN_TERM"), parse_mode=ParseMode.HTML)
         return
 
     global recent_triggers
@@ -103,7 +103,7 @@ async def process_bot_mention(update: Update, context: ContextTypes.DEFAULT_TYPE
     collapse_recent_triggers()
 
     if not recent_triggers:
-        await update.effective_message.reply_text(trans.gettext("GLOSSARY_EMPTY_CONTEXT"))
+        await update.effective_message.reply_text(trans.gettext("GLOSSARY_EMPTY_CONTEXT"), parse_mode=ParseMode.HTML)
         return
 
     text = [trans.gettext("GLOSSARY_EXPLANATION_HEADER")] + format_explanations(
