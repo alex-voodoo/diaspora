@@ -4,6 +4,7 @@ Glossary
 
 import csv
 import datetime
+import fnmatch
 import logging
 import pathlib
 from collections import deque
@@ -20,6 +21,13 @@ from common.messaging_helpers import self_destructing_reply, self_destructing_re
 TERMS_FILE_PATH = pathlib.Path(__file__).parent / "resources" / "glossary_terms.csv"
 
 logger = logging.getLogger(__name__)
+
+stem_logger = logging.getLogger("stem")
+stem_logging_handler = logging.FileHandler("stem.log")
+# noinspection SpellCheckingInspection
+stem_logging_handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s"))
+stem_logger.addHandler(stem_logging_handler)
+stem_logger.propagate = False
 
 # Glossary data.  Dictionary where key is a trigger word, and value is a dictionary with data associated with that
 # trigger, all fields are strings:
@@ -77,7 +85,9 @@ async def process_normal_message(update: Update, context: ContextTypes.DEFAULT_T
                     continue
                 glossary_data[term.lower()] = {STANDARD: standard, ORIGINAL: original, EXPLANATION: explanation}
 
-    filtered = [term for term in glossary_data.keys() if term in lemmatizer.lemmatize(update.effective_message.text)]
+    lemmatised = lemmatizer.lemmatize(update.effective_message.text)
+    stem_logger.info(" ".join(lemmatised).strip())
+    filtered = [term for term in glossary_data.keys() if fnmatch.filter(lemmatised, term)]
     if not filtered:
         return
 
