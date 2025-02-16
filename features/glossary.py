@@ -5,20 +5,28 @@ Glossary
 import csv
 import datetime
 import fnmatch
+import io
 import logging
 import pathlib
 from collections import deque
 
 from pymystem3 import Mystem
-from telegram import Update
-from telegram.constants import ReactionEmoji, ParseMode
-from telegram.ext import Application, ContextTypes, filters, MessageHandler
+from telegram import InlineKeyboardButton, Update
+from telegram.constants import ParseMode, ReactionEmoji
+from telegram.ext import Application, CallbackQueryHandler, ContextTypes, ConversationHandler, filters, MessageHandler
 
 import settings
 from common import i18n
-from common.messaging_helpers import self_destructing_reply, self_destructing_reaction
+from common.admin import get_main_keyboard, register_buttons
+from common.messaging_helpers import self_destructing_reaction, self_destructing_reply
+from settings import ADMINISTRATORS
 
-TERMS_FILE_PATH = pathlib.Path(__file__).parent / "resources" / "glossary_terms.csv"
+TERMS_FILENAME = "glossary_terms.csv"
+TERMS_FILE_PATH = pathlib.Path(__file__).parent / "resources" / TERMS_FILENAME
+
+# Admin keyboard commands
+GLOSSARY_ADMIN_DOWNLOAD_TERMS, GLOSSARY_ADMIN_UPLOAD_TERMS = "glossary-download-terms", "glossary-upload-terms"
+GLOSSARY_ADMIN_UPLOADING_TERMS = 1
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +52,29 @@ recent_triggers: deque
 TRIGGER, STANDARD, ORIGINAL, EXPLANATION, TIMESTAMP = ("trigger", "standard", "original", "explanation", "timestamp")
 
 lemmatizer = Mystem()
+
+
+def get_file() -> io.BytesIO:
+    """Return contents of the actual glossary terms file"""
+
+    with open(TERMS_FILE_PATH, "rb") as inp:
+        data = io.BytesIO(inp.read())
+        return data
+
+
+def set_file(data: io.BytesIO) -> bool:
+    """Reset the glossary terms file with new contents"""
+
+    data.seek(0)
+    with open(TERMS_FILE_PATH, "wb") as out_file:
+        out_file.write(data.read())
+
+    global glossary_data
+
+    # The new data will be loaded on the next call to `process_normal_message()`.
+    glossary_data = None
+
+    return True
 
 
 def collapse_recent_triggers():
@@ -140,6 +171,56 @@ async def process_bot_mention(update: Update, context: ContextTypes.DEFAULT_TYPE
     recent_triggers = deque()
 
 
+async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> [None, int]:
+    query = update.callback_query
+    user = query.from_user
+
+    if user.id not in ADMINISTRATORS.keys():
+        logging.error("User {username} is not listed as administrator!".format(username=user.username))
+        return
+
+    await query.answer()
+
+    trans = i18n.trans(user)
+
+    if query.data == GLOSSARY_ADMIN_DOWNLOAD_TERMS:
+        await user.send_document(get_file(), filename=TERMS_FILENAME, reply_markup=None)
+    elif query.data == GLOSSARY_ADMIN_UPLOAD_TERMS:
+        await query.message.reply_text(trans.gettext("GLOSSARY_MESSAGE_DM_ADMIN_REQUEST_TERMS"))
+
+        return GLOSSARY_ADMIN_UPLOADING_TERMS
+
+
+# noinspection PyUnusedLocal
+async def handle_received_terms_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    user = update.effective_user
+    if user.id not in ADMINISTRATORS.keys():
+        logging.error("User {username} is not listed as administrator!".format(username=user.username))
+        return ConversationHandler.END
+
+    trans = i18n.trans(user)
+
+    document = update.message.effective_attachment
+
+    if document.mime_type != "text/csv":
+        await update.effective_message.reply_text(trans.gettext("GLOSSARY_MESSAGE_DM_ADMIN_TERMS_WRONG_FILE_TYPE"),
+                                                  reply_markup=get_main_keyboard())
+        return ConversationHandler.END
+
+    keywords_file = await document.get_file()
+    data = io.BytesIO()
+    await keywords_file.download_to_memory(data)
+
+    if set_file(data):
+        await update.effective_message.reply_text(trans.gettext("GLOSSARY_MESSAGE_DM_ADMIN_TERMS_UPDATED"),
+                                                  reply_markup=None)
+    else:
+        await update.effective_message.reply_text(trans.gettext("GLOSSARY_MESSAGE_DM_ADMIN_TERMS_CANNOT_USE"),
+                                                  reply_markup=get_main_keyboard())
+
+    return ConversationHandler.END
+
+
 def init(application: Application, group):
     """Prepare the feature as defined in the configuration"""
 
@@ -149,6 +230,19 @@ def init(application: Application, group):
     global recent_triggers
 
     recent_triggers = deque()
+
+    application.add_handler(ConversationHandler(
+        entry_points=[CallbackQueryHandler(handle_query_admin, pattern=GLOSSARY_ADMIN_UPLOAD_TERMS)],
+        states={GLOSSARY_ADMIN_UPLOADING_TERMS: [MessageHandler(filters.ATTACHMENT, handle_received_terms_file)]},
+        fallbacks=[]))
+    application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=GLOSSARY_ADMIN_DOWNLOAD_TERMS))
+
+    trans = i18n.default()
+
+    register_buttons(((InlineKeyboardButton(trans.gettext("GLOSSARY_BUTTON_DOWNLOAD_TERMS"),
+                                            callback_data=GLOSSARY_ADMIN_DOWNLOAD_TERMS),
+                       InlineKeyboardButton(trans.gettext("GLOSSARY_BUTTON_UPLOAD_TERMS"),
+                                            callback_data=GLOSSARY_ADMIN_UPLOAD_TERMS)),))
 
 
 def post_init(application: Application, group):

@@ -24,6 +24,7 @@ from telegram.ext import (Application, CommandHandler, ContextTypes, Conversatio
                           CallbackQueryHandler, )
 
 from common import db, i18n
+from common.admin import get_main_keyboard, register_buttons
 from common.checks import is_member_of_main_chat
 from common.messaging_helpers import delete_message, safe_delete_message, self_destructing_reply
 from features import antispam, glossary
@@ -181,20 +182,6 @@ def get_moderation_keyboard(data) -> InlineKeyboardMarkup:
         text, command in response_buttons.items())
 
     return InlineKeyboardMarkup(((response_button_yes, response_button_no),))
-
-
-def get_admin_keyboard(user: telegram.User) -> InlineKeyboardMarkup:
-    trans = i18n.trans(user)
-
-    response_buttons = {trans.gettext("BUTTON_DOWNLOAD_SPAM"): QUERY_ADMIN_DOWNLOAD_SPAM,
-                        trans.gettext("BUTTON_DOWNLOAD_ANTISPAM_KEYWORDS"): QUERY_ADMIN_DOWNLOAD_ANTISPAM_KEYWORDS,
-                        trans.gettext("BUTTON_UPLOAD_ANTISPAM_KEYWORDS"): QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS,
-                        trans.gettext("BUTTON_UPLOAD_ANTISPAM_OPENAI"): QUERY_ADMIN_UPLOAD_ANTISPAM_OPENAI}
-    button_download_spam, button_download_keywords, button_upload_keywords, button_upload_openai = (
-        InlineKeyboardButton(text, callback_data=command) for text, command in response_buttons.items())
-
-    return InlineKeyboardMarkup(
-        ((button_download_spam,), (button_download_keywords,), (button_upload_keywords,), (button_upload_openai,)))
 
 
 # noinspection PyUnusedLocal
@@ -362,7 +349,7 @@ async def handle_command_admin(update: Update, context: ContextTypes.DEFAULT_TYP
         await safe_delete_message(context, message.id, message.chat.id)
 
     await context.bot.send_message(chat_id=user.id, text=i18n.trans(user).gettext("MESSAGE_DM_ADMIN"),
-                                   reply_markup=get_admin_keyboard(user))
+                                   reply_markup=get_main_keyboard())
 
 
 # noinspection PyUnusedLocal
@@ -407,7 +394,7 @@ async def received_antispam_keywords(update: Update, context: ContextTypes.DEFAU
 
     if document.mime_type != "text/plain":
         await update.effective_message.reply_text(trans.gettext("MESSAGE_DM_ADMIN_KEYWORDS_WRONG_FILE_TYPE"),
-                                                  reply_markup=get_admin_keyboard(user))
+                                                  reply_markup=get_main_keyboard())
         return ConversationHandler.END
 
     keywords_file = await document.get_file()
@@ -418,7 +405,7 @@ async def received_antispam_keywords(update: Update, context: ContextTypes.DEFAU
         await update.effective_message.reply_text(trans.gettext("MESSAGE_DM_ADMIN_KEYWORDS_UPDATED"), reply_markup=None)
     else:
         await update.effective_message.reply_text(trans.gettext("MESSAGE_DM_ADMIN_KEYWORDS_CANNOT_USE"),
-                                                  reply_markup=get_admin_keyboard(user))
+                                                  reply_markup=get_main_keyboard())
 
     return ConversationHandler.END
 
@@ -442,7 +429,7 @@ async def received_antispam_openai(update: Update, context: ContextTypes.DEFAULT
         await update.effective_message.reply_text(trans.gettext("MESSAGE_DM_ADMIN_OPENAI_UPDATED"), reply_markup=None)
     else:
         await update.effective_message.reply_text(trans.gettext("MESSAGE_DM_ADMIN_OPENAI_CANNOT_USE"),
-                                                  reply_markup=get_admin_keyboard(user))
+                                                  reply_markup=get_main_keyboard())
 
     return ConversationHandler.END
 
@@ -971,13 +958,25 @@ def main() -> None:
 
     if MODERATION_ENABLED:
         application.add_handler(CallbackQueryHandler(confirm_user_data, pattern=re.compile(
-            "^({approve}|{decline}):[0-9]+:[0-9]+$".format(approve=MODERATOR_APPROVE, decline=MODERATOR_DECLINE))), group=2)
+            "^({approve}|{decline}):[0-9]+:[0-9]+$".format(approve=MODERATOR_APPROVE, decline=MODERATOR_DECLINE))),
+                                group=2)
 
     if LANGUAGE_MODERATION_ENABLED:
         global message_languages
         message_languages = deque()
 
         application.add_handler(MessageHandler(filters.TEXT & (~ filters.COMMAND), detect_language), group=3)
+
+    trans = i18n.default()
+
+    response_buttons = {trans.gettext("BUTTON_DOWNLOAD_SPAM"): QUERY_ADMIN_DOWNLOAD_SPAM,
+                        trans.gettext("BUTTON_DOWNLOAD_ANTISPAM_KEYWORDS"): QUERY_ADMIN_DOWNLOAD_ANTISPAM_KEYWORDS,
+                        trans.gettext("BUTTON_UPLOAD_ANTISPAM_KEYWORDS"): QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS,
+                        trans.gettext("BUTTON_UPLOAD_ANTISPAM_OPENAI"): QUERY_ADMIN_UPLOAD_ANTISPAM_OPENAI}
+    button_download_spam, button_download_keywords, button_upload_keywords, button_upload_openai = (
+        InlineKeyboardButton(text, callback_data=command) for text, command in response_buttons.items())
+
+    register_buttons(((button_download_spam, button_upload_openai), (button_download_keywords, button_upload_keywords)))
 
     glossary.init(application, group=4)
 
