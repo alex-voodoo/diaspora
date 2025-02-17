@@ -8,6 +8,7 @@ import io
 import logging
 import pathlib
 import re
+import unicodedata
 from collections import deque
 
 from telegram import InlineKeyboardButton, Update
@@ -51,8 +52,31 @@ recent_triggers: deque
 commands = None
 
 # Keys in dictionaries used in the above data structures.
-TRIGGER, REGEX, STANDARD, ORIGINAL, EXPLANATION, TIMESTAMP = (
-"trigger", "regex", "standard", "original", "explanation", "timestamp")
+TRIGGER, REGEX, STANDARD, STANDARD_STRIPPED, ORIGINAL, EXPLANATION, TIMESTAMP = (
+    "trigger", "regex", "standard", "standard-stripped", "original", "explanation", "timestamp")
+
+
+def maybe_load_glossary_data():
+    global glossary_data
+    if glossary_data is not None:
+        return
+
+    def strip_diacritics(term: str) -> str:
+        return ''.join(c for c in unicodedata.normalize('NFD', term) if unicodedata.category(c) != 'Mn')
+
+    glossary_data = []
+    with open(TERMS_FILE_PATH, encoding="utf-8-sig") as f:
+        reader = csv.reader(f, delimiter=";")
+        for row in reader:
+            try:
+                regex, standard, original, explanation = row
+            except Exception as e:
+                logger.warning(e)
+                continue
+            glossary_data.append(
+                {REGEX: re.compile("\\b{}\\b".format(regex), re.IGNORECASE), STANDARD: standard, ORIGINAL: original,
+                 EXPLANATION: explanation, STANDARD_STRIPPED: strip_diacritics(standard)})
+    logger.info("Loaded {} triggers for the glossary".format(len(glossary_data)))
 
 
 def get_file() -> io.BytesIO:
@@ -102,20 +126,7 @@ async def process_normal_message(update: Update, context: ContextTypes.DEFAULT_T
 
     global glossary_data, recent_triggers
 
-    if glossary_data is None:
-        glossary_data = []
-        with open(TERMS_FILE_PATH, encoding="utf-8-sig") as f:
-            reader = csv.reader(f, delimiter=";")
-            for row in reader:
-                try:
-                    regex, standard, original, explanation = row
-                except Exception as e:
-                    logger.warning(e)
-                    continue
-                glossary_data.append(
-                    {REGEX: re.compile("\\b{}\\b".format(regex), re.IGNORECASE), STANDARD: standard, ORIGINAL: original,
-                     EXPLANATION: explanation})
-        logger.info("Loaded {} triggers for the glossary".format(len(glossary_data)))
+    maybe_load_glossary_data()
 
     with LogTime("Trigger lookup", glossary_logger):
         filtered = []
@@ -145,12 +156,13 @@ async def process_normal_message(update: Update, context: ContextTypes.DEFAULT_T
         await self_destructing_reaction(update, context, [ReactionEmoji.EYES], settings.GLOSSARY_MAX_TRIGGER_AGE)
 
 
-async def process_bot_mention(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """React to mention
+async def maybe_process_command_explain(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    """Try to find the "explain" command in the message, and handle it if found
 
-    If the mention does not contain any term recognised as a question to translate triggers noticed recently, sends "I
-    do not understand this".  Otherwise, sends an explanation to triggers that stay currently in the global
-    `recent_triggers` list, and clears that list, or says that there is nothing to explain.
+    Tries to find one of command terms that mean "explain the current context", and if found, renders the explanation
+    for all recent triggers, then clears them.
+
+    Returns whether the command term was found.
     """
 
     trans = i18n.default()
@@ -163,8 +175,7 @@ async def process_bot_mention(update: Update, context: ContextTypes.DEFAULT_TYPE
         commands = [re.compile("\\b{}\\b".format(term), re.IGNORECASE) for term in terms]
 
     if not [command for command in commands if command.search(update.effective_message.text) is not None]:
-        await update.effective_message.reply_text(trans.gettext("GLOSSARY_UNKNOWN_TERM"), parse_mode=ParseMode.HTML)
-        return
+        return False
 
     global recent_triggers
 
@@ -172,13 +183,75 @@ async def process_bot_mention(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     if not recent_triggers:
         await update.effective_message.reply_text(trans.gettext("GLOSSARY_EMPTY_CONTEXT"), parse_mode=ParseMode.HTML)
-        return
+        return True
 
     text = [trans.gettext("GLOSSARY_EXPLANATION_HEADER")] + format_explanations(
         [t for t in glossary_data if t[STANDARD] in sorted(list(set(t[TRIGGER][STANDARD] for t in recent_triggers)))])
     await update.effective_message.reply_text("\n".join(text), parse_mode=ParseMode.HTML, disable_web_page_preview=True)
 
     recent_triggers = deque()
+    return True
+
+
+async def maybe_process_command_whatisit(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+    """Try to find the "what is ..." command in the message, and handle it if found
+
+    Tries to find a pattern that means "what is <word>", and if found, tries to find that term and respond with an
+    explanation.
+
+    Returns whether the command term was found.
+    """
+
+    trans = i18n.default()
+
+    command = re.compile("\\b{}\\b".format(trans.gettext("GLOSSARY_TERM_WHATISIT")), re.IGNORECASE)
+    match = command.search(update.effective_message.text)
+    if match is None:
+        return False
+
+    word = match.group(1)
+
+    for term in glossary_data:
+        if term[STANDARD_STRIPPED] == word:
+            await update.effective_message.reply_text(format_explanations([term])[0], parse_mode=ParseMode.HTML)
+            return True
+
+    def hamming_distance(chaine1, chaine2):
+        return sum(c1 != c2 for c1, c2 in zip(chaine1, chaine2))
+
+    possible_terms = []
+    for term in glossary_data:
+        if hamming_distance(word, term[STANDARD_STRIPPED]) == 1:
+            possible_terms.append(term)
+
+    if possible_terms:
+        text = [trans.gettext("GLOSSARY_WHATISIT_FUZZY_MATCH")] + format_explanations(possible_terms)
+        await update.effective_message.reply_text("\n".join(text), parse_mode=ParseMode.HTML)
+        return True
+
+    await update.effective_message.reply_text(trans.gettext("GLOSSARY_I_DO_NOT_KNOW"), parse_mode=ParseMode.HTML)
+    return True
+
+
+async def process_bot_mention(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """React to mention
+
+    If the mention does not contain any term recognised as a question to translate triggers noticed recently, sends "I
+    do not understand this".  Otherwise, sends an explanation to triggers that stay currently in the global
+    `recent_triggers` list, and clears that list, or says that there is nothing to explain.
+    """
+
+    maybe_load_glossary_data()
+
+    trans = i18n.default()
+
+    # TODO find a way to register multiple mention commands from different features in the single handler in the core,
+    # so that the only handler there would pick the mention and then dispatch it to the actual handlers.
+    for handler in (maybe_process_command_explain, maybe_process_command_whatisit):
+        if await handler(update, context):
+            return
+
+    await update.effective_message.reply_text(trans.gettext("GLOSSARY_UNKNOWN_TERM"), parse_mode=ParseMode.HTML)
 
 
 async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> [None, int]:
@@ -244,8 +317,9 @@ def init(application: Application, group):
     application.add_handler(
         ConversationHandler(entry_points=[CallbackQueryHandler(handle_query_admin, pattern=ADMIN_UPLOAD_TERMS)],
                             states={ADMIN_UPLOADING_TERMS: [
-                                MessageHandler(filters.ATTACHMENT, handle_received_terms_file)]}, fallbacks=[]))
-    application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=ADMIN_DOWNLOAD_TERMS))
+                                MessageHandler(filters.ATTACHMENT, handle_received_terms_file)]}, fallbacks=[]),
+        group=group)
+    application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=ADMIN_DOWNLOAD_TERMS), group=group)
 
     trans = i18n.default()
 
