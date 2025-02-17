@@ -4,13 +4,12 @@ Glossary
 
 import csv
 import datetime
-import fnmatch
 import io
 import logging
 import pathlib
+import re
 from collections import deque
 
-from pymystem3 import Mystem
 from telegram import InlineKeyboardButton, Update
 from telegram.constants import ParseMode, ReactionEmoji
 from telegram.ext import Application, CallbackQueryHandler, ContextTypes, ConversationHandler, filters, MessageHandler
@@ -18,6 +17,7 @@ from telegram.ext import Application, CallbackQueryHandler, ContextTypes, Conver
 import settings
 from common import i18n
 from common.admin import get_main_keyboard, register_buttons
+from common.log_time import LogTime
 from common.messaging_helpers import self_destructing_reaction, self_destructing_reply
 from settings import ADMINISTRATORS
 
@@ -25,17 +25,17 @@ TERMS_FILENAME = "glossary_terms.csv"
 TERMS_FILE_PATH = pathlib.Path(__file__).parent / "resources" / TERMS_FILENAME
 
 # Admin keyboard commands
-GLOSSARY_ADMIN_DOWNLOAD_TERMS, GLOSSARY_ADMIN_UPLOAD_TERMS = "glossary-download-terms", "glossary-upload-terms"
-GLOSSARY_ADMIN_UPLOADING_TERMS = 1
+ADMIN_DOWNLOAD_TERMS, ADMIN_UPLOAD_TERMS = "glossary-download-terms", "glossary-upload-terms"
+ADMIN_UPLOADING_TERMS = 1
 
 logger = logging.getLogger(__name__)
 
-stem_logger = logging.getLogger("stem")
-stem_logging_handler = logging.FileHandler("stem.log")
+glossary_logger = logging.getLogger("glossary")
+glossary_logging_handler = logging.FileHandler("glossary.log")
 # noinspection SpellCheckingInspection
-stem_logging_handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s"))
-stem_logger.addHandler(stem_logging_handler)
-stem_logger.propagate = False
+glossary_logging_handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s"))
+glossary_logger.addHandler(glossary_logging_handler)
+glossary_logger.propagate = False
 
 # Glossary data.  Dictionary where key is a trigger word, and value is a dictionary with data associated with that
 # trigger, all fields are strings:
@@ -48,10 +48,11 @@ glossary_data = None
 # timestamp is a moment when that happened.
 recent_triggers: deque
 
-# Keys in dictionaries used in the above data structures.
-TRIGGER, STANDARD, ORIGINAL, EXPLANATION, TIMESTAMP = ("trigger", "standard", "original", "explanation", "timestamp")
+commands = None
 
-lemmatizer = Mystem()
+# Keys in dictionaries used in the above data structures.
+TRIGGER, REGEX, STANDARD, ORIGINAL, EXPLANATION, TIMESTAMP = (
+"trigger", "regex", "standard", "original", "explanation", "timestamp")
 
 
 def get_file() -> io.BytesIO:
@@ -77,7 +78,7 @@ def set_file(data: io.BytesIO) -> bool:
     return True
 
 
-def collapse_recent_triggers():
+def forget_old_triggers() -> None:
     """Remove recent triggers that are not recent enough"""
 
     global recent_triggers
@@ -87,14 +88,12 @@ def collapse_recent_triggers():
         recent_triggers.pop()
 
 
-def format_explanations(keys: list) -> list:
+def format_explanations(terms: list) -> list:
     """Returns a list of strings that contain explanations for each trigger in `keys`"""
 
     result = []
-    for trigger in keys:
-        result.append("<b>{t}</b> <em>({o})</em> — {e}".format(e=glossary_data[trigger][EXPLANATION],
-                                                               o=glossary_data[trigger][ORIGINAL],
-                                                               t=glossary_data[trigger][STANDARD]))
+    for term in terms:
+        result.append("<b>{t}</b> <em>({o})</em> — {e}".format(e=term[EXPLANATION], o=term[ORIGINAL], t=term[STANDARD]))
     return result
 
 
@@ -104,25 +103,32 @@ async def process_normal_message(update: Update, context: ContextTypes.DEFAULT_T
     global glossary_data, recent_triggers
 
     if glossary_data is None:
-        logger.info("Loading triggers for the glossary")
-        glossary_data = {}
-        with open(TERMS_FILE_PATH, encoding="utf-8") as f:
+        glossary_data = []
+        with open(TERMS_FILE_PATH, encoding="utf-8-sig") as f:
             reader = csv.reader(f, delimiter=";")
             for row in reader:
                 try:
-                    term, standard, original, explanation = row
+                    regex, standard, original, explanation = row
                 except Exception as e:
                     logger.warning(e)
                     continue
-                glossary_data[term.lower()] = {STANDARD: standard, ORIGINAL: original, EXPLANATION: explanation}
+                glossary_data.append(
+                    {REGEX: re.compile("\\b{}\\b".format(regex), re.IGNORECASE), STANDARD: standard, ORIGINAL: original,
+                     EXPLANATION: explanation})
+        logger.info("Loaded {} triggers for the glossary".format(len(glossary_data)))
 
-    lemmatised = lemmatizer.lemmatize(update.effective_message.text)
-    stem_logger.info(" ".join(lemmatised).strip())
-    filtered = [term for term in glossary_data.keys() if fnmatch.filter(lemmatised, term)]
+    with LogTime("Trigger lookup", glossary_logger):
+        filtered = []
+        for term in glossary_data:
+            try:
+                if term[REGEX].search(update.effective_message.text) is not None:
+                    filtered.append(term)
+            except re.error as e:
+                logger.warning("Exception raised while searching for regex \"{}\": {}".format(term, e))
     if not filtered:
         return
 
-    collapse_recent_triggers()
+    forget_old_triggers()
 
     now = datetime.datetime.now()
     for trigger in filtered:
@@ -149,23 +155,27 @@ async def process_bot_mention(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     trans = i18n.default()
 
-    terms = (trans.gettext("GLOSSARY_TERM_TRANSLATE"), trans.gettext("GLOSSARY_TERM_EXPLAIN"),
-             trans.gettext("GLOSSARY_TERM_DECIPHER"), trans.gettext("GLOSSARY_TERM_GLOSSARY"))
+    global commands
 
-    if not [term for term in terms if term in lemmatizer.lemmatize(update.effective_message.text)]:
+    if not commands:
+        terms = (trans.gettext("GLOSSARY_TERM_TRANSLATE"), trans.gettext("GLOSSARY_TERM_EXPLAIN"),
+                 trans.gettext("GLOSSARY_TERM_DECIPHER"), trans.gettext("GLOSSARY_TERM_GLOSSARY"))
+        commands = [re.compile("\\b{}\\b".format(term), re.IGNORECASE) for term in terms]
+
+    if not [command for command in commands if command.search(update.effective_message.text) is not None]:
         await update.effective_message.reply_text(trans.gettext("GLOSSARY_UNKNOWN_TERM"), parse_mode=ParseMode.HTML)
         return
 
     global recent_triggers
 
-    collapse_recent_triggers()
+    forget_old_triggers()
 
     if not recent_triggers:
         await update.effective_message.reply_text(trans.gettext("GLOSSARY_EMPTY_CONTEXT"), parse_mode=ParseMode.HTML)
         return
 
     text = [trans.gettext("GLOSSARY_EXPLANATION_HEADER")] + format_explanations(
-        sorted(list(set([t[TRIGGER] for t in recent_triggers]))))
+        [t for t in glossary_data if t[STANDARD] in sorted(list(set(t[TRIGGER][STANDARD] for t in recent_triggers)))])
     await update.effective_message.reply_text("\n".join(text), parse_mode=ParseMode.HTML, disable_web_page_preview=True)
 
     recent_triggers = deque()
@@ -183,12 +193,12 @@ async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     trans = i18n.trans(user)
 
-    if query.data == GLOSSARY_ADMIN_DOWNLOAD_TERMS:
+    if query.data == ADMIN_DOWNLOAD_TERMS:
         await user.send_document(get_file(), filename=TERMS_FILENAME, reply_markup=None)
-    elif query.data == GLOSSARY_ADMIN_UPLOAD_TERMS:
+    elif query.data == ADMIN_UPLOAD_TERMS:
         await query.message.reply_text(trans.gettext("GLOSSARY_MESSAGE_DM_ADMIN_REQUEST_TERMS"))
 
-        return GLOSSARY_ADMIN_UPLOADING_TERMS
+        return ADMIN_UPLOADING_TERMS
 
 
 # noinspection PyUnusedLocal
@@ -231,18 +241,18 @@ def init(application: Application, group):
 
     recent_triggers = deque()
 
-    application.add_handler(ConversationHandler(
-        entry_points=[CallbackQueryHandler(handle_query_admin, pattern=GLOSSARY_ADMIN_UPLOAD_TERMS)],
-        states={GLOSSARY_ADMIN_UPLOADING_TERMS: [MessageHandler(filters.ATTACHMENT, handle_received_terms_file)]},
-        fallbacks=[]))
-    application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=GLOSSARY_ADMIN_DOWNLOAD_TERMS))
+    application.add_handler(
+        ConversationHandler(entry_points=[CallbackQueryHandler(handle_query_admin, pattern=ADMIN_UPLOAD_TERMS)],
+                            states={ADMIN_UPLOADING_TERMS: [
+                                MessageHandler(filters.ATTACHMENT, handle_received_terms_file)]}, fallbacks=[]))
+    application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=ADMIN_DOWNLOAD_TERMS))
 
     trans = i18n.default()
 
     register_buttons(((InlineKeyboardButton(trans.gettext("GLOSSARY_BUTTON_DOWNLOAD_TERMS"),
-                                            callback_data=GLOSSARY_ADMIN_DOWNLOAD_TERMS),
+                                            callback_data=ADMIN_DOWNLOAD_TERMS),
                        InlineKeyboardButton(trans.gettext("GLOSSARY_BUTTON_UPLOAD_TERMS"),
-                                            callback_data=GLOSSARY_ADMIN_UPLOAD_TERMS)),))
+                                            callback_data=ADMIN_UPLOAD_TERMS)),))
 
 
 def post_init(application: Application, group):

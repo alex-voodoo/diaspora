@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2025-02-14 22:12+0100\n"
+"POT-Creation-Date: 2025-02-17 14:51+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -24,36 +24,35 @@ msgstr ""
 msgid "MESSAGE_MC_LET_US_TALK_PRIVATE"
 msgstr "Let's talk private!"
 
-#: bot.py:94 common/keyboards.py:37
+#: bot.py:94
 msgid "BUTTON_WHO"
 msgstr "Show records"
 
-#: bot.py:94 common/keyboards.py:37
+#: bot.py:94
 msgid "BUTTON_ENROLL"
 msgstr "Register"
 
-#: bot.py:95 common/keyboards.py:38
+#: bot.py:95
 msgid "BUTTON_ENROLL_MORE"
 msgstr "Add another record"
 
-#: bot.py:96 common/keyboards.py:39
+#: bot.py:96
 msgid "BUTTON_UPDATE"
 msgstr "Update a record"
 
-#: bot.py:96 common/keyboards.py:39
+#: bot.py:96
 msgid "BUTTON_RETIRE"
 msgstr "Remove a record"
 
-#: bot.py:148 bot.py:153 bot.py:271 common/keyboards.py:91
-#: common/keyboards.py:96
+#: bot.py:148 bot.py:153 bot.py:271
 msgid "BUTTON_ENROLL_CATEGORY_DEFAULT"
 msgstr "Other"
 
-#: bot.py:169 bot.py:179 common/keyboards.py:112 common/keyboards.py:122
+#: bot.py:169 bot.py:179
 msgid "BUTTON_YES"
 msgstr "Yes"
 
-#: bot.py:169 bot.py:179 common/keyboards.py:112 common/keyboards.py:122
+#: bot.py:169 bot.py:179
 msgid "BUTTON_NO"
 msgstr "No"
 
@@ -293,75 +292,75 @@ msgstr "Main menu"
 msgid "COMMAND_DESCRIPTION_ADMIN"
 msgstr "Administrator's menu"
 
-#: bot.py:972 common/keyboards.py:133
+#: bot.py:972
 msgid "BUTTON_DOWNLOAD_SPAM"
 msgstr "Download spam"
 
-#: bot.py:973 common/keyboards.py:134
+#: bot.py:973
 msgid "BUTTON_DOWNLOAD_ANTISPAM_KEYWORDS"
 msgstr "Download stop words"
 
-#: bot.py:974 common/keyboards.py:135
+#: bot.py:974
 msgid "BUTTON_UPLOAD_ANTISPAM_KEYWORDS"
 msgstr "Upload stop words"
 
-#: bot.py:975 common/keyboards.py:136
+#: bot.py:975
 msgid "BUTTON_UPLOAD_ANTISPAM_OPENAI"
 msgstr "Upload the OpenAI model"
 
-#: features/glossary.py:134
+#: features/glossary.py:140
 msgid "GLOSSARY_TRIGGERED_EXPLANATION_HEADER"
 msgstr "This message contains several words that may appear unclear to the participants, especially those who joined this group lately.  Here they are:"
 
-#: features/glossary.py:152
+#: features/glossary.py:161
 msgid "GLOSSARY_TERM_TRANSLATE"
 msgstr "translate"
 
-#: features/glossary.py:152
+#: features/glossary.py:161
 msgid "GLOSSARY_TERM_EXPLAIN"
 msgstr "explain"
 
-#: features/glossary.py:153
+#: features/glossary.py:162
 msgid "GLOSSARY_TERM_DECIPHER"
 msgstr "decipher"
 
-#: features/glossary.py:153
+#: features/glossary.py:162
 msgid "GLOSSARY_TERM_GLOSSARY"
 msgstr "glossary"
 
-#: features/glossary.py:156
+#: features/glossary.py:166
 msgid "GLOSSARY_UNKNOWN_TERM"
 msgstr "I understand only one request: to <b>explain</b> words in the recent discussion that could appear unclear to people."
 
-#: features/glossary.py:164
+#: features/glossary.py:174
 msgid "GLOSSARY_EMPTY_CONTEXT"
 msgstr "In the recent conversation I did not notice any words that would require explanation."
 
-#: features/glossary.py:167
+#: features/glossary.py:177
 msgid "GLOSSARY_EXPLANATION_HEADER"
 msgstr "Word in the recent conversation that may require explanation:"
 
-#: features/glossary.py:189
+#: features/glossary.py:199
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_REQUEST_TERMS"
 msgstr "Awaiting a CSV file."
 
-#: features/glossary.py:206
+#: features/glossary.py:216
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_TERMS_WRONG_FILE_TYPE"
 msgstr "I can load glossary only from a CSV file."
 
-#: features/glossary.py:215
+#: features/glossary.py:225
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_TERMS_UPDATED"
 msgstr "Accepted."
 
-#: features/glossary.py:218
+#: features/glossary.py:228
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_TERMS_CANNOT_USE"
 msgstr "Could not load the new glossary."
 
-#: features/glossary.py:242
+#: features/glossary.py:252
 msgid "GLOSSARY_BUTTON_DOWNLOAD_TERMS"
 msgstr "Download glossary"
 
-#: features/glossary.py:244
+#: features/glossary.py:254
 msgid "GLOSSARY_BUTTON_UPLOAD_TERMS"
 msgstr "Upload glossary"
 
