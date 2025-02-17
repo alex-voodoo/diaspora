@@ -56,6 +56,38 @@ TRIGGER, REGEX, STANDARD, STANDARD_STRIPPED, ORIGINAL, EXPLANATION, TIMESTAMP = 
     "trigger", "regex", "standard", "standard-stripped", "original", "explanation", "timestamp")
 
 
+def damerau_levenshtein_distance(one: str, two: str) -> int:
+    """Calculate the Damerau-Levenshtein distance between two strings
+
+    Source: https://github.com/TheAlgorithms/Python/blob/master/strings/damerau_levenshtein_distance.py (reformatted)
+    """
+
+    # Create a dynamic programming matrix to store the distances
+    dp_matrix = [[0] * (len(two) + 1) for _ in range(len(one) + 1)]
+
+    # Initialize the matrix
+    for i in range(len(one) + 1):
+        dp_matrix[i][0] = i
+    for j in range(len(two) + 1):
+        dp_matrix[0][j] = j
+
+    # Fill the matrix
+    for i, first_char in enumerate(one, start=1):
+        for j, second_char in enumerate(two, start=1):
+            cost = int(first_char != second_char)
+
+            dp_matrix[i][j] = min(dp_matrix[i - 1][j] + 1,  # Deletion
+                                  dp_matrix[i][j - 1] + 1,  # Insertion
+                                  dp_matrix[i - 1][j - 1] + cost,  # Substitution
+                                  )
+
+            if i > 1 and j > 1 and one[i - 1] == two[j - 2] and one[i - 2] == two[j - 1]:
+                # Transposition
+                dp_matrix[i][j] = min(dp_matrix[i][j], dp_matrix[i - 2][j - 2] + cost)
+
+    return dp_matrix[-1][-1]
+
+
 def maybe_load_glossary_data():
     global glossary_data
     if glossary_data is not None:
@@ -216,17 +248,19 @@ async def maybe_process_command_whatisit(update: Update, context: ContextTypes.D
             await update.effective_message.reply_text(format_explanations([term])[0], parse_mode=ParseMode.HTML)
             return True
 
-    def hamming_distance(chaine1, chaine2):
-        return sum(c1 != c2 for c1, c2 in zip(chaine1, chaine2))
-
     possible_terms = []
     for term in glossary_data:
-        if hamming_distance(word, term[STANDARD_STRIPPED]) == 1:
+        if abs(len(word) - len(term[STANDARD_STRIPPED])) > 2:
+            continue
+        if damerau_levenshtein_distance(word, term[STANDARD_STRIPPED]) <= 2:
             possible_terms.append(term)
 
     if possible_terms:
-        text = [trans.gettext("GLOSSARY_WHATISIT_FUZZY_MATCH")] + format_explanations(possible_terms)
-        await update.effective_message.reply_text("\n".join(text), parse_mode=ParseMode.HTML)
+        if len(possible_terms) > 1:
+            text = [trans.gettext("GLOSSARY_WHATISIT_FUZZY_MATCH")] + format_explanations(possible_terms)
+            await update.effective_message.reply_text("\n".join(text), parse_mode=ParseMode.HTML)
+        else:
+            await update.effective_message.reply_text(format_explanations(possible_terms)[0], parse_mode=ParseMode.HTML)
         return True
 
     await update.effective_message.reply_text(trans.gettext("GLOSSARY_I_DO_NOT_KNOW"), parse_mode=ParseMode.HTML)
