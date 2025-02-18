@@ -38,22 +38,24 @@ glossary_logging_handler.setFormatter(logging.Formatter("[%(asctime)s] %(message
 glossary_logger.addHandler(glossary_logging_handler)
 glossary_logger.propagate = False
 
-# Glossary data.  Dictionary where key is a trigger word, and value is a dictionary with data associated with that
-# trigger, all fields are strings:
+# Glossary data.  List of dictionary items with the following fields:
+# - regex: regular expression that should capture the trigger in a message in any form, including misspellings
 # - standard: trigger in "native" language in its "best" form (properly transliterated, no typos or other errors)
-# - original: word in "foreign" language
+# - original: word in its original ("foreign") language
 # - explanation: meaning of the term in the default language
 glossary_data = None
 
-# Triggers found recently.  Deque of dictionaries that have two fields: trigger is a trigger word that was found and
+# Triggers found recently.  Deque of dictionaries that have two fields: trigger is a glossary term that was found and
 # timestamp is a moment when that happened.
 recent_triggers: deque
 
-commands = None
+# Commands given to the bot via mentioning it.
+mention_commands: dict
 
 # Keys in dictionaries used in the above data structures.
 TRIGGER, REGEX, STANDARD, STANDARD_STRIPPED, ORIGINAL, EXPLANATION, TIMESTAMP = (
     "trigger", "regex", "standard", "standard-stripped", "original", "explanation", "timestamp")
+COMMAND_EXPLAIN, COMMAND_WHATISIT = "explain", "whatisit"
 
 
 def damerau_levenshtein_distance(one: str, two: str) -> int:
@@ -197,21 +199,16 @@ async def maybe_process_command_explain(update: Update, context: ContextTypes.DE
     Returns whether the command term was found.
     """
 
-    trans = i18n.default()
+    global mention_commands
 
-    global commands
-
-    if not commands:
-        terms = (trans.gettext("GLOSSARY_TERM_TRANSLATE"), trans.gettext("GLOSSARY_TERM_EXPLAIN"),
-                 trans.gettext("GLOSSARY_TERM_DECIPHER"), trans.gettext("GLOSSARY_TERM_GLOSSARY"))
-        commands = [re.compile("\\b{}\\b".format(term), re.IGNORECASE) for term in terms]
-
-    if not [command for command in commands if command.search(update.effective_message.text) is not None]:
+    if mention_commands[COMMAND_EXPLAIN].search(update.effective_message.text) is None:
         return False
 
     global recent_triggers
 
     forget_old_triggers()
+
+    trans = i18n.default()
 
     if not recent_triggers:
         await update.effective_message.reply_text(trans.gettext("GLOSSARY_EMPTY_CONTEXT"), parse_mode=ParseMode.HTML)
@@ -236,12 +233,11 @@ async def maybe_process_command_whatisit(update: Update, context: ContextTypes.D
 
     trans = i18n.default()
 
-    command = re.compile("\\b{}\\b".format(trans.gettext("GLOSSARY_TERM_WHATISIT")), re.IGNORECASE)
-    match = command.search(update.effective_message.text)
+    match = mention_commands[COMMAND_WHATISIT].search(update.effective_message.text)
     if match is None:
         return False
 
-    word = match.group(1)
+    word = match.group("term")
 
     for term in glossary_data:
         if term[STANDARD_STRIPPED] == word:
@@ -285,7 +281,7 @@ async def process_bot_mention(update: Update, context: ContextTypes.DEFAULT_TYPE
         if await handler(update, context):
             return
 
-    await update.effective_message.reply_text(trans.gettext("GLOSSARY_UNKNOWN_TERM"), parse_mode=ParseMode.HTML)
+    await update.effective_message.reply_text(trans.gettext("GLOSSARY_UNKNOWN_COMMAND"), parse_mode=ParseMode.HTML)
 
 
 async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> [None, int]:
@@ -348,14 +344,22 @@ def init(application: Application, group):
 
     recent_triggers = deque()
 
+    trans = i18n.default()
+
+    # Prepare regular expressions for the mention commands
+    global mention_commands
+
+    mention_commands = {
+        COMMAND_EXPLAIN: re.compile("\\b{}\\b".format(trans.gettext("GLOSSARY_COMMAND_EXPLAIN")), re.IGNORECASE),
+        COMMAND_WHATISIT: re.compile("\\b{}\\b".format(trans.gettext("GLOSSARY_COMMAND_WHATISIT")), re.IGNORECASE)}
+
+    # Register admin handlers
     application.add_handler(
         ConversationHandler(entry_points=[CallbackQueryHandler(handle_query_admin, pattern=ADMIN_UPLOAD_TERMS)],
                             states={ADMIN_UPLOADING_TERMS: [
                                 MessageHandler(filters.ATTACHMENT, handle_received_terms_file)]}, fallbacks=[]),
         group=group)
     application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=ADMIN_DOWNLOAD_TERMS), group=group)
-
-    trans = i18n.default()
 
     register_buttons(((InlineKeyboardButton(trans.gettext("GLOSSARY_BUTTON_DOWNLOAD_TERMS"),
                                             callback_data=ADMIN_DOWNLOAD_TERMS),

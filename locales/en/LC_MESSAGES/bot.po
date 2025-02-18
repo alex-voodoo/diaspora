@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2025-02-17 21:08+0100\n"
+"POT-Creation-Date: 2025-02-18 18:37+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -308,71 +308,61 @@ msgstr "Upload stop words"
 msgid "BUTTON_UPLOAD_ANTISPAM_OPENAI"
 msgstr "Upload the OpenAI model"
 
-#: features/glossary.py:183
+#: features/glossary.py:185
 msgid "GLOSSARY_TRIGGERED_EXPLANATION_HEADER"
 msgstr "This message contains several words that may appear unclear to the participants, especially those who joined this group lately.  Here they are:"
 
-#: features/glossary.py:205
-msgid "GLOSSARY_TERM_TRANSLATE"
-msgstr "translate"
-
-#: features/glossary.py:205
-msgid "GLOSSARY_TERM_EXPLAIN"
-msgstr "explain"
-
-#: features/glossary.py:206
-msgid "GLOSSARY_TERM_DECIPHER"
-msgstr "decipher"
-
-#: features/glossary.py:206
-msgid "GLOSSARY_TERM_GLOSSARY"
-msgstr "glossary"
-
-#: features/glossary.py:217
+#: features/glossary.py:214
 msgid "GLOSSARY_EMPTY_CONTEXT"
 msgstr "In the recent conversation I did not notice any words that would require explanation."
 
-#: features/glossary.py:220
+#: features/glossary.py:217
 msgid "GLOSSARY_EXPLANATION_HEADER"
 msgstr "Word in the recent conversation that may require explanation:"
 
-#: features/glossary.py:239
-msgid "GLOSSARY_TERM_WHATISIT"
-msgstr "what is (\\w+)"
-
-#: features/glossary.py:260
+#: features/glossary.py:256
 msgid "GLOSSARY_WHATISIT_FUZZY_MATCH"
 msgstr "This word is not in my list, but here are some similar ones."
 
-#: features/glossary.py:266
+#: features/glossary.py:262
 msgid "GLOSSARY_I_DO_NOT_KNOW"
 msgstr "I don't know!"
 
-#: features/glossary.py:288
-msgid "GLOSSARY_UNKNOWN_TERM"
-msgstr "I understand only one request: to <b>explain</b> words in the recent discussion that could appear unclear to people."
+#: features/glossary.py:284
+msgid "GLOSSARY_UNKNOWN_COMMAND"
+msgstr ""
+"I understand only one request: to <b>explain</b> words in the recent discussion that could appear unclear to people.\n"
+"Also you can ask me <b>what does something mean</b>, and I will give the explanation if I have it."
 
-#: features/glossary.py:306
+#: features/glossary.py:302
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_REQUEST_TERMS"
 msgstr "Awaiting a CSV file."
 
-#: features/glossary.py:323
+#: features/glossary.py:319
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_TERMS_WRONG_FILE_TYPE"
 msgstr "I can load glossary only from a CSV file."
 
-#: features/glossary.py:332
+#: features/glossary.py:328
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_TERMS_UPDATED"
 msgstr "Accepted."
 
-#: features/glossary.py:335
+#: features/glossary.py:331
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_TERMS_CANNOT_USE"
 msgstr "Could not load the new glossary."
 
-#: features/glossary.py:360
+#: features/glossary.py:353
+msgid "GLOSSARY_COMMAND_EXPLAIN"
+msgstr "(decipher|explain|translate|glossary)"
+
+#: features/glossary.py:354
+msgid "GLOSSARY_COMMAND_WHATISIT"
+msgstr "what is (?P<term>\\w+)"
+
+#: features/glossary.py:364
 msgid "GLOSSARY_BUTTON_DOWNLOAD_TERMS"
 msgstr "Download glossary"
 
-#: features/glossary.py:362
+#: features/glossary.py:366
 msgid "GLOSSARY_BUTTON_UPLOAD_TERMS"
 msgstr "Upload glossary"
 

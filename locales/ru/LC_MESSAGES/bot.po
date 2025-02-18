@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2025-02-17 21:08+0100\n"
+"POT-Creation-Date: 2025-02-18 18:37+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -309,71 +309,61 @@ msgstr "Загрузить стоп-слова"
 msgid "BUTTON_UPLOAD_ANTISPAM_OPENAI"
 msgstr "Загрузить модель OpenAI"
 
-#: features/glossary.py:183
+#: features/glossary.py:185
 msgid "GLOSSARY_TRIGGERED_EXPLANATION_HEADER"
 msgstr "В этой реплике сразу несколько слов, которые могут быть непонятны участникам, особенно тем, которые недавно присоединились к группе. Вот они:"
 
-#: features/glossary.py:205
-msgid "GLOSSARY_TERM_TRANSLATE"
-msgstr "перев(одить|ести|еди|едешь|едёшь)"
-
-#: features/glossary.py:205
-msgid "GLOSSARY_TERM_EXPLAIN"
-msgstr "объясн(ять|ить|и|ишь)"
-
-#: features/glossary.py:206
-msgid "GLOSSARY_TERM_DECIPHER"
-msgstr "расшифр(овывать|овать|уй|уешь)"
-
-#: features/glossary.py:206
-msgid "GLOSSARY_TERM_GLOSSARY"
-msgstr "глоссарий"
-
-#: features/glossary.py:217
+#: features/glossary.py:214
 msgid "GLOSSARY_EMPTY_CONTEXT"
 msgstr "За последние несколько минут мне не встречались слова, которые бывают непонятны участникам."
 
-#: features/glossary.py:220
+#: features/glossary.py:217
 msgid "GLOSSARY_EXPLANATION_HEADER"
 msgstr "Непонятные слова в недавней беседе:"
 
-#: features/glossary.py:239
-msgid "GLOSSARY_TERM_WHATISIT"
-msgstr "что такое (\\w+)"
-
-#: features/glossary.py:260
+#: features/glossary.py:256
 msgid "GLOSSARY_WHATISIT_FUZZY_MATCH"
 msgstr "Такого слова нет в моём словаре, но есть несколько похожих."
 
-#: features/glossary.py:266
+#: features/glossary.py:262
 msgid "GLOSSARY_I_DO_NOT_KNOW"
 msgstr "Я не знаю!"
 
-#: features/glossary.py:288
-msgid "GLOSSARY_UNKNOWN_TERM"
-msgstr "Я понимаю только одну просьбу: <b>объяснить</b> непонятные слова, которые встречались в разговоре в течение последних нескольких минут."
+#: features/glossary.py:284
+msgid "GLOSSARY_UNKNOWN_COMMAND"
+msgstr ""
+"Я понимаю только одну просьбу: <b>объяснить</b> непонятные слова, которые встречались в разговоре в течение последних нескольких минут.\n"
+"Также вы можете спросить, <b>что значит</b> или <b>что означает</b> какое-то слово, и я дам справку, если такое слово есть в моём словаре."
 
-#: features/glossary.py:306
+#: features/glossary.py:302
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_REQUEST_TERMS"
 msgstr "Ожидаю CSV-файл с глоссарием."
 
-#: features/glossary.py:323
+#: features/glossary.py:319
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_TERMS_WRONG_FILE_TYPE"
 msgstr "Новый глоссарий я могу принять только в CSV-файле."
 
-#: features/glossary.py:332
+#: features/glossary.py:328
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_TERMS_UPDATED"
 msgstr "Принято."
 
-#: features/glossary.py:335
+#: features/glossary.py:331
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_TERMS_CANNOT_USE"
 msgstr "Не удалось загрузить новый глоссарий."
 
-#: features/glossary.py:360
+#: features/glossary.py:353
+msgid "GLOSSARY_COMMAND_EXPLAIN"
+msgstr "(объясн(ять|ить|и|ишь)|расшифр(овывать|овать|уй|уешь)|перев(одить|ести|еди|едешь|едёшь)глоссарий)"
+
+#: features/glossary.py:354
+msgid "GLOSSARY_COMMAND_WHATISIT"
+msgstr "что (значит|означает|такое) (?P<term>\\w+)"
+
+#: features/glossary.py:364
 msgid "GLOSSARY_BUTTON_DOWNLOAD_TERMS"
 msgstr "Выгрузить глоссарий"
 
-#: features/glossary.py:362
+#: features/glossary.py:366
 msgid "GLOSSARY_BUTTON_UPLOAD_TERMS"
 msgstr "Загрузить глоссарий"
 
