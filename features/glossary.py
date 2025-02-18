@@ -91,6 +91,8 @@ def damerau_levenshtein_distance(one: str, two: str) -> int:
 
 
 def maybe_load_glossary_data():
+    """Loads glossary if it is not yet loaded"""
+
     global glossary_data
     if glossary_data is not None:
         return

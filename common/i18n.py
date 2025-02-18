@@ -1,3 +1,7 @@
+"""
+Internationalisation utilities
+"""
+
 import gettext
 
 from telegram import User
@@ -18,7 +22,8 @@ def default():
 def trans(user: User):
     """Get a translator for the given user
 
-    Respects the language-related settings.  Caches the translator and only loads """
+    Respects the language-related settings.  Caches the translator and only loads another one if the language changes.
+    """
 
     if not SPEAK_USER_LANGUAGE or user.language_code not in SUPPORTED_LANGUAGES:
         user_lang = DEFAULT_LANGUAGE
