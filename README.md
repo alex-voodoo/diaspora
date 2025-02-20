@@ -13,9 +13,10 @@ The main purpose and the core feature is maintaining the database of members of 
 In addition, the bot provides a set of moderation and housekeeping features, all optional and configurable:
 
 - Pre- or post-moderation of input from the users.  Every time a user sends new data, the bot asks the moderators if the new content is acceptable.  The content that did not pass the moderation will not be shown to other users.
-- Greeting new users.  The bot may react when a new user joins the group by sending a greeting message to the group.
-- Language moderation.  The bot may detect language of messages posted by the users, and post a warning about preferred (or required) language if too many messages were sent in other languages.
-- Antispam.  The bot may delete messages that meet certain criteria.
+- Greeting new users.  The bot reacts when a new user joins the group by sending a greeting message to the group.
+- Language moderation.  The bot detects language of messages posted by the users, and post a warning about preferred (or required) language if too many messages were sent in other languages.
+- Antispam.  The bot deletes messages that meet certain criteria.
+- Glossary.  The bot maintains a database of specific terms that may be used in the community, and provides explanations for those terms by requests from users.
 
 The bot deletes most of its own messages some time after posting them, to keep the chat clean of automatic replies.  Users are supposed to talk to bot using private messages.
 
@@ -48,4 +49,4 @@ Do not forget to restart the bot after you have changed the settings!
 
 ## Updating
 
-To get the newest version of the bot, stop it, update your working copy by running `git pull`, then update the DB schema by running `python migrate.py`.
+To get the newest version of the bot, stop it, update your working copy by running `git pull`, then update Python packages by running `pip install -r requirements.txt`, and update the DB schema by running `python migrate.py`.
