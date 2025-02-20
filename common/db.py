@@ -2,23 +2,17 @@
 Database stuff
 """
 
-import logging
 import os
 import sqlite3
 from collections.abc import Iterator
 from pathlib import Path
 from sqlite3 import Connection
 
-from common.log_time import LogTime
+from common.log import get_file_logger, LogTime
 
 db_connection: Connection
 
-db_logger = logging.getLogger("db")
-db_logging_handler = logging.FileHandler("db.log")
-# noinspection SpellCheckingInspection
-db_logging_handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s"))
-db_logger.addHandler(db_logging_handler)
-db_logger.propagate = False
+db_logger = get_file_logger("db", "db.log")
 
 
 def apply_migrations(migrations_directory: Path) -> None:

@@ -18,7 +18,7 @@ from telegram.ext import Application, CallbackQueryHandler, ContextTypes, Conver
 import settings
 from common import i18n
 from common.admin import get_main_keyboard, register_buttons
-from common.log_time import LogTime
+from common.log import get_file_logger, LogTime
 from common.messaging_helpers import self_destructing_reaction, self_destructing_reply
 from settings import ADMINISTRATORS
 
@@ -31,12 +31,7 @@ ADMIN_UPLOADING_TERMS = 1
 
 logger = logging.getLogger(__name__)
 
-glossary_logger = logging.getLogger("glossary")
-glossary_logging_handler = logging.FileHandler("glossary.log")
-# noinspection SpellCheckingInspection
-glossary_logging_handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s"))
-glossary_logger.addHandler(glossary_logging_handler)
-glossary_logger.propagate = False
+glossary_logger = get_file_logger("glossary", "glossary.log")
 
 # Glossary data.  List of dictionary items with the following fields:
 # - regex: regular expression that should capture the trigger in a message in any form, including misspellings
