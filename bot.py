@@ -8,7 +8,6 @@ See README.md for details.
 
 import copy
 import html
-import io
 import json
 import logging
 import re
@@ -24,9 +23,9 @@ from telegram.ext import (Application, CommandHandler, ContextTypes, Conversatio
                           CallbackQueryHandler, )
 
 from common import db, i18n
-from common.admin import get_main_keyboard, register_buttons
+from common.admin import get_main_keyboard
 from common.checks import is_member_of_main_chat
-from common.messaging_helpers import delete_message, safe_delete_message, self_destructing_reply
+from common.messaging_helpers import safe_delete_message, self_destructing_reply
 from features import antispam, glossary
 from settings import *
 
@@ -39,16 +38,11 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 # Commands, sequences, and responses
-COMMAND_START, COMMAND_HELP, COMMAND_WHO, COMMAND_ENROLL, COMMAND_UPDATE, COMMAND_RETIRE = (
-    "start", "help", "who", "update", "enroll", "retire")
-COMMAND_ADMIN = "admin"
+COMMAND_START, COMMAND_HELP, COMMAND_WHO, COMMAND_ENROLL, COMMAND_UPDATE, COMMAND_RETIRE, COMMAND_ADMIN = (
+    "start", "help", "who", "update", "enroll", "retire", "admin")
 SELECTING_CATEGORY, TYPING_OCCUPATION, TYPING_LOCATION, CONFIRMING_LEGALITY = range(4)
-UPLOADING_ANTISPAM_KEYWORDS, UPLOADING_ANTISPAM_OPENAI = range(2)
 RESPONSE_YES, RESPONSE_NO = ("yes", "no")
 MODERATOR_APPROVE, MODERATOR_DECLINE = ("approve", "decline")
-(QUERY_ADMIN_DOWNLOAD_SPAM, QUERY_ADMIN_DOWNLOAD_ANTISPAM_KEYWORDS, QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS,
- QUERY_ADMIN_UPLOAD_ANTISPAM_OPENAI) = (
-    "download-spam", "download-antispam-keywords", "upload-antispam-keywords", "upload-antispam-openai")
 
 message_languages: deque
 
@@ -353,87 +347,6 @@ async def handle_command_admin(update: Update, context: ContextTypes.DEFAULT_TYP
 
 
 # noinspection PyUnusedLocal
-async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> [None, int]:
-    query = update.callback_query
-    user = query.from_user
-
-    if user.id not in ADMINISTRATORS.keys():
-        logging.error("User {username} is not listed as administrator!".format(username=user.username))
-        return
-
-    await query.answer()
-
-    trans = i18n.trans(user)
-
-    if query.data == QUERY_ADMIN_DOWNLOAD_SPAM:
-        spam = [record for record in db.spam_select_all()]
-        await user.send_document(json.dumps(spam, ensure_ascii=False, indent=2).encode("utf-8"), filename="spam.json",
-                                 reply_markup=None)
-    elif query.data == QUERY_ADMIN_DOWNLOAD_ANTISPAM_KEYWORDS:
-        await user.send_document(antispam.get_keywords(), filename="bad_keywords.txt", reply_markup=None)
-    elif query.data == QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS:
-        await query.message.reply_text(trans.gettext("MESSAGE_DM_ADMIN_REQUEST_KEYWORDS"))
-
-        return UPLOADING_ANTISPAM_KEYWORDS
-    elif query.data == QUERY_ADMIN_UPLOAD_ANTISPAM_OPENAI:
-        await query.message.reply_text(trans.gettext("MESSAGE_DM_ADMIN_REQUEST_OPENAI"))
-
-        return UPLOADING_ANTISPAM_OPENAI
-
-
-# noinspection PyUnusedLocal
-async def received_antispam_keywords(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    user = update.effective_user
-    if user.id not in ADMINISTRATORS.keys():
-        logging.error("User {username} is not listed as administrator!".format(username=user.username))
-        return ConversationHandler.END
-
-    trans = i18n.trans(user)
-
-    document = update.message.effective_attachment
-
-    if document.mime_type != "text/plain":
-        await update.effective_message.reply_text(trans.gettext("MESSAGE_DM_ADMIN_KEYWORDS_WRONG_FILE_TYPE"),
-                                                  reply_markup=get_main_keyboard())
-        return ConversationHandler.END
-
-    keywords_file = await document.get_file()
-    data = io.BytesIO()
-    await keywords_file.download_to_memory(data)
-
-    if antispam.save_new_keywords(data):
-        await update.effective_message.reply_text(trans.gettext("MESSAGE_DM_ADMIN_KEYWORDS_UPDATED"), reply_markup=None)
-    else:
-        await update.effective_message.reply_text(trans.gettext("MESSAGE_DM_ADMIN_KEYWORDS_CANNOT_USE"),
-                                                  reply_markup=get_main_keyboard())
-
-    return ConversationHandler.END
-
-
-# noinspection PyUnusedLocal
-async def received_antispam_openai(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    user = update.effective_user
-    if user.id not in ADMINISTRATORS.keys():
-        logging.error("User {username} is not listed as administrator!".format(username=user.username))
-        return ConversationHandler.END
-
-    document = update.message.effective_attachment
-
-    openai_file = await document.get_file()
-    data = io.BytesIO()
-    await openai_file.download_to_memory(data)
-
-    trans = i18n.trans(user)
-
-    if antispam.save_new_openai(data):
-        await update.effective_message.reply_text(trans.gettext("MESSAGE_DM_ADMIN_OPENAI_UPDATED"), reply_markup=None)
-    else:
-        await update.effective_message.reply_text(trans.gettext("MESSAGE_DM_ADMIN_OPENAI_CANNOT_USE"),
-                                                  reply_markup=get_main_keyboard())
-
-    return ConversationHandler.END
-
-
 def who_people_to_message(people: list) -> list:
     result = []
     for p in people:
@@ -706,48 +619,6 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     return ConversationHandler.END
 
 
-async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Detect spam and take appropriate action"""
-
-    if update.effective_message is None:
-        logger.warning("The update does not have any message, cannot detect spam")
-        return
-    message = update.effective_message
-    user = message.from_user
-
-    if message.chat_id != MAIN_CHAT_ID:
-        # The message does not belong to the main chat, will not detect spam.
-        return
-
-    if db.is_good_member(user.id):
-        # The message comes from a known user, will not detect spam.
-        return
-
-    try:
-        if not antispam.is_spam(message):
-            logger.info("The first message from user {full_name} (ID {id}) looks good".format(full_name=user.full_name,
-                                                                                              id=user.id))
-            db.register_good_member(user.id)
-            return
-    except Exception as e:
-        logger.error("Exception while trying to detect spam:", exc_info=e)
-
-        await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID, text=str(e))
-        return
-
-    await safe_delete_message(context, message.id, message.chat.id)
-
-    if BOT_IS_MALE:
-        delete_notice = i18n.default().gettext("MESSAGE_MC_SPAM_DETECTED_M {username}")
-    else:
-        delete_notice = i18n.default().gettext("MESSAGE_MC_SPAM_DETECTED_F {username}")
-
-    posted_message = await context.bot.send_message(MAIN_CHAT_ID,
-                                                    delete_notice.format(username=message.from_user.full_name),
-                                                    disable_notification=True)
-    context.job_queue.run_once(delete_message, 15, data=(posted_message, False))
-
-
 # noinspection PyUnusedLocal
 async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Approve or decline changes to user data"""
@@ -897,6 +768,7 @@ async def post_init(application: Application) -> None:
     for chat_id in ADMINISTRATORS.keys():
         await bot.set_chat_menu_button(chat_id, MenuButtonCommands())
 
+    antispam.post_init(application, group=1)
     glossary.post_init(application, group=4)
 
 
@@ -933,28 +805,12 @@ def main() -> None:
                             states={SELECTING_CATEGORY: [CallbackQueryHandler(retire_received_category)]},
                             fallbacks=[MessageHandler(filters.ALL, abort_conversation)]))
 
-    application.add_handler(ConversationHandler(
-        entry_points=[CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS)],
-        states={UPLOADING_ANTISPAM_KEYWORDS: [MessageHandler(filters.ATTACHMENT, received_antispam_keywords)]},
-        fallbacks=[]))
-
-    application.add_handler(ConversationHandler(
-        entry_points=[CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_UPLOAD_ANTISPAM_OPENAI)],
-        states={UPLOADING_ANTISPAM_OPENAI: [MessageHandler(filters.ATTACHMENT, received_antispam_openai)]},
-        fallbacks=[]))
-
     application.add_handler(CommandHandler(COMMAND_START, handle_command_start))
     application.add_handler(CommandHandler(COMMAND_HELP, handle_command_help))
     application.add_handler(CommandHandler(COMMAND_ADMIN, handle_command_admin))
 
-    application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_DOWNLOAD_SPAM))
-    application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=QUERY_ADMIN_DOWNLOAD_ANTISPAM_KEYWORDS))
-
     if GREETING_ENABLED:
         application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, greet_new_member))
-
-    if ANTISPAM_ENABLED:
-        application.add_handler(MessageHandler(filters.TEXT & (~ filters.COMMAND), detect_spam), group=1)
 
     if MODERATION_ENABLED:
         application.add_handler(CallbackQueryHandler(confirm_user_data, pattern=re.compile(
@@ -967,17 +823,7 @@ def main() -> None:
 
         application.add_handler(MessageHandler(filters.TEXT & (~ filters.COMMAND), detect_language), group=3)
 
-    trans = i18n.default()
-
-    response_buttons = {trans.gettext("BUTTON_DOWNLOAD_SPAM"): QUERY_ADMIN_DOWNLOAD_SPAM,
-                        trans.gettext("BUTTON_DOWNLOAD_ANTISPAM_KEYWORDS"): QUERY_ADMIN_DOWNLOAD_ANTISPAM_KEYWORDS,
-                        trans.gettext("BUTTON_UPLOAD_ANTISPAM_KEYWORDS"): QUERY_ADMIN_UPLOAD_ANTISPAM_KEYWORDS,
-                        trans.gettext("BUTTON_UPLOAD_ANTISPAM_OPENAI"): QUERY_ADMIN_UPLOAD_ANTISPAM_OPENAI}
-    button_download_spam, button_download_keywords, button_upload_keywords, button_upload_openai = (
-        InlineKeyboardButton(text, callback_data=command) for text, command in response_buttons.items())
-
-    register_buttons(((button_download_spam, button_upload_openai), (button_download_keywords, button_upload_keywords)))
-
+    antispam.init(application, group=1)
     glossary.init(application, group=4)
 
     application.add_error_handler(error_handler)
