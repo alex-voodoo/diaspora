@@ -347,6 +347,8 @@ def init(application: Application, group):
                            InlineKeyboardButton(trans.gettext("ANTISPAM_BUTTON_UPLOAD_ANTISPAM_OPENAI"),
                                                 callback_data=ADMIN_UPLOAD_OPENAI)),))
 
+    application.add_handler(MessageHandler(filters.TEXT & (~ filters.COMMAND), detect_spam), group=group)
+
 
 def post_init(application: Application, group):
     """Post-init"""
@@ -354,7 +356,4 @@ def post_init(application: Application, group):
     if not settings.ANTISPAM_ENABLED:
         return
 
-    # The bot name is not yet known when init() is called, but the handler for mentions must be added before the handler
-    # for all other messages, which is why we have to add handlers in post-init, when the bot is already created and
-    # knows its own name.
-    application.add_handler(MessageHandler(filters.TEXT & (~ filters.COMMAND), detect_spam), group=group)
+    pass
