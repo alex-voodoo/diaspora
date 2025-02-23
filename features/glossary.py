@@ -17,7 +17,7 @@ from telegram.ext import Application, CallbackQueryHandler, ContextTypes, Conver
 
 import settings
 from common import i18n
-from common.admin import get_main_keyboard, register_buttons
+from common.admin import register_buttons, save_file_with_backup
 from common.log import get_file_logger, LogTime
 from common.messaging_helpers import self_destructing_reaction, self_destructing_reply
 from settings import ADMINISTRATORS
@@ -303,30 +303,16 @@ async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 # noinspection PyUnusedLocal
 async def handle_received_terms_file(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    user = update.effective_user
-    if user.id not in ADMINISTRATORS.keys():
-        logging.error("User {username} is not listed as administrator!".format(username=user.username))
-        return ConversationHandler.END
+    trans = i18n.trans(update.effective_user)
 
-    trans = i18n.trans(user)
+    if await save_file_with_backup(update, TERMS_FILE_PATH, "text/csv"):
+        global glossary_data
 
-    document = update.message.effective_attachment
+        # The new data will be loaded on the next call to `process_normal_message()`.
+        glossary_data = None
 
-    if document.mime_type != "text/csv":
-        await update.effective_message.reply_text(trans.gettext("GLOSSARY_MESSAGE_DM_ADMIN_TERMS_WRONG_FILE_TYPE"),
-                                                  reply_markup=get_main_keyboard())
-        return ConversationHandler.END
-
-    keywords_file = await document.get_file()
-    data = io.BytesIO()
-    await keywords_file.download_to_memory(data)
-
-    if set_file(data):
         await update.effective_message.reply_text(trans.gettext("GLOSSARY_MESSAGE_DM_ADMIN_TERMS_UPDATED"),
                                                   reply_markup=None)
-    else:
-        await update.effective_message.reply_text(trans.gettext("GLOSSARY_MESSAGE_DM_ADMIN_TERMS_CANNOT_USE"),
-                                                  reply_markup=get_main_keyboard())
 
     return ConversationHandler.END
 

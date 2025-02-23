@@ -17,13 +17,13 @@ from telegram.ext import Application, CallbackQueryHandler, ConversationHandler,
 
 import settings
 from common import db, i18n
-from common.admin import get_main_keyboard, register_buttons
+from common.admin import get_main_keyboard, register_buttons, save_file_with_backup
 from common.messaging_helpers import delete_message, safe_delete_message
 
-KEYWORDS_FILENAME = "glossary_terms.csv"
+KEYWORDS_FILENAME = "antispam_keywords.txt"
 KEYWORDS_FILE_PATH = pathlib.Path(__file__).parent / "resources" / KEYWORDS_FILENAME
 
-OPENAI_FILE_PATH = pathlib.Path(__file__).parent / "resources" / "svm_model.joblib"
+OPENAI_FILE_PATH = pathlib.Path(__file__).parent / "resources" / "antispam_openai.joblib"
 
 # Admin keyboard commands
 (ADMIN_DOWNLOAD_SPAM, ADMIN_DOWNLOAD_KEYWORDS, ADMIN_UPLOAD_KEYWORDS, ADMIN_UPLOAD_OPENAI) = (
@@ -62,20 +62,6 @@ def get_keywords() -> io.BytesIO:
     with open(KEYWORDS_FILE_PATH, "rb") as inp:
         data = io.BytesIO(inp.read())
         return data
-
-
-def save_new_keywords(data: io.BytesIO) -> bool:
-    """Reset the keywords file with new contents.  The new list will be used on the next call to `detect_keywords()`."""
-
-    data.seek(0)
-    with open(KEYWORDS_FILE_PATH, "wb") as out_file:
-        out_file.write(data.read())
-
-    global keywords
-
-    keywords = None
-
-    return True
 
 
 def detect_emojis(message: telegram.Message) -> bool:
@@ -259,30 +245,15 @@ async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 # noinspection PyUnusedLocal
 async def handle_received_keywords(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    user = update.effective_user
-    if user.id not in settings.ADMINISTRATORS.keys():
-        logging.error("User {username} is not listed as administrator!".format(username=user.username))
-        return ConversationHandler.END
+    trans = i18n.trans(update.effective_user)
 
-    trans = i18n.trans(user)
+    if await save_file_with_backup(update, KEYWORDS_FILE_PATH, "text/plain"):
+        global keywords
 
-    document = update.message.effective_attachment
+        keywords = None
 
-    if document.mime_type != "text/plain":
-        await update.effective_message.reply_text(trans.gettext("ANTISPAM_MESSAGE_DM_ADMIN_KEYWORDS_WRONG_FILE_TYPE"),
-                                                  reply_markup=get_main_keyboard())
-        return ConversationHandler.END
-
-    keywords_file = await document.get_file()
-    data = io.BytesIO()
-    await keywords_file.download_to_memory(data)
-
-    if save_new_keywords(data):
         await update.effective_message.reply_text(trans.gettext("ANTISPAM_MESSAGE_DM_ADMIN_KEYWORDS_UPDATED"),
                                                   reply_markup=None)
-    else:
-        await update.effective_message.reply_text(trans.gettext("ANTISPAM_MESSAGE_DM_ADMIN_KEYWORDS_CANNOT_USE"),
-                                                  reply_markup=get_main_keyboard())
 
     return ConversationHandler.END
 

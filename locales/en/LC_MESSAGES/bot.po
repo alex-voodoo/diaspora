@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2025-02-21 20:50+0100\n"
+"POT-Creation-Date: 2025-02-24 10:04+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -256,55 +256,71 @@ msgstr "Main menu"
 msgid "COMMAND_DESCRIPTION_ADMIN"
 msgstr "Administrator's menu"
 
-#: features/antispam.py:222
+#: common/admin.py:61
+msgid "ADMIN_MESSAGE_DM_EXPECTED_REGULAR_FILE"
+msgstr "Please send a regular file."
+
+#: common/admin.py:70
+msgid "ADMIN_MESSAGE_DM_UNEXPECTED_FILE_TYPE {expected} {actual}"
+msgstr "Wrong file type!  Expected `{expected}` but got `{actual}` instead."
+
+#: common/admin.py:75
+msgid "ADMIN_MESSAGE_DM_INTERNAL_ERROR"
+msgstr "An internal error occurred.  See details in the log."
+
+#: common/admin.py:88
+msgid "ADMIN_MESSAGE_DM_VALIDATION_FAILED {message}"
+msgstr ""
+"This file cannot be used.\n"
+"{message}"
+
+#: common/admin.py:111
+msgid "ADMIN_MESSAGE_DM_OS_ERROR_WHILE_SAVING {error}"
+msgstr ""
+"Something terrible happened:\n"
+"{error}"
+
+#: features/antispam.py:208
 msgid "ANTISPAM_MESSAGE_MC_SPAM_DETECTED_M {username}"
 msgstr "⛔️ I have deleted a message sent by {username} because it looked like spam.  If you think that it was a mistake, talk to administrators."
 
-#: features/antispam.py:224
+#: features/antispam.py:210
 msgid "ANTISPAM_MESSAGE_MC_SPAM_DETECTED_F {username}"
 msgstr "⛔️ I have deleted a message sent by {username} because it looked like spam.  If you think that it was a mistake, talk to administrators."
 
-#: features/antispam.py:251
+#: features/antispam.py:237
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_REQUEST_KEYWORDS"
 msgstr "Awaiting a text file."
 
-#: features/antispam.py:255
+#: features/antispam.py:241
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_REQUEST_OPENAI"
 msgstr "Awaiting a .joblib file."
 
-#: features/antispam.py:272
-msgid "ANTISPAM_MESSAGE_DM_ADMIN_KEYWORDS_WRONG_FILE_TYPE"
-msgstr "I can load keywords only from a text file."
-
-#: features/antispam.py:281
+#: features/antispam.py:255
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_KEYWORDS_UPDATED"
 msgstr "Accepted."
 
-#: features/antispam.py:284
-msgid "ANTISPAM_MESSAGE_DM_ADMIN_KEYWORDS_CANNOT_USE"
-msgstr "Could not load the new keywords."
-
-#: features/antispam.py:306
+#: features/antispam.py:277
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_OPENAI_UPDATED"
 msgstr "Accepted."
 
-#: features/antispam.py:309
+#: features/antispam.py:280
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_OPENAI_CANNOT_USE"
 msgstr "Could not load the new model.  I will use the old one."
 
-#: features/antispam.py:332
+#: features/antispam.py:303
 msgid "ANTISPAM_BUTTON_DOWNLOAD_ANTISPAM_KEYWORDS"
 msgstr "Download spam keywords"
 
-#: features/antispam.py:334
+#: features/antispam.py:305
 msgid "ANTISPAM_BUTTON_UPLOAD_ANTISPAM_KEYWORDS"
 msgstr "Upload spam keywords"
 
-#: features/antispam.py:345
+#: features/antispam.py:316
 msgid "ANTISPAM_BUTTON_DOWNLOAD_SPAM"
 msgstr "Download spam"
 
-#: features/antispam.py:347
+#: features/antispam.py:318
 msgid "ANTISPAM_BUTTON_UPLOAD_ANTISPAM_OPENAI"
 msgstr "Upload the OpenAI model"
 
@@ -338,31 +354,23 @@ msgstr ""
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_REQUEST_TERMS"
 msgstr "Awaiting a CSV file."
 
-#: features/glossary.py:316
-msgid "GLOSSARY_MESSAGE_DM_ADMIN_TERMS_WRONG_FILE_TYPE"
-msgstr "I can load glossary only from a CSV file."
-
-#: features/glossary.py:325
+#: features/glossary.py:314
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_TERMS_UPDATED"
 msgstr "Accepted."
 
-#: features/glossary.py:328
-msgid "GLOSSARY_MESSAGE_DM_ADMIN_TERMS_CANNOT_USE"
-msgstr "Could not load the new glossary."
-
-#: features/glossary.py:350
+#: features/glossary.py:336
 msgid "GLOSSARY_COMMAND_EXPLAIN"
 msgstr "(decipher|explain|translate|glossary)"
 
-#: features/glossary.py:351
+#: features/glossary.py:337
 msgid "GLOSSARY_COMMAND_WHATISIT"
 msgstr "what is (?P<term>\\w+)"
 
-#: features/glossary.py:361
+#: features/glossary.py:347
 msgid "GLOSSARY_BUTTON_DOWNLOAD_TERMS"
 msgstr "Download glossary"
 
-#: features/glossary.py:363
+#: features/glossary.py:349
 msgid "GLOSSARY_BUTTON_UPLOAD_TERMS"
 msgstr "Upload glossary"
 
