@@ -121,6 +121,8 @@ GLOSSARY_REPLY_TO_TRIGGER_TIMEOUT = 30
 GLOSSARY_REACT_TO_TRIGGER = False
 # Maximum age in seconds of a trigger to explain.  Default is 300.
 GLOSSARY_MAX_TRIGGER_AGE = 300
+# Optional URL of an external web page that has more information on the glossary.  Default is empty string.
+GLOSSARY_EXTERNAL_URL = ""
 
 # ----------------------------------------------------------------------------------------------------------------------
 # General settings

@@ -105,8 +105,9 @@ def maybe_load_glossary_data():
                 logger.warning(e)
                 continue
             glossary_data.append(
-                {REGEX: re.compile("\\b{}\\b".format(regex), re.IGNORECASE), STANDARD: standard, ORIGINAL: original,
-                 EXPLANATION: explanation, STANDARD_STRIPPED: strip_diacritics(standard)})
+                {REGEX: re.compile("\\b{}\\b".format(regex.strip()), re.IGNORECASE), STANDARD: standard.strip(),
+                 ORIGINAL: original.strip(), EXPLANATION: explanation.strip(),
+                 STANDARD_STRIPPED: strip_diacritics(standard.strip())})
     logger.info("Loaded {} triggers for the glossary".format(len(glossary_data)))
 
 
@@ -149,6 +150,11 @@ def format_explanations(terms: list) -> list:
     result = []
     for term in terms:
         result.append("<b>{t}</b> <em>({o})</em> — {e}".format(e=term[EXPLANATION], o=term[ORIGINAL], t=term[STANDARD]))
+
+    if len(terms) > 1 and settings.GLOSSARY_EXTERNAL_URL:
+        result.append(
+            i18n.default().gettext("GLOSSARY_EXTERNAL_URL_NOTE {url}").format(url=settings.GLOSSARY_EXTERNAL_URL))
+
     return result
 
 
@@ -251,9 +257,11 @@ async def maybe_process_command_whatisit(update: Update, context: ContextTypes.D
     if possible_terms:
         if len(possible_terms) > 1:
             text = [trans.gettext("GLOSSARY_WHATISIT_FUZZY_MATCH")] + format_explanations(possible_terms)
-            await update.effective_message.reply_text("\n".join(text), parse_mode=ParseMode.HTML)
+            await update.effective_message.reply_text("\n".join(text), parse_mode=ParseMode.HTML,
+                                                      disable_web_page_preview=True)
         else:
-            await update.effective_message.reply_text(format_explanations(possible_terms)[0], parse_mode=ParseMode.HTML)
+            await update.effective_message.reply_text(format_explanations(possible_terms)[0], parse_mode=ParseMode.HTML,
+                                                      disable_web_page_preview=True)
         return True
 
     await update.effective_message.reply_text(trans.gettext("GLOSSARY_I_DO_NOT_KNOW"), parse_mode=ParseMode.HTML)
@@ -278,7 +286,13 @@ async def process_bot_mention(update: Update, context: ContextTypes.DEFAULT_TYPE
         if await handler(update, context):
             return
 
-    await update.effective_message.reply_text(trans.gettext("GLOSSARY_UNKNOWN_COMMAND"), parse_mode=ParseMode.HTML)
+    if settings.GLOSSARY_EXTERNAL_URL:
+        await update.effective_message.reply_text(
+            trans.gettext("GLOSSARY_UNKNOWN_COMMAND {url}").format(url=settings.GLOSSARY_EXTERNAL_URL),
+            parse_mode=ParseMode.HTML, disable_web_page_preview=True)
+    else:
+        await update.effective_message.reply_text(trans.gettext("GLOSSARY_UNKNOWN_COMMAND"), parse_mode=ParseMode.HTML,
+                                                  disable_web_page_preview=True)
 
 
 async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> [None, int]:
