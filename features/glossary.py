@@ -271,10 +271,16 @@ async def maybe_process_command_whatisit(update: Update, context: ContextTypes.D
 async def process_bot_mention(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """React to mention
 
+    The update text must start with the handle of the bot, otherwise it is ignored.  This is to handle commands like
+    "@OurBot, what is this" and skip things like "Everyone, use @OurBot for fun stuff".
+
     If the mention does not contain any term recognised as a question to translate triggers noticed recently, sends "I
     do not understand this".  Otherwise, sends an explanation to triggers that stay currently in the global
     `recent_triggers` list, and clears that list, or says that there is nothing to explain.
     """
+
+    if not update.effective_message.text.startswith(context.bot.name):
+        return
 
     maybe_load_glossary_data()
 

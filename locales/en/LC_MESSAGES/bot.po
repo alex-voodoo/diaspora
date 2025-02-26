@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2025-02-24 15:51+0100\n"
+"POT-Creation-Date: 2025-02-26 21:22+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -348,40 +348,41 @@ msgstr "This word is not in my list, but here are some similar ones."
 msgid "GLOSSARY_I_DO_NOT_KNOW"
 msgstr "I don't know!"
 
-#: features/glossary.py:291
+#: features/glossary.py:297
 msgid "GLOSSARY_UNKNOWN_COMMAND {url}"
 msgstr ""
 "I can <b>explain</b> words in the recent discussion that could appear unclear to people.  All words can be found in the <a href='{url}'>dictionary</a>.\n"
 "\n"
 "Also you can ask me <b>what does something mean</b>, and I will give the explanation if I have it."
 
-#: features/glossary.py:294
+#: features/glossary.py:300
 msgid "GLOSSARY_UNKNOWN_COMMAND"
 msgstr ""
 "I can <b>explain</b> words in the recent discussion that could appear unclear to people.\n"
 "\n"
 "Also you can ask me <b>what does something mean</b>, and I will give the explanation if I have it."
 
-#: features/glossary.py:313
+#: features/glossary.py:319
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_REQUEST_TERMS"
 msgstr "Awaiting a CSV file."
 
-#: features/glossary.py:328
+#: features/glossary.py:334
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_TERMS_UPDATED"
 msgstr "Accepted."
 
-#: features/glossary.py:350
+#: features/glossary.py:356
 msgid "GLOSSARY_COMMAND_EXPLAIN"
 msgstr "(decipher|explain|translate|help)"
 
-#: features/glossary.py:351
+#: features/glossary.py:357
 msgid "GLOSSARY_COMMAND_WHATISIT"
 msgstr "what is (?P<term>\\w+)"
 
-#: features/glossary.py:361
+#: features/glossary.py:367
 msgid "GLOSSARY_BUTTON_DOWNLOAD_TERMS"
 msgstr "Download glossary"
 
-#: features/glossary.py:363
+#: features/glossary.py:369
 msgid "GLOSSARY_BUTTON_UPLOAD_TERMS"
 msgstr "Upload glossary"
+

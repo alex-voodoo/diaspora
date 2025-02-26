@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2025-02-24 15:51+0100\n"
+"POT-Creation-Date: 2025-02-26 21:22+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -351,41 +351,41 @@ msgstr "Такого слова нет в моём словаре, но есть
 msgid "GLOSSARY_I_DO_NOT_KNOW"
 msgstr "Я не знаю. Попрошу добавить это слово в мой словарь."
 
-#: features/glossary.py:291
+#: features/glossary.py:297
 msgid "GLOSSARY_UNKNOWN_COMMAND {url}"
 msgstr ""
 "Я понимаю просьбы <em>помочь</em>, <em>объяснить</em>, <em>расшифровать</em> и <em>перевести</em>. Найду непонятные слова в беседе и приведу толкования из <a href='{url}'>словаря</a>.\n"
 "\n"
 "Также меня можно спросить, <em>что значит</em> или <em>что означает</em> конкретное слово — постараюсь найти ответ."
 
-#: features/glossary.py:294
+#: features/glossary.py:300
 msgid "GLOSSARY_UNKNOWN_COMMAND"
 msgstr ""
 "Я понимаю просьбы <em>помочь</em>, <em>объяснить</em>, <em>расшифровать</em> и <em>перевести</em>. Найду непонятные слова в беседе и приведу толкования из словаря.\n"
 "\n"
 "Также меня можно спросить, <em>что значит</em> или <em>что означает</em> конкретное слово — постараюсь найти ответ."
 
-#: features/glossary.py:313
+#: features/glossary.py:319
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_REQUEST_TERMS"
 msgstr "Ожидаю CSV-файл с глоссарием."
 
-#: features/glossary.py:328
+#: features/glossary.py:334
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_TERMS_UPDATED"
 msgstr "Принято."
 
-#: features/glossary.py:350
+#: features/glossary.py:356
 msgid "GLOSSARY_COMMAND_EXPLAIN"
 msgstr "((объ|по)ясн(ять|ить|и|ишь)|расшифр(овывать|овать|уй|уешь)|перев(одить|ести|еди|едешь|едёшь)|пом(огать|очь|оги|ожешь))"
 
-#: features/glossary.py:351
+#: features/glossary.py:357
 msgid "GLOSSARY_COMMAND_WHATISIT"
 msgstr "что (значит|означает|такое) (?P<term>\\w+)"
 
-#: features/glossary.py:361
+#: features/glossary.py:367
 msgid "GLOSSARY_BUTTON_DOWNLOAD_TERMS"
 msgstr "Выгрузить глоссарий"
 
-#: features/glossary.py:363
+#: features/glossary.py:369
 msgid "GLOSSARY_BUTTON_UPLOAD_TERMS"
 msgstr "Загрузить глоссарий"
 
