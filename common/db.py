@@ -16,6 +16,18 @@ db_logger = get_file_logger("db", "db.log")
 
 
 def apply_migrations(migrations_directory: Path) -> None:
+    """Apply migrations prepared at the given path
+
+    Enumerates all files with .txt extension at the given path, and tries to execute each one as a sequence of SQL
+    statements, going through files in alphabetical order.
+
+    Every file should contain one or more SQL statements separated with semicolon.
+    """
+
+    if not migrations_directory.exists() or not migrations_directory.is_dir():
+        print("Directory {d} does not exist, not applying any migrations".format(d=migrations_directory))
+        return
+
     conn = sqlite3.connect("people.db")
     c = conn.cursor()
 
