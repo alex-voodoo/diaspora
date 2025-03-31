@@ -19,7 +19,7 @@ COMMAND_ASTANAVITES = "astanavites"
 EMOJI_REPLIES = ("✋", "🛑", "🙅‍♀️", "️⛔", "❌", "🚧")
 urls = None
 latest_url_timestamp = None
-MIN_URL_DELAY = 15
+MIN_URL_DELAY = 5
 URL_CHANCE = 50
 
 
