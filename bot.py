@@ -26,7 +26,7 @@ from common import db, i18n
 from common.admin import get_main_keyboard
 from common.checks import is_member_of_main_chat
 from common.messaging_helpers import safe_delete_message, self_destructing_reply
-from features import antispam, glossary
+from features import antispam, aprils_fool, glossary
 from settings import *
 
 # Configure logging
@@ -825,6 +825,7 @@ def main() -> None:
 
     antispam.init(application, group=1)
     glossary.init(application, group=4)
+    aprils_fool.init(application, group=5)
 
     application.add_error_handler(error_handler)
 
