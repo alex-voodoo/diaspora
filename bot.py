@@ -18,7 +18,8 @@ from collections import deque
 import httpx
 import telegram.error
 from langdetect import detect, lang_detect_exception
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, User, MenuButtonCommands, BotCommand
+from telegram import (BotCommand, InlineKeyboardMarkup, InlineKeyboardButton, LinkPreviewOptions, MenuButtonCommands,
+                      Update, User)
 from telegram.constants import ParseMode, ChatType
 from telegram.ext import (Application, CallbackQueryHandler, CommandHandler, ContextTypes, ConversationHandler,
                           Defaults, filters, MessageHandler)
@@ -233,8 +234,7 @@ async def detect_language(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     if DEFAULT_LANGUAGE not in message_languages:
         message_languages = deque()
         await context.bot.send_message(chat_id=MAIN_CHAT_ID,
-                                       text=i18n.default().gettext("MESSAGE_MC_SPEAK_DEFAULT_LANGUAGE"),
-                                       parse_mode=ParseMode.HTML)
+                                       text=i18n.default().gettext("MESSAGE_MC_SPEAK_DEFAULT_LANGUAGE"))
 
 
 async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: telegram.Message, user: User,
@@ -265,8 +265,7 @@ async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: telegram
                 c=record["title"] if record["title"] else trans.gettext("BUTTON_ENROLL_CATEGORY_DEFAULT"),
                 o=record["occupation"], l=record["location"]))
 
-        await message.reply_text("\n".join(text), reply_markup=get_standard_keyboard(user), parse_mode=ParseMode.HTML,
-                                 disable_web_page_preview=True)
+        await message.reply_text("\n".join(text), reply_markup=get_standard_keyboard(user))
     else:
         logging.info("Welcoming user {username} (chat ID {chat_id})".format(username=user.username, chat_id=user.id))
 
@@ -396,13 +395,12 @@ async def who_received_category(update: Update, context: ContextTypes.DEFAULT_TY
             break
     if not category:
         await query.message.reply_text(text=i18n.trans(query.from_user).gettext("MESSAGE_DM_WHO_CATEGORY_EMPTY"),
-                                       reply_markup=get_standard_keyboard(query.from_user), parse_mode=ParseMode.HTML)
+                                       reply_markup=get_standard_keyboard(query.from_user))
         return ConversationHandler.END
 
     user_list = ["<b>{t}</b>".format(t=category["title"])] + who_people_to_message(category["people"])
 
-    await query.message.reply_text(text="\n".join(user_list), reply_markup=get_standard_keyboard(query.from_user),
-                                   parse_mode=ParseMode.HTML, disable_web_page_preview=True)
+    await query.message.reply_text(text="\n".join(user_list), reply_markup=get_standard_keyboard(query.from_user))
 
     del context.user_data["who_request_category"]
     return ConversationHandler.END
@@ -453,8 +451,7 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         united_message = "\n".join(user_list)
         if len(united_message) < MAX_MESSAGE_LENGTH:
             await query.edit_message_reply_markup(None)
-            await query.message.reply_text(text=united_message, reply_markup=get_standard_keyboard(query.from_user),
-                                           parse_mode=ParseMode.HTML, disable_web_page_preview=True)
+            await query.message.reply_text(text=united_message, reply_markup=get_standard_keyboard(query.from_user))
             return ConversationHandler.END
         else:
             return await who_request_category(update, context, filtered_people)
@@ -531,8 +528,7 @@ async def received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         await query.message.reply_text(
             trans.gettext("MESSAGE_DM_UPDATE_OCCUPATION {title} {occupation}").format(title=records[0]["title"],
                                                                                       occupation=records[0][
-                                                                                          "occupation"]),
-            parse_mode=ParseMode.HTML)
+                                                                                          "occupation"]))
         user_data["category_title"] = records[0]["title"]
         user_data["location"] = records[0]["location"]
     else:
@@ -552,8 +548,7 @@ async def received_occupation(update: Update, context: ContextTypes.DEFAULT_TYPE
     if "mode" in context.user_data and context.user_data["mode"] == "update":
         await update.message.reply_text(
             trans.gettext("MESSAGE_DM_UPDATE_LOCATION {title} {location}").format(title=user_data["category_title"],
-                                                                                  location=user_data["location"]),
-            parse_mode=ParseMode.HTML)
+                                                                                  location=user_data["location"]))
     else:
         await update.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_ASK_LOCATION"))
 
@@ -770,7 +765,8 @@ def main() -> None:
 
     application = (Application.builder()
                    .token(BOT_TOKEN)
-                   .defaults(Defaults(parse_mode=ParseMode.HTML))
+                   .defaults(Defaults(link_preview_options=LinkPreviewOptions(is_disabled=True),
+                                      parse_mode=ParseMode.HTML))
                    .post_init(post_init)
                    .build())
 

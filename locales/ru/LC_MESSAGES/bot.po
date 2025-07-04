@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2025-07-04 22:42+0200\n"
+"POT-Creation-Date: 2025-07-04 23:11+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -20,43 +20,43 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.16.0\n"
 
-#: bot.py:60
+#: bot.py:61
 msgid "MESSAGE_MC_LET_US_TALK_PRIVATE"
 msgstr "Напишите мне личное сообщение"
 
-#: bot.py:88
+#: bot.py:89
 msgid "BUTTON_WHO"
 msgstr "Показать список"
 
-#: bot.py:88
+#: bot.py:89
 msgid "BUTTON_ENROLL"
 msgstr "Добавить запись"
 
-#: bot.py:89
+#: bot.py:90
 msgid "BUTTON_ENROLL_MORE"
 msgstr "Добавить ещё одну запись"
 
-#: bot.py:90
+#: bot.py:91
 msgid "BUTTON_UPDATE"
 msgstr "Править запись"
 
-#: bot.py:90
+#: bot.py:91
 msgid "BUTTON_RETIRE"
 msgstr "Удалить запись"
 
-#: bot.py:142 bot.py:147 bot.py:265
+#: bot.py:143 bot.py:148 bot.py:265
 msgid "BUTTON_ENROLL_CATEGORY_DEFAULT"
 msgstr "Другое"
 
-#: bot.py:163 bot.py:173
+#: bot.py:164 bot.py:174
 msgid "BUTTON_YES"
 msgstr "Да"
 
-#: bot.py:163 bot.py:173
+#: bot.py:164 bot.py:174
 msgid "BUTTON_NO"
 msgstr "Нет"
 
-#: bot.py:188
+#: bot.py:189
 msgid "MESSAGE_ADMIN_APPROVE_USER_DATA {username}"
 msgstr ""
 "Пользователь @{username} изменил свою запись.\n"
@@ -64,7 +64,7 @@ msgstr ""
 "Местонахождение: {location}\n"
 "Принять изменения?"
 
-#: bot.py:202
+#: bot.py:203
 msgid "MESSAGE_MC_GREETING_M {user_first_name} {bot_first_name}"
 msgstr ""
 "Добро пожаловать, {user_first_name}!\n"
@@ -75,7 +75,7 @@ msgstr ""
 "\n"
 "<em>Я удалю это сообщение через пять минут.</em>"
 
-#: bot.py:203
+#: bot.py:204
 msgid "MESSAGE_MC_GREETING_F {user_first_name} {bot_first_name}"
 msgstr ""
 "Добро пожаловать, {user_first_name}!\n"
@@ -86,7 +86,7 @@ msgstr ""
 "\n"
 "<em>Я удалю это сообщение через пять минут.</em>"
 
-#: bot.py:236
+#: bot.py:237
 msgid "MESSAGE_MC_SPEAK_DEFAULT_LANGUAGE"
 msgstr "❗ Пожалуйста, следуйте правилам группы и пишите по-русски, чтобы вас понимали все участники."
 
@@ -101,15 +101,15 @@ msgstr[0] "Здравствуйте, {user_first_name}. Вот ваша {record_
 msgstr[1] "Здравствуйте, {user_first_name}. Вот ваши {record_count} записи.\n"
 msgstr[2] "Здравствуйте, {user_first_name}. Вот ваши {record_count} записей.\n"
 
-#: bot.py:274
+#: bot.py:273
 msgid "MESSAGE_DM_NO_RECORDS"
 msgstr "У вас нет записей."
 
-#: bot.py:278
+#: bot.py:277
 msgid "MESSAGE_DM_HELLO {bot_first_name} {main_chat_name}"
 msgstr "Здравствуйте, я бот {bot_first_name} — хранитель полезных контактов группы «{main_chat_name}». Подскажу, кто будет полезен вам, или помогу найти клиентов."
 
-#: bot.py:293
+#: bot.py:292
 msgid "MESSAGE_MC_HELP"
 msgstr ""
 "Я записываю пользователей, которые предлагают услуги, и показываю их список всем участникам чата.\n"
@@ -118,7 +118,7 @@ msgstr ""
 "\n"
 "<em>Я скоро удалю это сообщение, чтобы не засорять чат.</em>"
 
-#: bot.py:299
+#: bot.py:298
 msgid "MESSAGE_DM_HELP"
 msgstr ""
 "Я записываю пользователей, которые предлагают услуги, и показываю их список всем участникам чата.\n"
@@ -127,15 +127,15 @@ msgstr ""
 "\n"
 "С помощью кнопок ниже можно посмотреть список контактов, добавиться в него, изменить или удалить свою запись."
 
-#: bot.py:314
+#: bot.py:313
 msgid "MESSAGE_ADMIN_MAIN_CHAT_ID {title} {id}"
 msgstr "ID группы «{title}»: {id}"
 
-#: bot.py:345
+#: bot.py:344
 msgid "MESSAGE_DM_ADMIN"
 msgstr "Чего изволите?"
 
-#: bot.py:373
+#: bot.py:372
 msgid "MESSAGE_DM_WHO_CATEGORY_LIST"
 msgstr ""
 "Вот категории услуг и число записей в каждой на данный момент:\n"
@@ -144,104 +144,104 @@ msgstr ""
 "\n"
 "Какую категорию показать?"
 
-#: bot.py:398
+#: bot.py:397
 msgid "MESSAGE_DM_WHO_CATEGORY_EMPTY"
 msgstr "Эта категория уже пуста."
 
-#: bot.py:421
+#: bot.py:419
 msgid "MESSAGE_DM_WHO_LIST_HEADING"
 msgstr "Вот кого я знаю:"
 
-#: bot.py:424
+#: bot.py:422
 msgid "MESSAGE_DM_WHO_CATEGORY_DEFAULT"
 msgstr "Другое"
 
-#: bot.py:451
+#: bot.py:449
 msgid "MESSAGE_DM_WHO_EMPTY"
 msgstr "Пока никто не записался, будьте первым!"
 
-#: bot.py:475
+#: bot.py:472
 msgid "MESSAGE_DM_ENROLL_USERNAME_REQUIRED"
 msgstr ""
 "В вашем профиле Телеграм не задано имя пользователя. Добавьте его в настройках, чтобы другие участники могли написать вам, не зная вашего номера.\n"
 "\n"
 "После этого я смогу добавить вас в список."
 
-#: bot.py:479
+#: bot.py:476
 msgid "MESSAGE_DM_ENROLL_START"
 msgstr "Давайте знакомиться!"
 
-#: bot.py:487
+#: bot.py:484
 msgid "MESSAGE_DM_ENROLL_ASK_CATEGORY"
 msgstr "Выберите категорию, к которой можно отнести вашу услугу."
 
-#: bot.py:494 bot.py:539
+#: bot.py:491 bot.py:535
 msgid "MESSAGE_DM_ENROLL_ASK_OCCUPATION"
 msgstr "Сформулируйте коротко, кто вы (например, «Парикмахер», «Няня») или что вы делаете («Учу сёрфингу», «Помогаю с уборкой»)."
 
-#: bot.py:507
+#: bot.py:504
 msgid "MESSAGE_DM_SELECT_CATEGORY_FOR_UPDATE"
 msgstr "Выберите категорию для редактирования."
 
-#: bot.py:532
+#: bot.py:529
 msgid "MESSAGE_DM_UPDATE_OCCUPATION {title} {occupation}"
 msgstr ""
 "Введите новое описание вашей услуги в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{occupation}</b>"
 
-#: bot.py:554
+#: bot.py:550
 msgid "MESSAGE_DM_UPDATE_LOCATION {title} {location}"
 msgstr ""
 "Введите новое описание места, где вы оказываете услугу в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{location}</b>"
 
-#: bot.py:558
+#: bot.py:553
 msgid "MESSAGE_DM_ENROLL_ASK_LOCATION"
 msgstr ""
 "Где вы оказываете услуги?\n"
 "\n"
 "Укажите город по-русски: Сантьяго, Корунья, Виго и др. Если городов несколько, пишите «Галисия»."
 
-#: bot.py:569
+#: bot.py:564
 msgid "MESSAGE_DM_ENROLL_CONFIRM_LEGALITY"
 msgstr ""
 "И последнее: подтвердите, что не нарушаете местные законы и правила.\n"
 "\n"
 "Ваша услуга легальна?"
 
-#: bot.py:600
+#: bot.py:595
 msgid "MESSAGE_DM_ENROLL_COMPLETED"
 msgstr "Готово, вы добавлены в список!"
 
-#: bot.py:602
+#: bot.py:597
 msgid "MESSAGE_DM_ENROLL_COMPLETED_POST_MODERATION"
 msgstr "Готово, вы добавлены в список! Обратите внимание, модераторы могут скрыть вашу запись, если она нарушает правила группы."
 
-#: bot.py:604
+#: bot.py:599
 msgid "MESSAGE_DM_ENROLL_COMPLETED_PRE_MODERATION"
 msgstr "Готово! Я добавлю вас в список после проверки модераторами."
 
-#: bot.py:616
+#: bot.py:611
 msgid "MESSAGE_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"
 msgstr "Извините, я не могу добавлять нелегальные услуги."
 
-#: bot.py:645
+#: bot.py:640
 msgid "MESSAGE_ADMIN_USER_RECORD_APPROVED"
 msgstr "Одобрено."
 
-#: bot.py:655
+#: bot.py:650
 msgid "MESSAGE_ADMIN_USER_RECORD_SUSPENDED"
 msgstr "Запись скрыта."
 
-#: bot.py:670
+#: bot.py:665
 msgid "MESSAGE_DM_SELECT_CATEGORY_FOR_RETIRE"
 msgstr "Выберите категорию для удаления."
 
-#: bot.py:688
+#: bot.py:683
 msgid "MESSAGE_DM_RETIRE"
 msgstr "Запись удалена."
 
-#: bot.py:713
+#: bot.py:708
 msgid "ERROR_REPORT_BODY {error_uuid} {traceback} {update} {chat_data} {user_data}"
 msgstr ""
 "UUID ошибки {error_uuid}\n"
@@ -260,23 +260,23 @@ msgstr ""
 "\n"
 "context.user_data = {user_data}"
 
-#: bot.py:720
+#: bot.py:715
 msgid "ERROR_REPORT_CAPTION {error_uuid}"
 msgstr "Отчёт об ошибке <code>{error_uuid}</code>"
 
-#: bot.py:730
+#: bot.py:725
 msgid "MESSAGE_DM_INTERNAL_ERROR {error_uuid}"
 msgstr "Что-то сломалось (во мне). Ошибка зарегистрирована с кодом <code>{error_uuid}</code>. Я сообщу моему администратору."
 
-#: bot.py:745
+#: bot.py:740
 msgid "MESSAGE_DM_CONVERSATION_CANCELLED"
 msgstr "Начнём сначала."
 
-#: bot.py:756
+#: bot.py:751
 msgid "COMMAND_DESCRIPTION_START"
 msgstr "Главное меню"
 
-#: bot.py:757
+#: bot.py:752
 msgid "COMMAND_DESCRIPTION_ADMIN"
 msgstr "Меню администратора"
 
@@ -370,45 +370,45 @@ msgstr "Непонятные слова в недавней беседе:\n"
 msgid "GLOSSARY_WHATISIT_FUZZY_MATCH"
 msgstr "Такого слова нет в моём словаре, но есть несколько похожих."
 
-#: features/glossary.py:267
+#: features/glossary.py:265
 msgid "GLOSSARY_I_DO_NOT_KNOW"
 msgstr "Я не знаю. Попрошу добавить это слово в мой словарь."
 
-#: features/glossary.py:297
+#: features/glossary.py:295
 msgid "GLOSSARY_UNKNOWN_COMMAND {url}"
 msgstr ""
 "Я понимаю просьбы <em>помочь</em>, <em>объяснить</em>, <em>расшифровать</em> и <em>перевести</em>. Найду непонятные слова в беседе и приведу толкования из <a href='{url}'>словаря</a>.\n"
 "\n"
 "Также меня можно спросить, <em>что значит</em> или <em>что означает</em> конкретное слово — постараюсь найти ответ."
 
-#: features/glossary.py:300
+#: features/glossary.py:297
 msgid "GLOSSARY_UNKNOWN_COMMAND"
 msgstr ""
 "Я понимаю просьбы <em>помочь</em>, <em>объяснить</em>, <em>расшифровать</em> и <em>перевести</em>. Найду непонятные слова в беседе и приведу толкования из словаря.\n"
 "\n"
 "Также меня можно спросить, <em>что значит</em> или <em>что означает</em> конкретное слово — постараюсь найти ответ."
 
-#: features/glossary.py:319
+#: features/glossary.py:315
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_REQUEST_TERMS"
 msgstr "Ожидаю CSV-файл с глоссарием."
 
-#: features/glossary.py:334
+#: features/glossary.py:330
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_TERMS_UPDATED"
 msgstr "Принято."
 
-#: features/glossary.py:356
+#: features/glossary.py:352
 msgid "GLOSSARY_COMMAND_EXPLAIN"
 msgstr "((объ|по)ясн(ять|ить|и|ишь)|расшифр(овывать|овать|уй|уешь)|перев(одить|ести|еди|едешь|едёшь)|пом(огать|очь|оги|ожешь))"
 
-#: features/glossary.py:357
+#: features/glossary.py:353
 msgid "GLOSSARY_COMMAND_WHATISIT"
 msgstr "что (значит|означает|такое) (?P<term>\\w+)"
 
-#: features/glossary.py:367
+#: features/glossary.py:363
 msgid "GLOSSARY_BUTTON_DOWNLOAD_TERMS"
 msgstr "Выгрузить глоссарий"
 
-#: features/glossary.py:369
+#: features/glossary.py:365
 msgid "GLOSSARY_BUTTON_UPLOAD_TERMS"
 msgstr "Загрузить глоссарий"
 

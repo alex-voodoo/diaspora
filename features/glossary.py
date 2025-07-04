@@ -12,7 +12,7 @@ import unicodedata
 from collections import deque
 
 from telegram import InlineKeyboardButton, Update
-from telegram.constants import ParseMode, ReactionEmoji
+from telegram.constants import ReactionEmoji
 from telegram.ext import Application, CallbackQueryHandler, ContextTypes, ConversationHandler, filters, MessageHandler
 
 import settings
@@ -214,12 +214,12 @@ async def maybe_process_command_explain(update: Update, context: ContextTypes.DE
     trans = i18n.default()
 
     if not recent_triggers:
-        await update.effective_message.reply_text(trans.gettext("GLOSSARY_EMPTY_CONTEXT"), parse_mode=ParseMode.HTML)
+        await update.effective_message.reply_text(trans.gettext("GLOSSARY_EMPTY_CONTEXT"))
         return True
 
     text = [trans.gettext("GLOSSARY_EXPLANATION_HEADER")] + format_explanations(
         [t for t in glossary_data if t[STANDARD] in sorted(list(set(t[TRIGGER][STANDARD] for t in recent_triggers)))])
-    await update.effective_message.reply_text("\n".join(text), parse_mode=ParseMode.HTML, disable_web_page_preview=True)
+    await update.effective_message.reply_text("\n".join(text))
 
     recent_triggers = deque()
     return True
@@ -244,7 +244,7 @@ async def maybe_process_command_whatisit(update: Update, context: ContextTypes.D
 
     for term in glossary_data:
         if term[STANDARD_STRIPPED] == word:
-            await update.effective_message.reply_text(format_explanations([term])[0], parse_mode=ParseMode.HTML)
+            await update.effective_message.reply_text(format_explanations([term])[0])
             return True
 
     possible_terms = []
@@ -257,14 +257,12 @@ async def maybe_process_command_whatisit(update: Update, context: ContextTypes.D
     if possible_terms:
         if len(possible_terms) > 1:
             text = [trans.gettext("GLOSSARY_WHATISIT_FUZZY_MATCH")] + format_explanations(possible_terms)
-            await update.effective_message.reply_text("\n".join(text), parse_mode=ParseMode.HTML,
-                                                      disable_web_page_preview=True)
+            await update.effective_message.reply_text("\n".join(text))
         else:
-            await update.effective_message.reply_text(format_explanations(possible_terms)[0], parse_mode=ParseMode.HTML,
-                                                      disable_web_page_preview=True)
+            await update.effective_message.reply_text(format_explanations(possible_terms)[0])
         return True
 
-    await update.effective_message.reply_text(trans.gettext("GLOSSARY_I_DO_NOT_KNOW"), parse_mode=ParseMode.HTML)
+    await update.effective_message.reply_text(trans.gettext("GLOSSARY_I_DO_NOT_KNOW"))
     return True
 
 
@@ -294,11 +292,9 @@ async def process_bot_mention(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     if settings.GLOSSARY_EXTERNAL_URL:
         await update.effective_message.reply_text(
-            trans.gettext("GLOSSARY_UNKNOWN_COMMAND {url}").format(url=settings.GLOSSARY_EXTERNAL_URL),
-            parse_mode=ParseMode.HTML, disable_web_page_preview=True)
+            trans.gettext("GLOSSARY_UNKNOWN_COMMAND {url}").format(url=settings.GLOSSARY_EXTERNAL_URL))
     else:
-        await update.effective_message.reply_text(trans.gettext("GLOSSARY_UNKNOWN_COMMAND"), parse_mode=ParseMode.HTML,
-                                                  disable_web_page_preview=True)
+        await update.effective_message.reply_text(trans.gettext("GLOSSARY_UNKNOWN_COMMAND"))
 
 
 async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> [None, int]:

@@ -6,7 +6,6 @@ import logging
 
 import telegram
 from telegram import Update, Message
-from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
 logger = logging.getLogger(__name__)
@@ -69,8 +68,7 @@ async def self_destructing_reply(update: Update, context: ContextTypes.DEFAULT_T
         logger.error("Cannot delete messages in private chats!")
         return
 
-    posted_message = await update.message.reply_text(message_body, parse_mode=ParseMode.HTML,
-                                                     disable_web_page_preview=True)
+    posted_message = await update.message.reply_text(message_body)
 
     if timeout > 0:
         context.job_queue.run_once(delete_message, timeout, data=(posted_message, delete_reply_to))
