@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2025-02-26 21:22+0100\n"
+"POT-Creation-Date: 2025-07-04 22:42+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -241,19 +241,42 @@ msgstr "Выберите категорию для удаления."
 msgid "MESSAGE_DM_RETIRE"
 msgstr "Запись удалена."
 
-#: bot.py:739
-msgid "MESSAGE_DM_INTERNAL_ERROR"
-msgstr "Что-то сломалось (во мне). Я сообщу моему администратору. Попробуйте нажать какую-нибудь кнопку, вдруг получится."
+#: bot.py:713
+msgid "ERROR_REPORT_BODY {error_uuid} {traceback} {update} {chat_data} {user_data}"
+msgstr ""
+"UUID ошибки {error_uuid}\n"
+"\n"
+"Трассировка стека:\n"
+"------------------\n"
+"\n"
+"{traceback}\n"
+"\n"
+"Другие данные:\n"
+"--------------\n"
+"\n"
+"update = {update}\n"
+"\n"
+"context.chat_data = {chat_data}\n"
+"\n"
+"context.user_data = {user_data}"
 
-#: bot.py:754
+#: bot.py:720
+msgid "ERROR_REPORT_CAPTION {error_uuid}"
+msgstr "Отчёт об ошибке <code>{error_uuid}</code>"
+
+#: bot.py:730
+msgid "MESSAGE_DM_INTERNAL_ERROR {error_uuid}"
+msgstr "Что-то сломалось (во мне). Ошибка зарегистрирована с кодом <code>{error_uuid}</code>. Я сообщу моему администратору."
+
+#: bot.py:745
 msgid "MESSAGE_DM_CONVERSATION_CANCELLED"
 msgstr "Начнём сначала."
 
-#: bot.py:765
+#: bot.py:756
 msgid "COMMAND_DESCRIPTION_START"
 msgstr "Главное меню"
 
-#: bot.py:766
+#: bot.py:757
 msgid "COMMAND_DESCRIPTION_ADMIN"
 msgstr "Меню администратора"
 

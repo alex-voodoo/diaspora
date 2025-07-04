@@ -7,11 +7,12 @@ See README.md for details.
 """
 
 import copy
-import html
+import io
 import json
 import logging
 import re
 import traceback
+import uuid
 from collections import deque
 
 import httpx
@@ -19,8 +20,8 @@ import telegram.error
 from langdetect import detect, lang_detect_exception
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, User, MenuButtonCommands, BotCommand
 from telegram.constants import ParseMode, ChatType
-from telegram.ext import (Application, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters,
-                          CallbackQueryHandler, )
+from telegram.ext import (Application, CallbackQueryHandler, CommandHandler, ContextTypes, ConversationHandler,
+                          Defaults, filters, MessageHandler)
 
 from common import db, i18n
 from common.admin import get_main_keyboard
@@ -35,7 +36,6 @@ from settings import *
 logging.basicConfig(format="[%(asctime)s %(levelname)s %(name)s %(filename)s:%(lineno)d] %(message)s",
                     level=logging.INFO, filename="bot.log")
 logging.getLogger("httpx").setLevel(logging.WARNING)
-logger = logging.getLogger(__name__)
 
 # Commands, sequences, and responses
 COMMAND_START, COMMAND_HELP, COMMAND_WHO, COMMAND_ENROLL, COMMAND_UPDATE, COMMAND_RETIRE, COMMAND_ADMIN = (
@@ -183,7 +183,7 @@ async def moderate_new_data(update: Update, context: ContextTypes.DEFAULT_TYPE, 
     moderator_ids = ADMINISTRATORS.keys() if ADMINISTRATORS else (DEVELOPER_CHAT_ID,)
 
     for moderator_id in moderator_ids:
-        logger.info("Sending moderation request to moderator ID {id}".format(id=moderator_id))
+        logging.info("Sending moderation request to moderator ID {id}".format(id=moderator_id))
         await context.bot.send_message(chat_id=moderator_id,
                                        text=i18n.default().gettext("MESSAGE_ADMIN_APPROVE_USER_DATA {username}").format(
                                            username=data["tg_username"], occupation=data["occupation"],
@@ -197,7 +197,7 @@ async def greet_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         if user.is_bot:
             continue
 
-        logger.info("Greeting new user {username} (chat ID {chat_id})".format(username=user.username, chat_id=user.id))
+        logging.info("Greeting new user {username} (chat ID {chat_id})".format(username=user.username, chat_id=user.id))
 
         greeting_message = i18n.trans(user).gettext(
             "MESSAGE_MC_GREETING_M {user_first_name} {bot_first_name}") if BOT_IS_MALE else i18n.trans(user).gettext(
@@ -221,7 +221,7 @@ async def detect_language(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     try:
         message_languages.append(detect(update.message.text))
     except lang_detect_exception.LangDetectException:
-        logger.warning("Caught LangDetectException while processing a message")
+        logging.warning("Caught LangDetectException while processing a message")
         return
 
     if len(message_languages) < LANGUAGE_MODERATION_MAX_FOREIGN_MESSAGE_COUNT:
@@ -246,7 +246,7 @@ async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: telegram
     trans = i18n.trans(user)
 
     if records:
-        logger.info("This is {username} that has records already".format(username=user.username))
+        logging.info("This is {username} that has records already".format(username=user.username))
 
         def get_header():
             if len(records) == 1:
@@ -268,7 +268,7 @@ async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: telegram
         await message.reply_text("\n".join(text), reply_markup=get_standard_keyboard(user), parse_mode=ParseMode.HTML,
                                  disable_web_page_preview=True)
     else:
-        logger.info("Welcoming user {username} (chat ID {chat_id})".format(username=user.username, chat_id=user.id))
+        logging.info("Welcoming user {username} (chat ID {chat_id})".format(username=user.username, chat_id=user.id))
 
         if prefix:
             text = prefix + "\n" + trans.gettext("MESSAGE_DM_NO_RECORDS")
@@ -306,7 +306,7 @@ async def handle_command_start(update: Update, context: ContextTypes.DEFAULT_TYP
     user = message.from_user
 
     if user.id == DEVELOPER_CHAT_ID and message.chat.id != DEVELOPER_CHAT_ID:
-        logger.info("This is the admin user {username} talking from \"{chat_name}\" (chat ID {chat_id})".format(
+        logging.info("This is the admin user {username} talking from \"{chat_name}\" (chat ID {chat_id})".format(
             username=user.username, chat_name=message.chat.title, chat_id=message.chat.id))
 
         await safe_delete_message(context, message.id, message.chat.id)
@@ -319,8 +319,8 @@ async def handle_command_start(update: Update, context: ContextTypes.DEFAULT_TYP
         return
 
     if MAIN_CHAT_ID == 0:
-        logger.info("Welcoming user {username} (chat ID {chat_id}), is this the admin?".format(username=user.username,
-                                                                                               chat_id=user.id))
+        logging.info("Welcoming user {username} (chat ID {chat_id}), is this the admin?".format(username=user.username,
+                                                                                                chat_id=user.id))
         return
 
     if not await is_member_of_main_chat(user, context):
@@ -634,7 +634,7 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     trans = i18n.trans(query.from_user)
 
     if command == MODERATOR_APPROVE:
-        logger.info(
+        logging.info(
             "Moderator ID {moderator_id} approves new data from user ID {user_id} in category {category_id}".format(
                 moderator_id=query.from_user.id, user_id=tg_id, category_id=category_id))
 
@@ -644,7 +644,7 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         await query.edit_message_reply_markup(None)
         await query.message.reply_text(trans.gettext("MESSAGE_ADMIN_USER_RECORD_APPROVED"))
     elif command == MODERATOR_DECLINE:
-        logger.info(
+        logging.info(
             "Moderator ID {moderator_id} declines new data from user ID {user_id} in category {category_id}".format(
                 moderator_id=query.from_user.id, user_id=tg_id, category_id=category_id))
 
@@ -654,7 +654,7 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         await query.edit_message_reply_markup(None)
         await query.message.reply_text(trans.gettext("MESSAGE_ADMIN_USER_RECORD_SUSPENDED"))
     else:
-        logger.error("Unexpected query data: '{}'".format(query.data))
+        logging.error("Unexpected query data: '{}'".format(query.data))
 
     return ConversationHandler.END
 
@@ -690,54 +690,45 @@ async def retire_received_category(update: Update, context: ContextTypes.DEFAULT
     return ConversationHandler.END
 
 
-async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Log the error and send a telegram message to notify the developer"""
-
-    if not isinstance(update, Update):
-        logger.error("Unexpected type of update: {}".format(type(update)))
-        return
-
-    user = update.effective_message.from_user
+async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Log the error and send a Telegram message to notify the developer"""
 
     exception = context.error
 
     if isinstance(exception, httpx.RemoteProtocolError):
         # Connection errors happen regularly, and they are caused by reasons external to the bot, so it makes no
         # sense notifying the developer about them.  Log an error and bail out.
-        logger.error(exception)
+        logging.error(exception)
         return
+
+    trans = i18n.default()
+
+    error_uuid = uuid.uuid4()
 
     # Log the error before we do anything else, so we can see it even if something breaks.
-    logger.error("Exception while handling an update:", exc_info=exception)
+    logging.error(f"Exception while handling an update (error UUID {error_uuid}):", exc_info=exception)
 
-    # traceback.format_exception returns the usual python message about an exception, but as a
-    # list of strings rather than a single string, so we have to join them together.
-    tb_string = "".join(traceback.format_exception(None, exception, exception.__traceback__))
-
-    # Build the message with some markup and additional information about what happened.
-    # TODO: add logic to deal with messages longer than 4096 characters (Telegram has that limit).
     update_str = update.to_dict() if isinstance(update, Update) else str(update)
-    error_message = (f"<pre>{html.escape(tb_string)}</pre>"
-                     f"<pre>update = {html.escape(json.dumps(update_str, indent=2, ensure_ascii=False))}</pre>\n\n"
-                     f"<pre>context.chat_data = {html.escape(str(context.chat_data))}</pre>\n\n"
-                     f"<pre>context.user_data = {html.escape(str(context.user_data))}</pre>\n\n")
 
-    # Finally, send the message
-    await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID, text=error_message, parse_mode=ParseMode.HTML)
+    error_message = trans.gettext("ERROR_REPORT_BODY {error_uuid} {traceback} {update} {chat_data} {user_data}").format(
+        chat_data=str(context.chat_data), error_uuid=error_uuid,
+        traceback="".join(traceback.format_exception(None, exception, exception.__traceback__)),
+        update=json.dumps(update_str, indent=2, ensure_ascii=False), user_data=str(context.user_data))
 
-    if not await talking_private(update, context):
+    # Notify the developer.
+    await context.bot.send_document(chat_id=DEVELOPER_CHAT_ID,
+                                    caption=trans.gettext("ERROR_REPORT_CAPTION {error_uuid}").format(
+                                        error_uuid=error_uuid), document=io.BytesIO(bytes(error_message, "utf-8")),
+                                    filename=f"diaspora-error-{error_uuid}.txt")
+
+    # Optionally, respond to the user whose message caused the error, if that message was sent in private (do not
+    # make noise in the group).
+    if not await talking_private(update, context) or not isinstance(update, Update) or not update.effective_message:
         return
 
-    if update.message:
-        message = update.message
-    elif update.callback_query:
-        message = update.callback_query.message
-    else:
-        logger.error("Unexpected state of the update: {}".format(update_str))
-        return
-
-    await message.reply_text(i18n.trans(user).gettext("MESSAGE_DM_INTERNAL_ERROR"),
-                             reply_markup=get_standard_keyboard(user))
+    await update.effective_message.reply_text(
+        i18n.trans(update.effective_message.from_user).gettext("MESSAGE_DM_INTERNAL_ERROR {error_uuid}").format(
+            error_uuid=error_uuid))
 
 
 async def abort_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -777,7 +768,11 @@ def main() -> None:
 
     db.connect()
 
-    application = Application.builder().token(BOT_TOKEN).post_init(post_init).build()
+    application = (Application.builder()
+                   .token(BOT_TOKEN)
+                   .defaults(Defaults(parse_mode=ParseMode.HTML))
+                   .post_init(post_init)
+                   .build())
 
     # ------------------------------------------------------------------------------------------------------------------
     # Stateful conversation handlers should go first, to act correctly if the user does something unexpected during the
@@ -827,7 +822,7 @@ def main() -> None:
     glossary.init(application, group=4)
     aprils_fool.init(application, group=5)
 
-    application.add_error_handler(error_handler)
+    application.add_error_handler(handle_error)
 
     # Run the bot until the user presses Ctrl-C
     application.run_polling(allowed_updates=Update.ALL_TYPES)
