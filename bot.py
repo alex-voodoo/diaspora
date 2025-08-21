@@ -581,7 +581,7 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     if query.data == RESPONSE_YES:
         db.people_insert_or_update(from_user.id, from_user.username, user_data["occupation"], user_data["location"],
-                                   (0 if MODERATION_IS_LAZY else 1), user_data["category_id"])
+                                   (0 if SERVICES_MODERATION_IS_LAZY else 1), user_data["category_id"])
 
         saved_user_data = copy.deepcopy(user_data)
         user_data.clear()
@@ -591,16 +591,16 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
         await query.edit_message_reply_markup(None)
 
-        if not MODERATION_ENABLED:
+        if not SERVICES_MODERATION_ENABLED:
             message = trans.gettext("MESSAGE_DM_ENROLL_COMPLETED")
-        elif MODERATION_IS_LAZY:
+        elif SERVICES_MODERATION_IS_LAZY:
             message = trans.gettext("MESSAGE_DM_ENROLL_COMPLETED_POST_MODERATION")
         else:
             message = trans.gettext("MESSAGE_DM_ENROLL_COMPLETED_PRE_MODERATION")
 
         await query.message.reply_text(message, reply_markup=get_standard_keyboard(from_user))
 
-        if MODERATION_ENABLED:
+        if SERVICES_MODERATION_ENABLED:
             await moderate_new_data(update, context, saved_user_data)
 
     elif query.data == RESPONSE_NO:
@@ -633,7 +633,7 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             "Moderator ID {moderator_id} approves new data from user ID {user_id} in category {category_id}".format(
                 moderator_id=query.from_user.id, user_id=tg_id, category_id=category_id))
 
-        if not MODERATION_IS_LAZY:
+        if not SERVICES_MODERATION_IS_LAZY:
             db.people_approve(tg_id, category_id)
 
         await query.edit_message_reply_markup(None)
@@ -643,7 +643,7 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             "Moderator ID {moderator_id} declines new data from user ID {user_id} in category {category_id}".format(
                 moderator_id=query.from_user.id, user_id=tg_id, category_id=category_id))
 
-        if MODERATION_IS_LAZY:
+        if SERVICES_MODERATION_IS_LAZY:
             db.people_suspend(tg_id, category_id)
 
         await query.edit_message_reply_markup(None)
@@ -803,12 +803,12 @@ def main() -> None:
     if GREETING_ENABLED:
         application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, greet_new_member))
 
-    if MODERATION_ENABLED:
+    if SERVICES_MODERATION_ENABLED:
         application.add_handler(CallbackQueryHandler(confirm_user_data, pattern=re.compile(
             "^({approve}|{decline}):[0-9]+:[0-9]+$".format(approve=MODERATOR_APPROVE, decline=MODERATOR_DECLINE))),
                                 group=2)
 
-    if LANGUAGE_MODERATION_ENABLED:
+    if LANGUAGE_SERVICES_MODERATION_ENABLED:
         global message_languages
         message_languages = deque()
 

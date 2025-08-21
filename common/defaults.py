@@ -56,14 +56,14 @@ GREETING_ENABLED = True
 GREETING_TIMEOUT = 300
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Moderation
+# Services moderation
 #
 # The bot can ask the moderators to approve changes made by users to their data records.
 #
 # Whether moderation is enabled.  Default is True.
-MODERATION_ENABLED = True
+SERVICES_MODERATION_ENABLED = True
 # Whether moderation is "lazy" (True) or "mandatory" (False).  Default is True.
-MODERATION_IS_LAZY = True
+SERVICES_MODERATION_IS_LAZY = True
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Language moderation
@@ -72,7 +72,7 @@ MODERATION_IS_LAZY = True
 # in languages other than the default one, it posts a message that reminds the people about rules of the group.
 #
 # Whether bot controls languages.  Default is False.
-LANGUAGE_MODERATION_ENABLED = False
+LANGUAGE_SERVICES_MODERATION_ENABLED = False
 #
 # Maximum number of languages in non-default language.  Default is 3.
 LANGUAGE_MODERATION_MAX_FOREIGN_MESSAGE_COUNT = 3

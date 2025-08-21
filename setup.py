@@ -127,7 +127,7 @@ MAIN_CHAT_ID = 0
 # The bot may ask the moderators to approve changes made by users to their data records.
 #
 # Whether moderation is enabled.  Default is True.
-# MODERATION_ENABLED = True
+# SERVICES_MODERATION_ENABLED = True
 #
 # Whether moderation is "lazy" (True, default) or "mandatory" (False).
 # "Lazy" moderation (also known as post-moderation) means that all changes are initially visible, but moderators may
@@ -135,7 +135,7 @@ MAIN_CHAT_ID = 0
 # only after the explicit approval of a moderator.
 # Moderators' votes work symmetrically: with "lazy" moderation one "decline" vote is enough to hide the data, and in
 # "mandatory" mode one "approve" vote is enough to make it visible.
-# MODERATION_IS_LAZY = True
+# SERVICES_MODERATION_IS_LAZY = True
 #
 # Telegram IDs of moderators, each of them will receive requests to approve changes.
 # - If it is empty (default), the only moderator is the developer.
@@ -149,7 +149,7 @@ MAIN_CHAT_ID = 0
 # in languages other than the default one, it posts a message that reminds the people about rules of the group.
 #
 # Whether bot controls languages.  Default is False.
-# LANGUAGE_MODERATION_ENABLED = False
+# LANGUAGE_SERVICES_MODERATION_ENABLED = False
 #
 # Maximum number of languages in non-default language.  Default is 3.
 # LANGUAGE_MODERATION_MAX_FOREIGN_MESSAGE_COUNT = 3
