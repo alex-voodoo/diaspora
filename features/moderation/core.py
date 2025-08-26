@@ -80,8 +80,6 @@ def _maybe_log_normal_message(update: Update) -> None:
 async def _maybe_start_complaint(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Start the complaint process if the initial message meets required criteria"""
 
-    logging.info("Here")
-
     user = update.effective_user
 
     if not await is_member_of_main_chat(user, context):
@@ -152,8 +150,6 @@ async def _accept_complaint_reason(update: Update, context: ContextTypes.DEFAULT
 async def _handle_complaint_poll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle updates to polls"""
 
-    logging.info("Here")
-
     chat_id = settings.MODERATION_CHAT_ID
     # TODO: move this to init()?
     moderator_count = await context.bot.get_chat_member_count(chat_id) - settings.MODERATION_CHAT_BOT_COUNT
@@ -223,8 +219,6 @@ async def _handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     """Handle an incoming message.  This is the single entry point for all normal messages."""
 
     chat = update.effective_chat
-
-    logging.info("Here")
 
     if chat is None:
         logging.warning("moderation._handle_message() has got an update where chat is None")
