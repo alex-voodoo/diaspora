@@ -28,7 +28,7 @@ from common import db, i18n
 from common.admin import get_main_keyboard
 from common.checks import is_member_of_main_chat
 from common.messaging_helpers import safe_delete_message, self_destructing_reply
-from features import antispam, aprils_fool, glossary
+from features import antispam, aprils_fool, glossary, moderation
 from settings import *
 
 # Configure logging
@@ -718,7 +718,7 @@ async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> No
 
     # Optionally, respond to the user whose message caused the error, if that message was sent in private (do not
     # make noise in the group).
-    if not await talking_private(update, context) or not isinstance(update, Update) or not update.effective_message:
+    if not isinstance(update, Update) or not update.effective_message or not await talking_private(update, context):
         return
 
     await update.effective_message.reply_text(
@@ -817,6 +817,7 @@ def main() -> None:
     antispam.init(application, group=1)
     glossary.init(application, group=4)
     aprils_fool.init(application, group=5)
+    moderation.init(application, group=6)
 
     application.add_error_handler(handle_error)
 

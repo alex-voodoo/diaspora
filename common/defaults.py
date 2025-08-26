@@ -125,6 +125,32 @@ GLOSSARY_MAX_TRIGGER_AGE = 300
 GLOSSARY_EXTERNAL_URL = ""
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Moderation
+#
+# The bot can coordinate public-driven moderation in the chat.  The additional chat of moderators is configured.  Users
+# of the main may send requests to moderate messages to the bot, these requests are redirected to the moderators' chat,
+# and the bot helps with reaching consensus and doing the actual moderation in the main chat.
+#
+# Settings marked with asterisks should be tuned or at least revised to be adequate to the size of the group.
+#
+# Whether moderation is enabled.  Default is False.
+MODERATION_ENABLED = False
+# ID of the moderators' chat.  Mandatory if the feature is enabled.  Default is 0.
+MODERATION_CHAT_ID = 0
+# Number of bots in the moderator's chat.  Makes sense for calculating the thresholds for voting.  Default is 1.
+MODERATION_CHAT_BOT_COUNT = 1
+# * Number of complaints required for a message to start the moderation poll.  Default is 5.
+MODERATION_COMPLAINT_THRESHOLD = 5
+# Minimum number of moderators that should vote to start evaluating the result.  Defined as a fraction of the total
+# number of people in the moderators' chat.  Default is 0.75.
+MODERATION_QUORUM_THRESHOLD = 0.75
+# Minimum number of votes that is enough to be given for an option to have that option accepted after the quorum is
+# reached.  Default is 0.75.
+MODERATION_WINNING_THRESHOLD = 0.75
+# Number of complaints registered for a single message to trigger sanctions.  Default is 5.
+MODERATION_SANCTION_THRESHOLD = 5
+
+# ----------------------------------------------------------------------------------------------------------------------
 # General settings
 #
 # Generic delay in seconds for self-destructing messages.  Default is 60.

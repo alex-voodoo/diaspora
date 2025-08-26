@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2025-07-04 23:11+0200\n"
+"POT-Creation-Date: 2025-08-26 23:26+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -24,39 +24,40 @@ msgstr ""
 msgid "MESSAGE_MC_LET_US_TALK_PRIVATE"
 msgstr "Напишите мне личное сообщение"
 
-#: bot.py:89
+#: bot.py:89 features/services.py:37
 msgid "BUTTON_WHO"
 msgstr "Показать список"
 
-#: bot.py:89
+#: bot.py:89 features/services.py:37
 msgid "BUTTON_ENROLL"
 msgstr "Добавить запись"
 
-#: bot.py:90
+#: bot.py:90 features/services.py:38
 msgid "BUTTON_ENROLL_MORE"
 msgstr "Добавить ещё одну запись"
 
-#: bot.py:91
+#: bot.py:91 features/services.py:39
 msgid "BUTTON_UPDATE"
 msgstr "Править запись"
 
-#: bot.py:91
+#: bot.py:91 features/services.py:39
 msgid "BUTTON_RETIRE"
 msgstr "Удалить запись"
 
-#: bot.py:143 bot.py:148 bot.py:265
+#: bot.py:143 bot.py:148 bot.py:265 features/services.py:91
+#: features/services.py:96
 msgid "BUTTON_ENROLL_CATEGORY_DEFAULT"
 msgstr "Другое"
 
-#: bot.py:164 bot.py:174
+#: bot.py:164 bot.py:174 features/services.py:112 features/services.py:122
 msgid "BUTTON_YES"
 msgstr "Да"
 
-#: bot.py:164 bot.py:174
+#: bot.py:164 bot.py:174 features/services.py:112 features/services.py:122
 msgid "BUTTON_NO"
 msgstr "Нет"
 
-#: bot.py:189
+#: bot.py:189 features/services.py:137
 msgid "MESSAGE_ADMIN_APPROVE_USER_DATA {username}"
 msgstr ""
 "Пользователь @{username} изменил свою запись.\n"
@@ -135,7 +136,7 @@ msgstr "ID группы «{title}»: {id}"
 msgid "MESSAGE_DM_ADMIN"
 msgstr "Чего изволите?"
 
-#: bot.py:372
+#: bot.py:372 features/services.py:166
 msgid "MESSAGE_DM_WHO_CATEGORY_LIST"
 msgstr ""
 "Вот категории услуг и число записей в каждой на данный момент:\n"
@@ -144,100 +145,100 @@ msgstr ""
 "\n"
 "Какую категорию показать?"
 
-#: bot.py:397
+#: bot.py:397 features/services.py:191
 msgid "MESSAGE_DM_WHO_CATEGORY_EMPTY"
 msgstr "Эта категория уже пуста."
 
-#: bot.py:419
+#: bot.py:419 features/services.py:213
 msgid "MESSAGE_DM_WHO_LIST_HEADING"
 msgstr "Вот кого я знаю:"
 
-#: bot.py:422
+#: bot.py:422 features/services.py:216
 msgid "MESSAGE_DM_WHO_CATEGORY_DEFAULT"
 msgstr "Другое"
 
-#: bot.py:449
+#: bot.py:449 features/services.py:243
 msgid "MESSAGE_DM_WHO_EMPTY"
 msgstr "Пока никто не записался, будьте первым!"
 
-#: bot.py:472
+#: bot.py:472 features/services.py:266
 msgid "MESSAGE_DM_ENROLL_USERNAME_REQUIRED"
 msgstr ""
 "В вашем профиле Телеграм не задано имя пользователя. Добавьте его в настройках, чтобы другие участники могли написать вам, не зная вашего номера.\n"
 "\n"
 "После этого я смогу добавить вас в список."
 
-#: bot.py:476
+#: bot.py:476 features/services.py:270
 msgid "MESSAGE_DM_ENROLL_START"
 msgstr "Давайте знакомиться!"
 
-#: bot.py:484
+#: bot.py:484 features/services.py:278
 msgid "MESSAGE_DM_ENROLL_ASK_CATEGORY"
 msgstr "Выберите категорию, к которой можно отнести вашу услугу."
 
-#: bot.py:491 bot.py:535
+#: bot.py:491 bot.py:535 features/services.py:285 features/services.py:329
 msgid "MESSAGE_DM_ENROLL_ASK_OCCUPATION"
 msgstr "Сформулируйте коротко, кто вы (например, «Парикмахер», «Няня») или что вы делаете («Учу сёрфингу», «Помогаю с уборкой»)."
 
-#: bot.py:504
+#: bot.py:504 features/services.py:298
 msgid "MESSAGE_DM_SELECT_CATEGORY_FOR_UPDATE"
 msgstr "Выберите категорию для редактирования."
 
-#: bot.py:529
+#: bot.py:529 features/services.py:323
 msgid "MESSAGE_DM_UPDATE_OCCUPATION {title} {occupation}"
 msgstr ""
 "Введите новое описание вашей услуги в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{occupation}</b>"
 
-#: bot.py:550
+#: bot.py:550 features/services.py:344
 msgid "MESSAGE_DM_UPDATE_LOCATION {title} {location}"
 msgstr ""
 "Введите новое описание места, где вы оказываете услугу в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{location}</b>"
 
-#: bot.py:553
+#: bot.py:553 features/services.py:347
 msgid "MESSAGE_DM_ENROLL_ASK_LOCATION"
 msgstr ""
 "Где вы оказываете услуги?\n"
 "\n"
 "Укажите город по-русски: Сантьяго, Корунья, Виго и др. Если городов несколько, пишите «Галисия»."
 
-#: bot.py:564
+#: bot.py:564 features/services.py:358
 msgid "MESSAGE_DM_ENROLL_CONFIRM_LEGALITY"
 msgstr ""
 "И последнее: подтвердите, что не нарушаете местные законы и правила.\n"
 "\n"
 "Ваша услуга легальна?"
 
-#: bot.py:595
+#: bot.py:595 features/services.py:389
 msgid "MESSAGE_DM_ENROLL_COMPLETED"
 msgstr "Готово, вы добавлены в список!"
 
-#: bot.py:597
+#: bot.py:597 features/services.py:391
 msgid "MESSAGE_DM_ENROLL_COMPLETED_POST_MODERATION"
 msgstr "Готово, вы добавлены в список! Обратите внимание, модераторы могут скрыть вашу запись, если она нарушает правила группы."
 
-#: bot.py:599
+#: bot.py:599 features/services.py:393
 msgid "MESSAGE_DM_ENROLL_COMPLETED_PRE_MODERATION"
 msgstr "Готово! Я добавлю вас в список после проверки модераторами."
 
-#: bot.py:611
+#: bot.py:611 features/services.py:405
 msgid "MESSAGE_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"
 msgstr "Извините, я не могу добавлять нелегальные услуги."
 
-#: bot.py:640
+#: bot.py:640 features/services.py:434
 msgid "MESSAGE_ADMIN_USER_RECORD_APPROVED"
 msgstr "Одобрено."
 
-#: bot.py:650
+#: bot.py:650 features/services.py:444
 msgid "MESSAGE_ADMIN_USER_RECORD_SUSPENDED"
 msgstr "Запись скрыта."
 
-#: bot.py:665
+#: bot.py:665 features/services.py:459
 msgid "MESSAGE_DM_SELECT_CATEGORY_FOR_RETIRE"
 msgstr "Выберите категорию для удаления."
 
-#: bot.py:683
+#: bot.py:683 features/services.py:477
 msgid "MESSAGE_DM_RETIRE"
 msgstr "Запись удалена."
 
@@ -412,3 +413,69 @@ msgstr "Выгрузить глоссарий"
 msgid "GLOSSARY_BUTTON_UPLOAD_TERMS"
 msgstr "Загрузить глоссарий"
 
+#: features/moderation/core.py:28
+msgid "MODERATION_REASON_FRAUD"
+msgstr "Мошенничество"
+
+#: features/moderation/core.py:30
+msgid "MODERATION_REASON_OFFENSE"
+msgstr "Агрессия"
+
+#: features/moderation/core.py:32
+msgid "MODERATION_REASON_RACISM"
+msgstr "Расизм"
+
+#: features/moderation/core.py:34
+msgid "MODERATION_REASON_SPAM"
+msgstr "Спам"
+
+#: features/moderation/core.py:36
+msgid "MODERATION_REASON_TOXIC"
+msgstr "Токсичность"
+
+#: features/moderation/core.py:41
+msgid "MODERATION_ACCEPT_COMPLAINT_ANSWER_ACCEPT"
+msgstr "Принять"
+
+#: features/moderation/core.py:45
+msgid "MODERATION_ACCEPT_COMPLAINT_ANSWER_REJECT"
+msgstr "Отклонить"
+
+#: features/moderation/core.py:99
+msgid "DM_MODERATION_MESSAGE_NOT_FOUND"
+msgstr "Сообщение не найдено в основной группе. Возможно, его уже удалили?"
+
+#: features/moderation/core.py:104
+msgid "DM_MODERATION_MESSAGE_ALREADY_COMPLAINED"
+msgstr "Согласно моим записям, вы уже отправили жалобу на это сообщение. Нет нужды делать это повторно."
+
+#: features/moderation/core.py:108
+msgid "DM_MODERATION_MESSAGE_SELECT_COMPLAINT_REASON"
+msgstr "Пожалуйста, укажите причину жалобы."
+
+#: features/moderation/core.py:124
+msgid "DM_MODERATION_REQUEST_REGISTERED"
+msgstr "Жалоба зарегистрирована. Если на пересланное вами сообщение будут жалобы от других пользователей, я сообщу модераторам."
+
+#: features/moderation/core.py:135
+msgid "MODERATION_NEW_REQUEST"
+msgstr "От пользователей поступают жалобы на сообщение (пересылаю ниже) по следующим причинам:"
+
+#: features/moderation/core.py:137
+msgid "MODERATION_NEW_REQUEST_DETAILS_S {reason} {count}"
+msgid_plural "MODERATION_NEW_REQUEST_DETAILS_P {reason} {count}"
+msgstr[0] "{reason}: {count} жалоба"
+msgstr[1] "{reason}: {count} жалобы"
+msgstr[2] "{reason}: {count} жалоб"
+
+#: features/moderation/core.py:144
+msgid "MODERATION_ACCEPT_COMPLAINT_QUESTION"
+msgstr "Правомерно ли обращение?"
+
+#: features/moderation/core.py:214
+msgid "MODERATION_RESULT_REJECTED"
+msgstr "Обращение отклонено."
+
+#: features/moderation/core.py:217
+msgid "MODERATION_RESULT_ACCEPTED"
+msgstr "Обращение принято. Я пока что ничего не умею делать, пожалуйста, примите меры согласно правилам группы."
