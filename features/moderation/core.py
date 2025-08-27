@@ -46,7 +46,7 @@ def _reject_complaint_option() -> str:
 
 
 def _get_complaint_reason_keyboard(user: User, original_message_id: int) -> InlineKeyboardMarkup:
-    """Builds the keyboard for selecting a reason for sending a complaint
+    """Build the keyboard for selecting a reason for sending a moderation request
 
     Returns an instance of InlineKeyboardMarkup that contains a vertically aligned set of reasons:
 
@@ -97,6 +97,8 @@ async def _maybe_start_complaint(update: Update, context: ContextTypes.DEFAULT_T
         await message.reply_text(trans.gettext("DM_MODERATION_MESSAGE_NOT_FOUND"))
         return
 
+    # TODO: do not let moderators send requests for moderation?
+
     if state.complaint_get(original_message_id).has_user(user.id):
         logging.info("This user has already complained about this message, cannot accept another complaint.")
         await message.reply_text(trans.gettext("DM_MODERATION_MESSAGE_ALREADY_COMPLAINED"))
@@ -108,7 +110,7 @@ async def _maybe_start_complaint(update: Update, context: ContextTypes.DEFAULT_T
 
 
 async def _accept_complaint_reason(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Add one reason to a complaint, and start a moderation poll"""
+    """Add one more reason to a complaint, and start a moderation poll if there are enough reasons"""
 
     query = update.callback_query
 
@@ -148,10 +150,14 @@ async def _accept_complaint_reason(update: Update, context: ContextTypes.DEFAULT
 
 
 async def _handle_complaint_poll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle updates to polls"""
+    """Handle updates to polls
+
+    Evaluates the updated poll state and decides if the decision can be made.  If there are enough votes to proceed,
+    closes the poll and calls `_handle_poll_outcome()`.
+    """
 
     chat_id = settings.MODERATION_CHAT_ID
-    # TODO: move this to init()?
+    # TODO: move setting the moderator count to init()?  Maybe add handler for people joining the group and recalculate?
     moderator_count = await context.bot.get_chat_member_count(chat_id) - settings.MODERATION_CHAT_BOT_COUNT
     poll = update.poll
 
@@ -192,7 +198,7 @@ async def _handle_complaint_poll(update: Update, context: ContextTypes.DEFAULT_T
 
 
 async def _handle_complaint_poll_outcome(poll: Poll, resolution: str, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handles outcome of a complaint poll"""
+    """Handle outcome of a complaint poll"""
 
     poll_metadata = state.poll_get(poll.id)
 
@@ -212,6 +218,8 @@ async def _handle_complaint_poll_outcome(poll: Poll, resolution: str, context: C
         logging.info("Complaint was accepted")
         await context.bot.send_message(chat_id, text=trans.gettext("MODERATION_RESULT_ACCEPTED"))
 
+    # TODO: the state should not be cleaned immediately.  The data should be kept within the time frame of accepting new
+    # moderation requests.
     state.clean(poll_metadata.original_message_id)
 
 

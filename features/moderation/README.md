@@ -2,6 +2,8 @@
 
 This feature implements user-driven public moderation.
 
+**Alpha status.**  This is still work in progress, not fully implemented, and not well tested.
+
 ## Problem
 
 The standard approach to moderation in Telegram is insufficient (if not saying "flawed in many ways").  Here are some disadvantages:

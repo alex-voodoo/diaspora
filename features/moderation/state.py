@@ -7,6 +7,7 @@ import pickle
 
 from telegram import Message
 
+# Root dictionaries in the state
 _COMPLAINTS, _MAIN_CHAT_LOG, _POLLS = "complaints", "main_chat_log", "polls"
 
 _STATE_FILENAME = pathlib.Path(__file__).parent.parent / "resources" / "moderation_state.pkl"
@@ -16,7 +17,7 @@ _state = {}
 
 
 class Complaint:
-    """Accumulates complaints about a single message in the main chat"""
+    """Accumulates moderation requests about a single message in the main chat"""
 
     def __init__(self):
         self._users = set()
@@ -24,9 +25,16 @@ class Complaint:
         self.poll_id = ""
 
     def has_user(self, user_id) -> bool:
+        """Return whether this complaint has a request from the given user"""
+
         return user_id in self._users
 
     def maybe_add_reason(self, from_user_id: int, reason: int) -> bool:
+        """Register a request from the given user, but only if there was no earlier request from that user
+
+        Returns whether the request was registered.
+        """
+
         if self.has_user(from_user_id):
             return False
         self._users.add(from_user_id)
@@ -38,6 +46,8 @@ class Complaint:
 
     @property
     def count(self) -> int:
+        """Return how many requests are registered in this complaint"""
+
         return sum(self._reasons.values())
 
     @property
@@ -54,12 +64,13 @@ class Poll:
 
 
 def _save() -> None:
-    if _state is not None:
-        with open(_STATE_FILENAME, "wb") as out_pickle:
-            pickle.dump(_state, out_pickle, pickle.HIGHEST_PROTOCOL)
+    with open(_STATE_FILENAME, "wb") as out_pickle:
+        pickle.dump(_state, out_pickle, pickle.HIGHEST_PROTOCOL)
 
 
 def main_chat_log_add_or_update(message: Message) -> None:
+    """Store a new or edited message that came to the main chat"""
+
     global _state
 
     log = _state[_MAIN_CHAT_LOG]
@@ -70,6 +81,8 @@ def main_chat_log_add_or_update(message: Message) -> None:
 
 
 def main_chat_log_find(text: str) -> int:
+    """Return ID of a message that contains `text`, or 0 if no such message"""
+
     for message in _state[_MAIN_CHAT_LOG].values():
         if message.text == text:
             return message.id
@@ -78,6 +91,8 @@ def main_chat_log_find(text: str) -> int:
 
 
 def complaint_get(original_message_id: int) -> Complaint:
+    """Get a complaint created for the original message with the given ID, create a new complaint if there is none"""
+
     global _state
 
     complaints = _state[_COMPLAINTS]
@@ -91,6 +106,12 @@ def complaint_get(original_message_id: int) -> Complaint:
 
 
 def complaint_maybe_add(original_message_id: int, from_user_id: int, reason: int) -> Complaint:
+    """Try to register a new moderation request from a user
+
+    Forwards parameters to `Complaint.maybe_add_reason()` of a complaint created for the original message with the given
+    ID.  Returns the complaint.
+    """
+
     global _state
 
     complaint = complaint_get(original_message_id)
@@ -102,6 +123,8 @@ def complaint_maybe_add(original_message_id: int, from_user_id: int, reason: int
 
 
 def poll_register(original_message_id: int, poll_message_id: int, poll_id: str) -> None:
+    """Register a new poll for the original message with the given ID"""
+
     global _state
 
     polls = _state[_POLLS]
@@ -113,7 +136,9 @@ def poll_register(original_message_id: int, poll_message_id: int, poll_id: str) 
     _save()
 
 
-def poll_get(poll_id) -> Poll:
+def poll_get(poll_id: str) -> Poll:
+    """Return a poll with the given ID"""
+
     return _state[_POLLS][poll_id]
 
 
@@ -139,7 +164,7 @@ def init() -> None:
         with open(_STATE_FILENAME, "rb") as inp:
             _state = pickle.load(inp)
     except FileNotFoundError:
-        # First run, no problem, creating an empty state.
+        # First run, no problem, create an empty state.
         _state = {}
 
     if _MAIN_CHAT_LOG not in _state:
