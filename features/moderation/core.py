@@ -239,7 +239,7 @@ async def _handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     elif chat.id == settings.MODERATION_CHAT_ID:
         pass
     else:
-        raise RuntimeError("Unreachable code hit!")
+        logging.error("This should not come here!")
 
 
 def init(application: Application, group):
