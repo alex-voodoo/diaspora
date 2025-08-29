@@ -6,19 +6,18 @@ The bot runs in a Telegram group (aka chat) and maintains a database of users of
 
 For example, some chat member might be a hairdresser that speaks the language of the chat.  Another person knows a lot about how the immigration office works in this city, and can help with advice.  They can talk to the bot and declare what they do and where they are located.  Others can then ask the bot about services available in the location, and they will see users who registered their services.
 
+The bot deletes most of its own messages some time after posting them, to keep the chat clean of automatic replies.  Users are supposed to talk to bot using private messages.  The bot does not respond to Telegram users who are not members of the chat.
+
 ## Features
 
-The main purpose and the core feature is maintaining the database of members of a Telegram group who would like to advertise their services to other members of that group.  Any member may add themselves, alter the data they added earlier, or remove the record.  Any member may request the full list of records added by other users.  The bot does not talk to Telegram users who are not members of the group.
+The bot has a number of additional features, most of them are off by default, and can be enabled independently of each other.  
 
-In addition, the bot provides a set of moderation and housekeeping features, all optional and configurable:
+A couple of features are very simple: 
 
-- Pre- or post-moderation of input from the users.  Every time a user sends new data, the bot asks the moderators if the new content is acceptable.  The content that did not pass the moderation will not be shown to other users.
 - Greeting new users.  The bot reacts when a new user joins the group by sending a greeting message to the group.
 - Language moderation.  The bot detects language of messages posted by the users, and post a warning about preferred (or required) language if too many messages were sent in other languages.
-- Antispam.  The bot deletes messages that meet certain criteria.
-- Glossary.  The bot maintains a database of specific terms that may be used in the community, and provides explanations for those terms by requests from users.
 
-The bot deletes most of its own messages some time after posting them, to keep the chat clean of automatic replies.  Users are supposed to talk to bot using private messages.
+See <a href="features/README.md">README</a> in the `features` module for detailed information on other features.
 
 ## Setup and usage
 
