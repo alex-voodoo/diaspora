@@ -14,6 +14,7 @@ import uuid
 from collections import deque
 
 import httpx
+import telegram
 from langdetect import detect, lang_detect_exception
 from telegram import BotCommand, LinkPreviewOptions, MenuButtonCommands, Update
 from telegram.constants import ParseMode, ChatType
@@ -171,10 +172,10 @@ async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> No
 
     exception = context.error
 
-    if isinstance(exception, httpx.RemoteProtocolError):
+    if isinstance(exception, httpx.RemoteProtocolError) or isinstance(exception, telegram.error.NetworkError):
         # Connection errors happen regularly, and they are caused by reasons external to the bot, so it makes no
         # sense notifying the developer about them.  Log an error and bail out.
-        logging.error(exception)
+        logging.error(f"An exception of type {type(exception)} was raised.")
         return
 
     trans = i18n.default()
@@ -182,8 +183,7 @@ async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> No
     error_uuid = uuid.uuid4()
 
     # Log the error before we do anything else, so we can see it even if something breaks.
-    logging.error(f"Exception of type {type(exception)} while handling an update (error UUID {error_uuid}):",
-                  exc_info=exception)
+    logging.error(f"Exception of type {type(exception)} (error UUID {error_uuid}):", exc_info=exception)
 
     update_str = update.to_dict() if isinstance(update, Update) else str(update)
 
