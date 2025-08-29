@@ -30,11 +30,11 @@ def standard(user: User):
 
     trans = i18n.trans(user)
 
-    command_buttons = {trans.gettext("BUTTON_WHO"): const.COMMAND_WHO,
-                       trans.gettext("BUTTON_ENROLL"): const.COMMAND_ENROLL,
-                       trans.gettext("BUTTON_ENROLL_MORE"): const.COMMAND_ENROLL,
-                       trans.gettext("BUTTON_UPDATE"): const.COMMAND_UPDATE,
-                       trans.gettext("BUTTON_RETIRE"): const.COMMAND_RETIRE}
+    command_buttons = {trans.gettext("SERVICES_BUTTON_WHO"): const.COMMAND_WHO,
+                       trans.gettext("SERVICES_BUTTON_ENROLL"): const.COMMAND_ENROLL,
+                       trans.gettext("SERVICES_BUTTON_ENROLL_MORE"): const.COMMAND_ENROLL,
+                       trans.gettext("SERVICES_BUTTON_UPDATE"): const.COMMAND_UPDATE,
+                       trans.gettext("SERVICES_BUTTON_RETIRE"): const.COMMAND_RETIRE}
     button_who, button_enroll, button_enroll_more, button_update, button_retire = (
         InlineKeyboardButton(text, callback_data=command) for text, command in command_buttons.items())
 
@@ -87,12 +87,13 @@ def select_category(user: User, categories, show_other=False):
     added_other = False
     for category in categories if categories else db.people_category_select_all():
         buttons.append((InlineKeyboardButton(
-            category["title"] if category["title"] else trans.gettext("BUTTON_ENROLL_CATEGORY_DEFAULT"),
+            category["title"] if category["title"] else trans.gettext("SERVICES_BUTTON_ENROLL_CATEGORY_DEFAULT"),
             callback_data=category["id"] if category["id"] else 0),))
         if not category["id"]:
             added_other = True
     if show_other and not added_other:
-        buttons.append((InlineKeyboardButton(trans.gettext("BUTTON_ENROLL_CATEGORY_DEFAULT"), callback_data=0),))
+        buttons.append(
+            (InlineKeyboardButton(trans.gettext("SERVICES_BUTTON_ENROLL_CATEGORY_DEFAULT"), callback_data=0),))
     if not buttons:
         return None
     return InlineKeyboardMarkup(buttons)
@@ -110,7 +111,8 @@ def yes_no(user: User) -> InlineKeyboardMarkup:
 
     trans = i18n.trans(user)
 
-    response_buttons = {trans.gettext("BUTTON_YES"): const.RESPONSE_YES, trans.gettext("BUTTON_NO"): const.RESPONSE_NO}
+    response_buttons = {trans.gettext("SERVICES_BUTTON_YES"): const.RESPONSE_YES,
+                        trans.gettext("SERVICES_BUTTON_NO"): const.RESPONSE_NO}
     response_button_yes, response_button_no = (InlineKeyboardButton(text, callback_data=command) for text, command in
                                                response_buttons.items())
 
@@ -120,8 +122,8 @@ def yes_no(user: User) -> InlineKeyboardMarkup:
 def approve_service_change(data) -> InlineKeyboardMarkup:
     trans = i18n.default()
 
-    response_buttons = {trans.gettext("BUTTON_YES"): const.MODERATOR_APPROVE,
-                        trans.gettext("BUTTON_NO"): const.MODERATOR_DECLINE}
+    response_buttons = {trans.gettext("SERVICES_BUTTON_YES"): const.MODERATOR_APPROVE,
+                        trans.gettext("SERVICES_BUTTON_NO"): const.MODERATOR_DECLINE}
     response_button_yes, response_button_no = (
         InlineKeyboardButton(text, callback_data="{}:{}:{}".format(command, data["tg_id"], data["category_id"])) for
         text, command in response_buttons.items())

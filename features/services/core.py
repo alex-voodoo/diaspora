@@ -26,9 +26,10 @@ async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: Message,
 
         def get_header():
             if len(records) == 1:
-                return trans.gettext("MESSAGE_DM_HELLO_AGAIN {user_first_name}").format(user_first_name=user.first_name)
-            return trans.ngettext("MESSAGE_DM_HELLO_AGAIN_S {user_first_name} {record_count}",
-                                  "MESSAGE_DM_HELLO_AGAIN_P {user_first_name} {record_count}", len(records)).format(
+                return trans.gettext("SERVICES_DM_HELLO_AGAIN {user_first_name}").format(
+                    user_first_name=user.first_name)
+            return trans.ngettext("SERVICES_DM_HELLO_AGAIN_S {user_first_name} {record_count}",
+                                  "SERVICES_DM_HELLO_AGAIN_P {user_first_name} {record_count}", len(records)).format(
                 user_first_name=user.first_name, record_count=len(records))
 
         text = []
@@ -38,7 +39,7 @@ async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: Message,
 
         for record in records:
             text.append("<b>{c}:</b> {o} ({l})".format(
-                c=record["title"] if record["title"] else trans.gettext("BUTTON_ENROLL_CATEGORY_DEFAULT"),
+                c=record["title"] if record["title"] else trans.gettext("SERVICES_BUTTON_ENROLL_CATEGORY_DEFAULT"),
                 o=record["occupation"], l=record["location"]))
 
         await message.reply_text("\n".join(text), reply_markup=keyboards.standard(user))
@@ -46,11 +47,11 @@ async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: Message,
         logging.info("Welcoming user {username} (chat ID {chat_id})".format(username=user.username, chat_id=user.id))
 
         if prefix:
-            text = prefix + "\n" + trans.gettext("MESSAGE_DM_NO_RECORDS")
+            text = prefix + "\n" + trans.gettext("SERVICES_DM_NO_RECORDS")
         else:
             main_chat = await context.bot.get_chat(settings.MAIN_CHAT_ID)
 
-            text = trans.gettext("MESSAGE_DM_HELLO {bot_first_name} {main_chat_name}").format(
+            text = trans.gettext("SERVICES_DM_HELLO {bot_first_name} {main_chat_name}").format(
                 bot_first_name=context.bot.first_name, main_chat_name=main_chat.title)
 
         await message.reply_text(text, reply_markup=keyboards.standard(user))
@@ -62,10 +63,9 @@ async def moderate_new_data(update: Update, context: ContextTypes.DEFAULT_TYPE, 
 
     for moderator_id in moderator_ids:
         logging.info("Sending moderation request to moderator ID {id}".format(id=moderator_id))
-        await context.bot.send_message(chat_id=moderator_id,
-                                       text=i18n.default().gettext("MESSAGE_ADMIN_APPROVE_USER_DATA {username}").format(
-                                           username=data["tg_username"], occupation=data["occupation"],
-                                           location=data["location"]),
+        await context.bot.send_message(chat_id=moderator_id, text=i18n.default().gettext(
+            "SERVICES_ADMIN_APPROVE_USER_DATA {username}").format(username=data["tg_username"],
+            occupation=data["occupation"], location=data["location"]),
                                        reply_markup=keyboards.approve_service_change(data))
 
 
@@ -93,7 +93,7 @@ async def who_request_category(update: Update, context: ContextTypes.DEFAULT_TYP
         category_list.append(
             {"id": c["category_id"], "title": c["title"], "text": "{t}: {c}".format(t=c["title"], c=len(c["people"]))})
 
-    await query.message.reply_text(i18n.trans(query.from_user).gettext("MESSAGE_DM_WHO_CATEGORY_LIST").format(
+    await query.message.reply_text(i18n.trans(query.from_user).gettext("SERVICES_DM_WHO_CATEGORY_LIST").format(
         categories="\n".join([c["text"] for c in category_list])),
         reply_markup=keyboards.select_category(query.from_user, category_list))
 
@@ -118,7 +118,7 @@ async def who_received_category(update: Update, context: ContextTypes.DEFAULT_TY
             category = c
             break
     if not category:
-        await query.message.reply_text(text=i18n.trans(query.from_user).gettext("MESSAGE_DM_WHO_CATEGORY_EMPTY"),
+        await query.message.reply_text(text=i18n.trans(query.from_user).gettext("SERVICES_DM_WHO_CATEGORY_EMPTY"),
                                        reply_markup=keyboards.standard(query.from_user))
         return ConversationHandler.END
 
@@ -140,10 +140,10 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     trans = i18n.trans(query.from_user)
 
-    user_list = [trans.gettext("MESSAGE_DM_WHO_LIST_HEADING")]
+    user_list = [trans.gettext("SERVICES_DM_WHO_LIST_HEADING")]
 
     categorised_people = {
-        0: {"title": trans.gettext("MESSAGE_DM_WHO_CATEGORY_DEFAULT"), "category_id": 0, "people": []}}
+        0: {"title": trans.gettext("SERVICES_DM_WHO_CATEGORY_DEFAULT"), "category_id": 0, "people": []}}
 
     for category in db.people_category_select_all():
         categorised_people[category["id"]] = {"title": category["title"], "people": []}
@@ -170,7 +170,7 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                 user_list += who_people_to_message(category["people"])
 
         if len(user_list) == 1:
-            user_list = [trans.gettext("MESSAGE_DM_WHO_EMPTY")]
+            user_list = [trans.gettext("SERVICES_DM_WHO_EMPTY")]
 
         united_message = "\n".join(user_list)
         if len(united_message) < settings.MAX_MESSAGE_LENGTH:
@@ -193,11 +193,11 @@ async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await query.edit_message_reply_markup(None)
 
     if not query.from_user.username:
-        await query.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_USERNAME_REQUIRED"),
+        await query.message.reply_text(trans.gettext("SERVICES_DM_ENROLL_USERNAME_REQUIRED"),
                                        reply_markup=keyboards.standard(query.from_user))
         return ConversationHandler.END
 
-    await query.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_START"))
+    await query.message.reply_text(trans.gettext("SERVICES_DM_ENROLL_START"))
 
     existing_category_ids = [r["id"] for r in db.people_records(query.from_user.id)]
     categories = [c for c in db.people_category_select_all() if c["id"] not in existing_category_ids]
@@ -205,14 +205,14 @@ async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     category_buttons = keyboards.select_category(query.from_user, categories, 0 not in existing_category_ids)
 
     if category_buttons:
-        await query.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_ASK_CATEGORY"), reply_markup=category_buttons)
+        await query.message.reply_text(trans.gettext("SERVICES_DM_ENROLL_ASK_CATEGORY"), reply_markup=category_buttons)
 
         return const.SELECTING_CATEGORY
     else:
         user_data = context.user_data
         user_data["category_id"] = 0
 
-        await query.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_ASK_OCCUPATION"))
+        await query.message.reply_text(trans.gettext("SERVICES_DM_ENROLL_ASK_OCCUPATION"))
 
         return const.TYPING_OCCUPATION
 
@@ -225,7 +225,7 @@ async def handle_command_update(update: Update, context: ContextTypes.DEFAULT_TY
 
     await query.answer()
     await query.edit_message_reply_markup(None)
-    await query.message.reply_text(i18n.trans(query.from_user).gettext("MESSAGE_DM_SELECT_CATEGORY_FOR_UPDATE"),
+    await query.message.reply_text(i18n.trans(query.from_user).gettext("SERVICES_DM_SELECT_CATEGORY_FOR_UPDATE"),
                                    reply_markup=keyboards.select_category(query.from_user,
                                                                           db.people_records(query.from_user.id)))
 
@@ -250,13 +250,13 @@ async def received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     if "mode" in context.user_data and context.user_data["mode"] == "update":
         records = [r for r in db.people_record(query.from_user.id, int(query.data))]
         await query.message.reply_text(
-            trans.gettext("MESSAGE_DM_UPDATE_OCCUPATION {title} {occupation}").format(title=records[0]["title"],
-                                                                                      occupation=records[0][
-                                                                                          "occupation"]))
+            trans.gettext("SERVICES_DM_UPDATE_OCCUPATION {title} {occupation}").format(title=records[0]["title"],
+                                                                                       occupation=records[0][
+                                                                                           "occupation"]))
         user_data["category_title"] = records[0]["title"]
         user_data["location"] = records[0]["location"]
     else:
-        await query.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_ASK_OCCUPATION"))
+        await query.message.reply_text(trans.gettext("SERVICES_DM_ENROLL_ASK_OCCUPATION"))
 
     return const.TYPING_OCCUPATION
 
@@ -271,10 +271,10 @@ async def received_occupation(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     if "mode" in context.user_data and context.user_data["mode"] == "update":
         await update.message.reply_text(
-            trans.gettext("MESSAGE_DM_UPDATE_LOCATION {title} {location}").format(title=user_data["category_title"],
-                                                                                  location=user_data["location"]))
+            trans.gettext("SERVICES_DM_UPDATE_LOCATION {title} {location}").format(title=user_data["category_title"],
+                                                                                   location=user_data["location"]))
     else:
-        await update.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_ASK_LOCATION"))
+        await update.message.reply_text(trans.gettext("SERVICES_DM_ENROLL_ASK_LOCATION"))
 
     return const.TYPING_LOCATION
 
@@ -285,7 +285,7 @@ async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     user_data = context.user_data
     user_data["location"] = update.message.text
 
-    await update.message.reply_text(i18n.trans(update.message.from_user).gettext("MESSAGE_DM_ENROLL_CONFIRM_LEGALITY"),
+    await update.message.reply_text(i18n.trans(update.message.from_user).gettext("SERVICES_DM_ENROLL_CONFIRM_LEGALITY"),
                                     reply_markup=keyboards.yes_no(update.message.from_user))
 
     return const.CONFIRMING_LEGALITY
@@ -316,11 +316,11 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         await query.edit_message_reply_markup(None)
 
         if not settings.SERVICES_MODERATION_ENABLED:
-            message = trans.gettext("MESSAGE_DM_ENROLL_COMPLETED")
+            message = trans.gettext("SERVICES_DM_ENROLL_COMPLETED")
         elif settings.SERVICES_MODERATION_IS_LAZY:
-            message = trans.gettext("MESSAGE_DM_ENROLL_COMPLETED_POST_MODERATION")
+            message = trans.gettext("SERVICES_DM_ENROLL_COMPLETED_POST_MODERATION")
         else:
-            message = trans.gettext("MESSAGE_DM_ENROLL_COMPLETED_PRE_MODERATION")
+            message = trans.gettext("SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION")
 
         await query.message.reply_text(message, reply_markup=keyboards.standard(from_user))
 
@@ -332,7 +332,7 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         user_data.clear()
 
         await query.edit_message_reply_markup(None)
-        await query.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"),
+        await query.message.reply_text(trans.gettext("SERVICES_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"),
                                        reply_markup=keyboards.standard(from_user))
 
     return ConversationHandler.END
@@ -361,7 +361,7 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             db.people_approve(tg_id, category_id)
 
         await query.edit_message_reply_markup(None)
-        await query.message.reply_text(trans.gettext("MESSAGE_ADMIN_USER_RECORD_APPROVED"))
+        await query.message.reply_text(trans.gettext("SERVICES_ADMIN_USER_RECORD_APPROVED"))
     elif command == const.MODERATOR_DECLINE:
         logging.info(
             "Moderator ID {moderator_id} declines new data from user ID {user_id} in category {category_id}".format(
@@ -371,7 +371,7 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
             db.people_suspend(tg_id, category_id)
 
         await query.edit_message_reply_markup(None)
-        await query.message.reply_text(trans.gettext("MESSAGE_ADMIN_USER_RECORD_SUSPENDED"))
+        await query.message.reply_text(trans.gettext("SERVICES_ADMIN_USER_RECORD_SUSPENDED"))
     else:
         logging.error("Unexpected query data: '{}'".format(query.data))
 
@@ -386,7 +386,7 @@ async def handle_command_retire(update: Update, context: ContextTypes.DEFAULT_TY
 
     await query.answer()
     await query.edit_message_reply_markup(None)
-    await query.message.reply_text(i18n.trans(query.from_user).gettext("MESSAGE_DM_SELECT_CATEGORY_FOR_RETIRE"),
+    await query.message.reply_text(i18n.trans(query.from_user).gettext("SERVICES_DM_SELECT_CATEGORY_FOR_RETIRE"),
                                    reply_markup=keyboards.select_category(query.from_user,
                                                                           db.people_records(query.from_user.id)))
 
@@ -404,7 +404,7 @@ async def retire_received_category(update: Update, context: ContextTypes.DEFAULT
     db.people_delete(query.from_user.id, int(query.data))
 
     await show_main_status(context, query.message, query.from_user,
-                           i18n.trans(query.from_user).gettext("MESSAGE_DM_RETIRE"))
+                           i18n.trans(query.from_user).gettext("SERVICES_DM_RETIRE"))
 
     return ConversationHandler.END
 
@@ -420,7 +420,7 @@ async def abort_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE)
     user = update.effective_message.from_user
 
     await show_main_status(context, update.effective_message, user,
-                           i18n.trans(user).gettext("MESSAGE_DM_CONVERSATION_CANCELLED"))
+                           i18n.trans(user).gettext("SERVICES_DM_CONVERSATION_CANCELLED"))
 
     return ConversationHandler.END
 
@@ -445,8 +445,8 @@ def init(application: Application, group: int):
 
     application.add_handler(
         ConversationHandler(entry_points=[CallbackQueryHandler(handle_command_retire, pattern=const.COMMAND_RETIRE)],
-            states={const.SELECTING_CATEGORY: [CallbackQueryHandler(retire_received_category)]},
-            fallbacks=[MessageHandler(filters.ALL, abort_conversation)]))
+                            states={const.SELECTING_CATEGORY: [CallbackQueryHandler(retire_received_category)]},
+                            fallbacks=[MessageHandler(filters.ALL, abort_conversation)]))
 
     if settings.SERVICES_MODERATION_ENABLED:
         application.add_handler(CallbackQueryHandler(confirm_user_data, pattern=re.compile(
