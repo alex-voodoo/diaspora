@@ -6,136 +6,15 @@ import copy
 import logging
 import re
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Message, Update, User
+from telegram import Message, Update, User
 from telegram.ext import Application, CallbackQueryHandler, ContextTypes, ConversationHandler, filters, MessageHandler
 
 import settings
 from common import i18n, db
-
-# Commands, sequences, and responses
-COMMAND_WHO, COMMAND_ENROLL, COMMAND_UPDATE, COMMAND_RETIRE = ("who", "update", "enroll", "retire")
-SELECTING_CATEGORY, TYPING_OCCUPATION, TYPING_LOCATION, CONFIRMING_LEGALITY = range(4)
-RESPONSE_YES, RESPONSE_NO = ("yes", "no")
-MODERATOR_APPROVE, MODERATOR_DECLINE = ("approve", "decline")
+from . import keyboards
 
 
-def get_standard_keyboard(user: User):
-    """Builds the standard keyboard for the `user`
-
-    The standard keyboard is displayed at the start of the conversation (handling the /start command) or in the end of
-    any conversation, and looks like this:
-
-    +-----------------+
-    | WHO             |
-    +-----------------+
-    | ENROLL (MORE)   |
-    +--------+--------+
-    | UPDATE | RETIRE |
-    +--------+--------+
-
-    Depending on the context, certain commands can be omitted.  The enroll button is only shown when it is possible to
-    add a new record.  The update and retire buttons are only shown when the user has at least one record.
-
-    Returns an instance of InlineKeyboardMarkup.
-    """
-
-    trans = i18n.trans(user)
-
-    command_buttons = {trans.gettext("BUTTON_WHO"): COMMAND_WHO, trans.gettext("BUTTON_ENROLL"): COMMAND_ENROLL,
-                       trans.gettext("BUTTON_ENROLL_MORE"): COMMAND_ENROLL,
-                       trans.gettext("BUTTON_UPDATE"): COMMAND_UPDATE, trans.gettext("BUTTON_RETIRE"): COMMAND_RETIRE}
-    button_who, button_enroll, button_enroll_more, button_update, button_retire = (
-        InlineKeyboardButton(text, callback_data=command) for text, command in command_buttons.items())
-
-    buttons = [[button_who]]
-
-    records = [r for r in db.people_records(user.id)]
-    categories = [c for c in db.people_category_select_all()]
-
-    if not records:
-        buttons.append([button_enroll] if not records else [button_enroll_more])
-    elif len(records) <= len(categories):
-        buttons.append([button_enroll_more])
-
-    if len(records) > 0:
-        buttons.append([button_update, button_retire])
-
-    return InlineKeyboardMarkup(buttons)
-
-
-def get_category_keyboard(user: User, categories=None):
-    """Builds the keyboard for selecting a category
-
-    Categories can be provided via the optional `categories` parameter and should be an iterable of dict-like items,
-    where each item should have `id` and `title` keys, holding the ID and the title of the category.
-
-    If `categories` is None or empty, the function will load data from the DB.
-
-    If there is at least one category, returns an instance of InlineKeyboardMarkup that contains a vertically aligned
-    set of buttons:
-
-    +------------+
-    | Category 1 |
-    +------------+
-    | Category 2 |
-    +------------+
-    | ...        |
-    +------------+
-    | Default    |
-    +------------+
-
-    Each button has the category ID in its callback data.  The "Default" item means "no category", its callback data is
-    set to 0.
-
-    If no categories are defined in the DB, this function returns None.
-    """
-
-    trans = i18n.trans(user)
-
-    buttons = []
-    for category in categories if categories else db.people_category_select_all():
-        buttons.append((InlineKeyboardButton(
-            category["title"] if category["title"] else trans.gettext("BUTTON_ENROLL_CATEGORY_DEFAULT"),
-            callback_data=category["id"] if category["id"] else 0),))
-    if not buttons:
-        return None
-    if not categories:
-        buttons.append((InlineKeyboardButton(trans.gettext("BUTTON_ENROLL_CATEGORY_DEFAULT"), callback_data=0),))
-    return InlineKeyboardMarkup(buttons)
-
-
-def get_yesno_keyboard(user: User) -> InlineKeyboardMarkup:
-    """Builds the YES/NO keyboard used in the step where the user confirms legality of their service
-
-    +-----+----+
-    | YES | NO |
-    +-----+----+
-
-    Returns an instance of InlineKeyboardMarkup.
-    """
-
-    trans = i18n.trans(user)
-
-    response_buttons = {trans.gettext("BUTTON_YES"): RESPONSE_YES, trans.gettext("BUTTON_NO"): RESPONSE_NO}
-    response_button_yes, response_button_no = (InlineKeyboardButton(text, callback_data=command) for text, command in
-                                               response_buttons.items())
-
-    return InlineKeyboardMarkup(((response_button_yes, response_button_no),))
-
-
-def get_moderation_keyboard(data) -> InlineKeyboardMarkup:
-    trans = i18n.default()
-
-    response_buttons = {trans.gettext("BUTTON_YES"): MODERATOR_APPROVE, trans.gettext("BUTTON_NO"): MODERATOR_DECLINE}
-    response_button_yes, response_button_no = (
-        InlineKeyboardButton(text, callback_data="{}:{}:{}".format(command, data["tg_id"], data["category_id"])) for
-        text, command in response_buttons.items())
-
-    return InlineKeyboardMarkup(((response_button_yes, response_button_no),))
-
-
-async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: Message, user: User,
-                           prefix="") -> None:
+async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: Message, user: User, prefix="") -> None:
     """Show the current status of the user"""
 
     records = [r for r in db.people_records(user.id)]
@@ -162,7 +41,7 @@ async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: Message,
                 c=record["title"] if record["title"] else trans.gettext("BUTTON_ENROLL_CATEGORY_DEFAULT"),
                 o=record["occupation"], l=record["location"]))
 
-        await message.reply_text("\n".join(text), reply_markup=get_standard_keyboard(user))
+        await message.reply_text("\n".join(text), reply_markup=keyboards.standard(user))
     else:
         logging.info("Welcoming user {username} (chat ID {chat_id})".format(username=user.username, chat_id=user.id))
 
@@ -174,7 +53,7 @@ async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: Message,
             text = trans.gettext("MESSAGE_DM_HELLO {bot_first_name} {main_chat_name}").format(
                 bot_first_name=context.bot.first_name, main_chat_name=main_chat.title)
 
-        await message.reply_text(text, reply_markup=get_standard_keyboard(user))
+        await message.reply_text(text, reply_markup=keyboards.standard(user))
 
 
 # noinspection PyUnusedLocal
@@ -186,7 +65,8 @@ async def moderate_new_data(update: Update, context: ContextTypes.DEFAULT_TYPE, 
         await context.bot.send_message(chat_id=moderator_id,
                                        text=i18n.default().gettext("MESSAGE_ADMIN_APPROVE_USER_DATA {username}").format(
                                            username=data["tg_username"], occupation=data["occupation"],
-                                           location=data["location"]), reply_markup=get_moderation_keyboard(data))
+                                           location=data["location"]),
+                                       reply_markup=keyboards.approve_service_change(data))
 
 
 # noinspection PyUnusedLocal
@@ -215,11 +95,11 @@ async def who_request_category(update: Update, context: ContextTypes.DEFAULT_TYP
 
     await query.message.reply_text(i18n.trans(query.from_user).gettext("MESSAGE_DM_WHO_CATEGORY_LIST").format(
         categories="\n".join([c["text"] for c in category_list])),
-        reply_markup=get_category_keyboard(query.from_user, category_list))
+        reply_markup=keyboards.select_category(query.from_user, category_list))
 
     context.user_data["who_request_category"] = filtered_people
 
-    return SELECTING_CATEGORY
+    return keyboards.SELECTING_CATEGORY
 
 
 async def who_received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -239,12 +119,12 @@ async def who_received_category(update: Update, context: ContextTypes.DEFAULT_TY
             break
     if not category:
         await query.message.reply_text(text=i18n.trans(query.from_user).gettext("MESSAGE_DM_WHO_CATEGORY_EMPTY"),
-                                       reply_markup=get_standard_keyboard(query.from_user))
+                                       reply_markup=keyboards.standard(query.from_user))
         return ConversationHandler.END
 
     user_list = ["<b>{t}</b>".format(t=category["title"])] + who_people_to_message(category["people"])
 
-    await query.message.reply_text(text="\n".join(user_list), reply_markup=get_standard_keyboard(query.from_user))
+    await query.message.reply_text(text="\n".join(user_list), reply_markup=keyboards.standard(query.from_user))
 
     del context.user_data["who_request_category"]
     return ConversationHandler.END
@@ -295,7 +175,7 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         united_message = "\n".join(user_list)
         if len(united_message) < settings.MAX_MESSAGE_LENGTH:
             await query.edit_message_reply_markup(None)
-            await query.message.reply_text(text=united_message, reply_markup=get_standard_keyboard(query.from_user))
+            await query.message.reply_text(text=united_message, reply_markup=keyboards.standard(query.from_user))
             return ConversationHandler.END
         else:
             return await who_request_category(update, context, filtered_people)
@@ -314,7 +194,7 @@ async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     if not query.from_user.username:
         await query.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_USERNAME_REQUIRED"),
-                                       reply_markup=get_standard_keyboard(query.from_user))
+                                       reply_markup=keyboards.standard(query.from_user))
         return ConversationHandler.END
 
     await query.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_START"))
@@ -322,19 +202,19 @@ async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     existing_category_ids = [r["id"] for r in db.people_records(query.from_user.id)]
     categories = [c for c in db.people_category_select_all() if c["id"] not in existing_category_ids]
 
-    category_buttons = get_category_keyboard(query.from_user, categories)
+    category_buttons = keyboards.select_category(query.from_user, categories)
 
     if category_buttons:
         await query.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_ASK_CATEGORY"), reply_markup=category_buttons)
 
-        return SELECTING_CATEGORY
+        return keyboards.SELECTING_CATEGORY
     else:
         user_data = context.user_data
         user_data["category_id"] = 0
 
         await query.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_ASK_OCCUPATION"))
 
-        return TYPING_OCCUPATION
+        return keyboards.TYPING_OCCUPATION
 
 
 # noinspection PyUnusedLocal
@@ -346,12 +226,12 @@ async def handle_command_update(update: Update, context: ContextTypes.DEFAULT_TY
     await query.answer()
     await query.edit_message_reply_markup(None)
     await query.message.reply_text(i18n.trans(query.from_user).gettext("MESSAGE_DM_SELECT_CATEGORY_FOR_UPDATE"),
-                                   reply_markup=get_category_keyboard(query.from_user,
-                                                                      db.people_records(query.from_user.id)))
+                                   reply_markup=keyboards.select_category(query.from_user,
+                                                                          db.people_records(query.from_user.id)))
 
     context.user_data["mode"] = "update"
 
-    return SELECTING_CATEGORY
+    return keyboards.SELECTING_CATEGORY
 
 
 async def received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -378,7 +258,7 @@ async def received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     else:
         await query.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_ASK_OCCUPATION"))
 
-    return TYPING_OCCUPATION
+    return keyboards.TYPING_OCCUPATION
 
 
 async def received_occupation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -396,7 +276,7 @@ async def received_occupation(update: Update, context: ContextTypes.DEFAULT_TYPE
     else:
         await update.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_ASK_LOCATION"))
 
-    return TYPING_LOCATION
+    return keyboards.TYPING_LOCATION
 
 
 async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -406,9 +286,9 @@ async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     user_data["location"] = update.message.text
 
     await update.message.reply_text(i18n.trans(update.message.from_user).gettext("MESSAGE_DM_ENROLL_CONFIRM_LEGALITY"),
-                                    reply_markup=get_yesno_keyboard(update.message.from_user))
+                                    reply_markup=keyboards.yes_no(update.message.from_user))
 
-    return CONFIRMING_LEGALITY
+    return keyboards.CONFIRMING_LEGALITY
 
 
 async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -423,7 +303,7 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     trans = i18n.trans(query.from_user)
 
-    if query.data == RESPONSE_YES:
+    if query.data == keyboards.RESPONSE_YES:
         db.people_insert_or_update(from_user.id, from_user.username, user_data["occupation"], user_data["location"],
                                    (0 if settings.SERVICES_MODERATION_IS_LAZY else 1), user_data["category_id"])
 
@@ -442,18 +322,18 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         else:
             message = trans.gettext("MESSAGE_DM_ENROLL_COMPLETED_PRE_MODERATION")
 
-        await query.message.reply_text(message, reply_markup=get_standard_keyboard(from_user))
+        await query.message.reply_text(message, reply_markup=keyboards.standard(from_user))
 
         if settings.SERVICES_MODERATION_ENABLED:
             await moderate_new_data(update, context, saved_user_data)
 
-    elif query.data == RESPONSE_NO:
+    elif query.data == keyboards.RESPONSE_NO:
         db.people_delete(from_user.id, int(user_data["category_id"]))
         user_data.clear()
 
         await query.edit_message_reply_markup(None)
         await query.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"),
-                                       reply_markup=get_standard_keyboard(from_user))
+                                       reply_markup=keyboards.standard(from_user))
 
     return ConversationHandler.END
 
@@ -472,7 +352,7 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     trans = i18n.trans(query.from_user)
 
-    if command == MODERATOR_APPROVE:
+    if command == keyboards.MODERATOR_APPROVE:
         logging.info(
             "Moderator ID {moderator_id} approves new data from user ID {user_id} in category {category_id}".format(
                 moderator_id=query.from_user.id, user_id=tg_id, category_id=category_id))
@@ -482,7 +362,7 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
         await query.edit_message_reply_markup(None)
         await query.message.reply_text(trans.gettext("MESSAGE_ADMIN_USER_RECORD_APPROVED"))
-    elif command == MODERATOR_DECLINE:
+    elif command == keyboards.MODERATOR_DECLINE:
         logging.info(
             "Moderator ID {moderator_id} declines new data from user ID {user_id} in category {category_id}".format(
                 moderator_id=query.from_user.id, user_id=tg_id, category_id=category_id))
@@ -507,10 +387,10 @@ async def handle_command_retire(update: Update, context: ContextTypes.DEFAULT_TY
     await query.answer()
     await query.edit_message_reply_markup(None)
     await query.message.reply_text(i18n.trans(query.from_user).gettext("MESSAGE_DM_SELECT_CATEGORY_FOR_RETIRE"),
-                                   reply_markup=get_category_keyboard(query.from_user,
-                                                                      db.people_records(query.from_user.id)))
+                                   reply_markup=keyboards.select_category(query.from_user,
+                                                                          db.people_records(query.from_user.id)))
 
-    return SELECTING_CATEGORY
+    return keyboards.SELECTING_CATEGORY
 
 
 async def retire_received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -549,28 +429,26 @@ def init(application: Application, group: int):
     """Prepare the feature as defined in the configuration"""
 
     # Enrolling
-    application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(enroll, pattern=COMMAND_ENROLL),
-                                                              CallbackQueryHandler(handle_command_update,
-                                                                                   pattern=COMMAND_UPDATE)],
-                                                states={SELECTING_CATEGORY: [CallbackQueryHandler(received_category)],
-                                                        TYPING_OCCUPATION: [
-                                                            MessageHandler(filters.TEXT & (~ filters.COMMAND),
-                                                                           received_occupation)], TYPING_LOCATION: [
-                                                        MessageHandler(filters.TEXT & (~ filters.COMMAND),
-                                                                       received_location)],
-                                                        CONFIRMING_LEGALITY: [CallbackQueryHandler(confirm_legality)]},
+    application.add_handler(ConversationHandler(
+        entry_points=[CallbackQueryHandler(enroll, pattern=keyboards.COMMAND_ENROLL),
+                      CallbackQueryHandler(handle_command_update, pattern=keyboards.COMMAND_UPDATE)],
+        states={keyboards.SELECTING_CATEGORY: [CallbackQueryHandler(received_category)],
+                keyboards.TYPING_OCCUPATION: [MessageHandler(filters.TEXT & (~ filters.COMMAND), received_occupation)],
+                keyboards.TYPING_LOCATION: [MessageHandler(filters.TEXT & (~ filters.COMMAND), received_location)],
+                keyboards.CONFIRMING_LEGALITY: [CallbackQueryHandler(confirm_legality)]},
+        fallbacks=[MessageHandler(filters.ALL, abort_conversation)]))
+
+    application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(who, pattern=keyboards.COMMAND_WHO)],
+                                                states={keyboards.SELECTING_CATEGORY: [
+                                                    CallbackQueryHandler(who_received_category)]},
                                                 fallbacks=[MessageHandler(filters.ALL, abort_conversation)]))
 
-    application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(who, pattern=COMMAND_WHO)], states={
-        SELECTING_CATEGORY: [CallbackQueryHandler(who_received_category)]},
-                                                fallbacks=[MessageHandler(filters.ALL, abort_conversation)]))
-
-    application.add_handler(
-        ConversationHandler(entry_points=[CallbackQueryHandler(handle_command_retire, pattern=COMMAND_RETIRE)],
-                            states={SELECTING_CATEGORY: [CallbackQueryHandler(retire_received_category)]},
-                            fallbacks=[MessageHandler(filters.ALL, abort_conversation)]))
+    application.add_handler(ConversationHandler(
+        entry_points=[CallbackQueryHandler(handle_command_retire, pattern=keyboards.COMMAND_RETIRE)],
+        states={keyboards.SELECTING_CATEGORY: [CallbackQueryHandler(retire_received_category)]},
+        fallbacks=[MessageHandler(filters.ALL, abort_conversation)]))
 
     if settings.SERVICES_MODERATION_ENABLED:
         application.add_handler(CallbackQueryHandler(confirm_user_data, pattern=re.compile(
-            "^({approve}|{decline}):[0-9]+:[0-9]+$".format(approve=MODERATOR_APPROVE, decline=MODERATOR_DECLINE))),
-                                group=2)
+            "^({approve}|{decline}):[0-9]+:[0-9]+$".format(approve=keyboards.MODERATOR_APPROVE,
+                                                           decline=keyboards.MODERATOR_DECLINE))), group=2)
