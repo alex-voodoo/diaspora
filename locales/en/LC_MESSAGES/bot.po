@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2025-08-29 17:12+0200\n"
+"POT-Creation-Date: 2025-08-29 19:15+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -76,7 +76,7 @@ msgstr "The ID of the \"{title}\" group is {id}"
 msgid "MESSAGE_DM_ADMIN"
 msgstr "At your service."
 
-#: bot.py:189
+#: bot.py:190
 msgid "ERROR_REPORT_BODY {error_uuid} {traceback} {update} {chat_data} {user_data}"
 msgstr ""
 "Error UUID {error_uuid}\n"
@@ -95,19 +95,19 @@ msgstr ""
 "\n"
 "context.user_data = {user_data}"
 
-#: bot.py:196
+#: bot.py:197
 msgid "ERROR_REPORT_CAPTION {error_uuid}"
 msgstr "Report for error <code>{error_uuid}</code>"
 
-#: bot.py:206
+#: bot.py:207
 msgid "MESSAGE_DM_INTERNAL_ERROR {error_uuid}"
 msgstr "Something went wrong (in me).  The error is registered with code <code>{error_uuid}</code>.  I will notify my administrator."
 
-#: bot.py:216
+#: bot.py:217
 msgid "COMMAND_DESCRIPTION_START"
 msgstr "Main menu"
 
-#: bot.py:217
+#: bot.py:218
 msgid "COMMAND_DESCRIPTION_ADMIN"
 msgstr "Administrator's menu"
 

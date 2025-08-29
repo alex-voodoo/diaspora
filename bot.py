@@ -182,7 +182,8 @@ async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> No
     error_uuid = uuid.uuid4()
 
     # Log the error before we do anything else, so we can see it even if something breaks.
-    logging.error(f"Exception while handling an update (error UUID {error_uuid}):", exc_info=exception)
+    logging.error(f"Exception of type {type(exception)} while handling an update (error UUID {error_uuid}):",
+                  exc_info=exception)
 
     update_str = update.to_dict() if isinstance(update, Update) else str(update)
 
