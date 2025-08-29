@@ -54,7 +54,7 @@ def standard(user: User):
     return InlineKeyboardMarkup(buttons)
 
 
-def select_category(user: User, categories=None):
+def select_category(user: User, categories, show_other=False):
     """Builds the keyboard for selecting a category
 
     Categories can be provided via the optional `categories` parameter and should be an iterable of dict-like items,
@@ -78,20 +78,23 @@ def select_category(user: User, categories=None):
     Each button has the category ID in its callback data.  The "Default" item means "no category", its callback data is
     set to 0.
 
-    If no categories are defined in the DB, this function returns None.
+    If no categories are defined in the DB and show_other is False, this function returns None.
     """
 
     trans = i18n.trans(user)
 
     buttons = []
+    added_other = False
     for category in categories if categories else db.people_category_select_all():
         buttons.append((InlineKeyboardButton(
             category["title"] if category["title"] else trans.gettext("BUTTON_ENROLL_CATEGORY_DEFAULT"),
             callback_data=category["id"] if category["id"] else 0),))
+        if not category["id"]:
+            added_other = True
+    if show_other and not added_other:
+        buttons.append((InlineKeyboardButton(trans.gettext("BUTTON_ENROLL_CATEGORY_DEFAULT"), callback_data=0),))
     if not buttons:
         return None
-    if not categories:
-        buttons.append((InlineKeyboardButton(trans.gettext("BUTTON_ENROLL_CATEGORY_DEFAULT"), callback_data=0),))
     return InlineKeyboardMarkup(buttons)
 
 

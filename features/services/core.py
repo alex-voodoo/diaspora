@@ -202,7 +202,7 @@ async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     existing_category_ids = [r["id"] for r in db.people_records(query.from_user.id)]
     categories = [c for c in db.people_category_select_all() if c["id"] not in existing_category_ids]
 
-    category_buttons = keyboards.select_category(query.from_user, categories)
+    category_buttons = keyboards.select_category(query.from_user, categories, 0 not in existing_category_ids)
 
     if category_buttons:
         await query.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_ASK_CATEGORY"), reply_markup=category_buttons)

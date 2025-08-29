@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2025-08-29 16:01+0200\n"
+"POT-Creation-Date: 2025-08-29 17:12+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -321,8 +321,8 @@ msgstr[0] "Здравствуйте, {user_first_name}. Вот ваша {record_
 msgstr[1] "Здравствуйте, {user_first_name}. Вот ваши {record_count} записи.\n"
 msgstr[2] "Здравствуйте, {user_first_name}. Вот ваши {record_count} записей.\n"
 
-#: features/services/core.py:41 features/services/keyboards.py:89
-#: features/services/keyboards.py:94
+#: features/services/core.py:41 features/services/keyboards.py:90
+#: features/services/keyboards.py:95
 msgid "BUTTON_ENROLL_CATEGORY_DEFAULT"
 msgstr "Другое"
 
@@ -472,11 +472,11 @@ msgstr "Править запись"
 msgid "BUTTON_RETIRE"
 msgstr "Удалить запись"
 
-#: features/services/keyboards.py:110 features/services/keyboards.py:120
+#: features/services/keyboards.py:113 features/services/keyboards.py:123
 msgid "BUTTON_YES"
 msgstr "Да"
 
-#: features/services/keyboards.py:110 features/services/keyboards.py:121
+#: features/services/keyboards.py:113 features/services/keyboards.py:124
 msgid "BUTTON_NO"
 msgstr "Нет"
 
