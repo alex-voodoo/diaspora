@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2025-08-29 15:46+0200\n"
+"POT-Creation-Date: 2025-08-29 16:01+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -317,8 +317,8 @@ msgid_plural "MESSAGE_DM_HELLO_AGAIN_P {user_first_name} {record_count}"
 msgstr[0] "Hello {user_first_name}.  Here is your {record_count} record.\n"
 msgstr[1] "Hello {user_first_name}.  Here are your {record_count} records."
 
-#: features/services/core.py:41 features/services/keyboards.py:92
-#: features/services/keyboards.py:97
+#: features/services/core.py:41 features/services/keyboards.py:89
+#: features/services/keyboards.py:94
 msgid "BUTTON_ENROLL_CATEGORY_DEFAULT"
 msgstr "Other"
 
@@ -448,31 +448,31 @@ msgstr "The record is deleted."
 msgid "MESSAGE_DM_CONVERSATION_CANCELLED"
 msgstr "Let us start again."
 
-#: features/services/keyboards.py:38
+#: features/services/keyboards.py:33
 msgid "BUTTON_WHO"
 msgstr "Show records"
 
-#: features/services/keyboards.py:38
+#: features/services/keyboards.py:34
 msgid "BUTTON_ENROLL"
 msgstr "Register"
 
-#: features/services/keyboards.py:39
+#: features/services/keyboards.py:35
 msgid "BUTTON_ENROLL_MORE"
 msgstr "Add another record"
 
-#: features/services/keyboards.py:40
+#: features/services/keyboards.py:36
 msgid "BUTTON_UPDATE"
 msgstr "Update a record"
 
-#: features/services/keyboards.py:40
+#: features/services/keyboards.py:37
 msgid "BUTTON_RETIRE"
 msgstr "Remove a record"
 
-#: features/services/keyboards.py:113 features/services/keyboards.py:123
+#: features/services/keyboards.py:110 features/services/keyboards.py:120
 msgid "BUTTON_YES"
 msgstr "Yes"
 
-#: features/services/keyboards.py:113 features/services/keyboards.py:123
+#: features/services/keyboards.py:110 features/services/keyboards.py:121
 msgid "BUTTON_NO"
 msgstr "No"
 

@@ -5,12 +5,7 @@ Keyboards used in the Services feature
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, User
 
 from common import db, i18n
-
-# Commands, sequences, and responses
-COMMAND_WHO, COMMAND_ENROLL, COMMAND_UPDATE, COMMAND_RETIRE = ("who", "update", "enroll", "retire")
-SELECTING_CATEGORY, TYPING_OCCUPATION, TYPING_LOCATION, CONFIRMING_LEGALITY = range(4)
-RESPONSE_YES, RESPONSE_NO = ("yes", "no")
-MODERATOR_APPROVE, MODERATOR_DECLINE = ("approve", "decline")
+from . import const
 
 
 def standard(user: User):
@@ -35,9 +30,11 @@ def standard(user: User):
 
     trans = i18n.trans(user)
 
-    command_buttons = {trans.gettext("BUTTON_WHO"): COMMAND_WHO, trans.gettext("BUTTON_ENROLL"): COMMAND_ENROLL,
-                       trans.gettext("BUTTON_ENROLL_MORE"): COMMAND_ENROLL,
-                       trans.gettext("BUTTON_UPDATE"): COMMAND_UPDATE, trans.gettext("BUTTON_RETIRE"): COMMAND_RETIRE}
+    command_buttons = {trans.gettext("BUTTON_WHO"): const.COMMAND_WHO,
+                       trans.gettext("BUTTON_ENROLL"): const.COMMAND_ENROLL,
+                       trans.gettext("BUTTON_ENROLL_MORE"): const.COMMAND_ENROLL,
+                       trans.gettext("BUTTON_UPDATE"): const.COMMAND_UPDATE,
+                       trans.gettext("BUTTON_RETIRE"): const.COMMAND_RETIRE}
     button_who, button_enroll, button_enroll_more, button_update, button_retire = (
         InlineKeyboardButton(text, callback_data=command) for text, command in command_buttons.items())
 
@@ -110,7 +107,7 @@ def yes_no(user: User) -> InlineKeyboardMarkup:
 
     trans = i18n.trans(user)
 
-    response_buttons = {trans.gettext("BUTTON_YES"): RESPONSE_YES, trans.gettext("BUTTON_NO"): RESPONSE_NO}
+    response_buttons = {trans.gettext("BUTTON_YES"): const.RESPONSE_YES, trans.gettext("BUTTON_NO"): const.RESPONSE_NO}
     response_button_yes, response_button_no = (InlineKeyboardButton(text, callback_data=command) for text, command in
                                                response_buttons.items())
 
@@ -120,11 +117,10 @@ def yes_no(user: User) -> InlineKeyboardMarkup:
 def approve_service_change(data) -> InlineKeyboardMarkup:
     trans = i18n.default()
 
-    response_buttons = {trans.gettext("BUTTON_YES"): MODERATOR_APPROVE, trans.gettext("BUTTON_NO"): MODERATOR_DECLINE}
+    response_buttons = {trans.gettext("BUTTON_YES"): const.MODERATOR_APPROVE,
+                        trans.gettext("BUTTON_NO"): const.MODERATOR_DECLINE}
     response_button_yes, response_button_no = (
         InlineKeyboardButton(text, callback_data="{}:{}:{}".format(command, data["tg_id"], data["category_id"])) for
         text, command in response_buttons.items())
 
     return InlineKeyboardMarkup(((response_button_yes, response_button_no),))
-
-

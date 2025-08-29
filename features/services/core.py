@@ -11,7 +11,7 @@ from telegram.ext import Application, CallbackQueryHandler, ContextTypes, Conver
 
 import settings
 from common import i18n, db
-from . import keyboards
+from . import const, keyboards
 
 
 async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: Message, user: User, prefix="") -> None:
@@ -99,7 +99,7 @@ async def who_request_category(update: Update, context: ContextTypes.DEFAULT_TYP
 
     context.user_data["who_request_category"] = filtered_people
 
-    return keyboards.SELECTING_CATEGORY
+    return const.SELECTING_CATEGORY
 
 
 async def who_received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -207,14 +207,14 @@ async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if category_buttons:
         await query.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_ASK_CATEGORY"), reply_markup=category_buttons)
 
-        return keyboards.SELECTING_CATEGORY
+        return const.SELECTING_CATEGORY
     else:
         user_data = context.user_data
         user_data["category_id"] = 0
 
         await query.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_ASK_OCCUPATION"))
 
-        return keyboards.TYPING_OCCUPATION
+        return const.TYPING_OCCUPATION
 
 
 # noinspection PyUnusedLocal
@@ -231,7 +231,7 @@ async def handle_command_update(update: Update, context: ContextTypes.DEFAULT_TY
 
     context.user_data["mode"] = "update"
 
-    return keyboards.SELECTING_CATEGORY
+    return const.SELECTING_CATEGORY
 
 
 async def received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -258,7 +258,7 @@ async def received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     else:
         await query.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_ASK_OCCUPATION"))
 
-    return keyboards.TYPING_OCCUPATION
+    return const.TYPING_OCCUPATION
 
 
 async def received_occupation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -276,7 +276,7 @@ async def received_occupation(update: Update, context: ContextTypes.DEFAULT_TYPE
     else:
         await update.message.reply_text(trans.gettext("MESSAGE_DM_ENROLL_ASK_LOCATION"))
 
-    return keyboards.TYPING_LOCATION
+    return const.TYPING_LOCATION
 
 
 async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -288,7 +288,7 @@ async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     await update.message.reply_text(i18n.trans(update.message.from_user).gettext("MESSAGE_DM_ENROLL_CONFIRM_LEGALITY"),
                                     reply_markup=keyboards.yes_no(update.message.from_user))
 
-    return keyboards.CONFIRMING_LEGALITY
+    return const.CONFIRMING_LEGALITY
 
 
 async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -303,7 +303,7 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     trans = i18n.trans(query.from_user)
 
-    if query.data == keyboards.RESPONSE_YES:
+    if query.data == const.RESPONSE_YES:
         db.people_insert_or_update(from_user.id, from_user.username, user_data["occupation"], user_data["location"],
                                    (0 if settings.SERVICES_MODERATION_IS_LAZY else 1), user_data["category_id"])
 
@@ -327,7 +327,7 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         if settings.SERVICES_MODERATION_ENABLED:
             await moderate_new_data(update, context, saved_user_data)
 
-    elif query.data == keyboards.RESPONSE_NO:
+    elif query.data == const.RESPONSE_NO:
         db.people_delete(from_user.id, int(user_data["category_id"]))
         user_data.clear()
 
@@ -352,7 +352,7 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
     trans = i18n.trans(query.from_user)
 
-    if command == keyboards.MODERATOR_APPROVE:
+    if command == const.MODERATOR_APPROVE:
         logging.info(
             "Moderator ID {moderator_id} approves new data from user ID {user_id} in category {category_id}".format(
                 moderator_id=query.from_user.id, user_id=tg_id, category_id=category_id))
@@ -362,7 +362,7 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
         await query.edit_message_reply_markup(None)
         await query.message.reply_text(trans.gettext("MESSAGE_ADMIN_USER_RECORD_APPROVED"))
-    elif command == keyboards.MODERATOR_DECLINE:
+    elif command == const.MODERATOR_DECLINE:
         logging.info(
             "Moderator ID {moderator_id} declines new data from user ID {user_id} in category {category_id}".format(
                 moderator_id=query.from_user.id, user_id=tg_id, category_id=category_id))
@@ -390,7 +390,7 @@ async def handle_command_retire(update: Update, context: ContextTypes.DEFAULT_TY
                                    reply_markup=keyboards.select_category(query.from_user,
                                                                           db.people_records(query.from_user.id)))
 
-    return keyboards.SELECTING_CATEGORY
+    return const.SELECTING_CATEGORY
 
 
 async def retire_received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -430,25 +430,25 @@ def init(application: Application, group: int):
 
     # Enrolling
     application.add_handler(ConversationHandler(
-        entry_points=[CallbackQueryHandler(enroll, pattern=keyboards.COMMAND_ENROLL),
-                      CallbackQueryHandler(handle_command_update, pattern=keyboards.COMMAND_UPDATE)],
-        states={keyboards.SELECTING_CATEGORY: [CallbackQueryHandler(received_category)],
-                keyboards.TYPING_OCCUPATION: [MessageHandler(filters.TEXT & (~ filters.COMMAND), received_occupation)],
-                keyboards.TYPING_LOCATION: [MessageHandler(filters.TEXT & (~ filters.COMMAND), received_location)],
-                keyboards.CONFIRMING_LEGALITY: [CallbackQueryHandler(confirm_legality)]},
+        entry_points=[CallbackQueryHandler(enroll, pattern=const.COMMAND_ENROLL),
+                      CallbackQueryHandler(handle_command_update, pattern=const.COMMAND_UPDATE)],
+        states={const.SELECTING_CATEGORY: [CallbackQueryHandler(received_category)],
+                const.TYPING_OCCUPATION: [MessageHandler(filters.TEXT & (~ filters.COMMAND), received_occupation)],
+                const.TYPING_LOCATION: [MessageHandler(filters.TEXT & (~ filters.COMMAND), received_location)],
+                const.CONFIRMING_LEGALITY: [CallbackQueryHandler(confirm_legality)]},
         fallbacks=[MessageHandler(filters.ALL, abort_conversation)]))
 
-    application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(who, pattern=keyboards.COMMAND_WHO)],
-                                                states={keyboards.SELECTING_CATEGORY: [
+    application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(who, pattern=const.COMMAND_WHO)],
+                                                states={const.SELECTING_CATEGORY: [
                                                     CallbackQueryHandler(who_received_category)]},
                                                 fallbacks=[MessageHandler(filters.ALL, abort_conversation)]))
 
-    application.add_handler(ConversationHandler(
-        entry_points=[CallbackQueryHandler(handle_command_retire, pattern=keyboards.COMMAND_RETIRE)],
-        states={keyboards.SELECTING_CATEGORY: [CallbackQueryHandler(retire_received_category)]},
-        fallbacks=[MessageHandler(filters.ALL, abort_conversation)]))
+    application.add_handler(
+        ConversationHandler(entry_points=[CallbackQueryHandler(handle_command_retire, pattern=const.COMMAND_RETIRE)],
+            states={const.SELECTING_CATEGORY: [CallbackQueryHandler(retire_received_category)]},
+            fallbacks=[MessageHandler(filters.ALL, abort_conversation)]))
 
     if settings.SERVICES_MODERATION_ENABLED:
         application.add_handler(CallbackQueryHandler(confirm_user_data, pattern=re.compile(
-            "^({approve}|{decline}):[0-9]+:[0-9]+$".format(approve=keyboards.MODERATOR_APPROVE,
-                                                           decline=keyboards.MODERATOR_DECLINE))), group=2)
+            "^({approve}|{decline}):[0-9]+:[0-9]+$".format(approve=const.MODERATOR_APPROVE,
+                                                           decline=const.MODERATOR_DECLINE))), group=2)
