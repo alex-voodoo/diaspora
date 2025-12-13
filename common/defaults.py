@@ -128,12 +128,12 @@ GLOSSARY_EXTERNAL_URL = ""
 # Moderation
 #
 # The bot can coordinate public-driven moderation in the chat.  The additional chat of moderators is configured.  Users
-# of the main may send requests to moderate messages to the bot, these requests are redirected to the moderators' chat,
-# and the bot helps with reaching consensus and doing the actual moderation in the main chat.
+# of the main chat may send requests to moderate messages to the bot, these requests are redirected to the moderation
+# chat, and the bot helps with reaching consensus and doing the actual moderation in the main chat.
 #
 # Settings marked with asterisks should be tuned or at least revised to be adequate to the size of the group.
 #
-# Whether moderation is enabled.  Default is False.
+# Whether moderation is enabled.  See also MODERATION_IS_REAL.  Default is False.
 MODERATION_ENABLED = False
 # ID of the moderators' chat.  Mandatory if the feature is enabled.  Default is 0.
 MODERATION_CHAT_ID = 0
@@ -147,8 +147,31 @@ MODERATION_QUORUM_THRESHOLD = 0.75
 # Minimum number of votes that is enough to be given for an option to have that option accepted after the quorum is
 # reached.  Default is 0.75.
 MODERATION_WINNING_THRESHOLD = 0.75
-# Number of complaints registered for a single message to trigger sanctions.  Default is 5.
-MODERATION_SANCTION_THRESHOLD = 5
+# Whether the bot should work in earnest and punish participants when complaints are approved.  When this is False, the
+# bot will only announce in the moderation chat what it would do, and also it will reset the moderation persistent state
+# (complaints, polls and restrictions) upon restart.  Default is False.
+MODERATION_IS_REAL = False
+# Ladder of restrictions.  Defines how a participant would progress if they keep violating rules of the chat and do not
+# let their most recent restriction to cool down (see README for the detailed explanation).
+MODERATION_RESTRICTION_LADDER = [
+    {
+        "action": "warn",
+        "cooldown": 60
+    },
+    {
+        "action": "restrict",
+        "duration": 60,
+        "cooldown": 60
+    },
+    {
+        "action": "restrict",
+        "duration": 1800,
+        "cooldown": 1800
+    },
+    {
+        "action": "ban"
+    }
+]
 
 # ----------------------------------------------------------------------------------------------------------------------
 # General settings

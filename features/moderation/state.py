@@ -2,13 +2,18 @@
 Persistent state of the moderation feature
 """
 
+import datetime
 import pathlib
 import pickle
 
 from telegram import Message
 
+import settings
+
+from . import const
+
 # Root dictionaries in the state
-_COMPLAINTS, _MAIN_CHAT_LOG, _POLLS = "complaints", "main_chat_log", "polls"
+_COMPLAINTS, _MAIN_CHAT_LOG, _POLLS, _RESTRICTIONS = "complaints", "main_chat_log", "polls", "restrictions"
 
 _STATE_FILENAME = pathlib.Path(__file__).parent.parent / "resources" / "moderation_state.pkl"
 
@@ -17,12 +22,22 @@ _state = {}
 
 
 class Complaint:
-    """Accumulates moderation requests about a single message in the main chat"""
+    """Accumulates moderation requests about a single message in the main chat
 
-    def __init__(self):
+    Complaints are stored in the state in a dictionary where keys are IDs of the original messages.
+    """
+
+    def __init__(self, violator_id):
+        # Telegram ID of the original poster of the message that the complaint is raised for.
+        self._violator_id = violator_id
+        # Telegram IDs of users that complained about this message.
         self._users = set()
+        # Reasons that users specified when sending their complaints.
         self._reasons = dict()
+        # ID of the moderation poll created when this complaint accumulates enough requests.
         self.poll_id = ""
+        # Whether this complaint accepts new requests.
+        self._is_open = True
 
     def has_user(self, user_id) -> bool:
         """Return whether this complaint has a request from the given user"""
@@ -54,6 +69,15 @@ class Complaint:
     def reasons(self) -> dict:
         return self._reasons
 
+    @property
+    def is_open(self) -> bool:
+        """Return whether this complaint accepts requests"""
+
+        return self._is_open
+
+    def close(self) -> None:
+        self._is_open = False
+
 
 class Poll:
     """Links together a poll, a message that the poll is contained in, and an original message that the poll is about"""
@@ -61,6 +85,20 @@ class Poll:
     def __init__(self, original_message_id, poll_message_id):
         self.original_message_id = original_message_id
         self.poll_message_id = poll_message_id
+
+
+class Restriction:
+    """Explains current restriction put on a user
+
+    Restrictions are stored in the state in a dictionary where keys are Telegram IDs of the restricted users.
+    """
+
+    def __init__(self, level, until_timestamp):
+        self.level = level
+        self.until_timestamp = until_timestamp
+
+    def is_over(self) -> bool:
+        return datetime.datetime.now() > self.until_timestamp
 
 
 def _save() -> None:
@@ -142,6 +180,40 @@ def poll_get(poll_id: str) -> Poll:
     return _state[_POLLS][poll_id]
 
 
+def restriction_add_or_elevate(user_id: int) -> Restriction:
+    """Restrict user with the given ID
+
+    Returns the new restriction that should be applied to the user.
+    """
+
+    global _state
+
+    restrictions = _state[_RESTRICTIONS]
+
+    if user_id not in restrictions or restrictions[user_id].is_over():
+        new_level = 0
+    else:
+        new_level = restrictions[user_id].level + 1
+
+    assert new_level in range(len(settings.MODERATION_RESTRICTION_LADDER))
+
+    pattern = settings.MODERATION_RESTRICTION_LADDER[new_level]
+    action = pattern["action"]
+    if action == const.ACTION_WARN:
+        duration = datetime.timedelta(minutes=pattern["cooldown"])
+    elif action == const.ACTION_RESTRICT:
+        duration = datetime.timedelta(minutes=(pattern["duration"] + pattern["cooldown"]))
+    elif action == const.ACTION_BAN:
+        duration = None
+    else:
+        raise RuntimeError(f"Unknown action: {action}")
+
+    restrictions[user_id] = Restriction(new_level, duration)
+
+    _save()
+
+    return restrictions[user_id]
+
 def clean(original_message_id: int) -> None:
     """Remove complaint and poll data (if any) associated with the original message with the given ID"""
 
@@ -167,13 +239,12 @@ def init() -> None:
         # First run, no problem, create an empty state.
         _state = {}
 
-    if _MAIN_CHAT_LOG not in _state:
+    if _MAIN_CHAT_LOG not in _state or not settings.MODERATION_IS_REAL:
         _state[_MAIN_CHAT_LOG] = dict()
-    if _COMPLAINTS not in _state:
+    if _COMPLAINTS not in _state or not settings.MODERATION_IS_REAL:
         _state[_COMPLAINTS] = dict()
-    if _POLLS not in _state:
+    if _POLLS not in _state or not settings.MODERATION_IS_REAL:
         _state[_POLLS] = dict()
+    if _RESTRICTIONS not in _state or not settings.MODERATION_IS_REAL:
+        _state[_RESTRICTIONS] = dict()
 
-    # TODO: remove the below when this feature passes alpha testing.
-    _state[_COMPLAINTS] = dict()
-    _state[_POLLS] = dict()
