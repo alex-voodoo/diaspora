@@ -9,7 +9,7 @@ import random
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-import settings
+from common import settings
 
 URLS_FILENAME = "aprils_fool_urls.txt"
 URLS_FILE_PATH = pathlib.Path(__file__).parent / "resources" / URLS_FILENAME

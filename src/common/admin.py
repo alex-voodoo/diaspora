@@ -10,8 +10,9 @@ from pathlib import Path
 
 from telegram import InlineKeyboardMarkup, Update
 
-import settings
-from common import i18n
+from . import i18n
+from .checks import is_admin
+from .settings import settings
 
 buttons = None
 
@@ -51,7 +52,7 @@ async def save_file_with_backup(update: Update, path: Path, expected_mime_type: 
     message for the case when the validation failed.
     """
 
-    if update.effective_user.id not in settings.ADMINISTRATORS.keys():
+    if not is_admin(update.effective_user):
         logging.error("common.admin.save_file_with_backup() is called for a non-administrator user!")
         return False
 

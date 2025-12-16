@@ -15,15 +15,18 @@ from openai import OpenAI
 from telegram import InlineKeyboardButton, Update
 from telegram.ext import Application, CallbackQueryHandler, ConversationHandler, ContextTypes, filters, MessageHandler
 
-import settings
 from common import db, i18n
 from common.admin import get_main_keyboard, register_buttons, save_file_with_backup
+from common.checks import is_admin
 from common.messaging_helpers import delete_message, safe_delete_message
+from common.settings import settings
 
 KEYWORDS_FILENAME = "antispam_keywords.txt"
-KEYWORDS_FILE_PATH = pathlib.Path(__file__).parent / "resources" / KEYWORDS_FILENAME
+KEYWORDS_FILE_PATH = "/var/local/diaspora/" + KEYWORDS_FILENAME if settings.SERVICE_MODE else pathlib.Path(
+    __file__).parent / "resources" / KEYWORDS_FILENAME
 
-OPENAI_FILE_PATH = pathlib.Path(__file__).parent / "resources" / "antispam_openai.joblib"
+OPENAI_FILE_PATH = "/var/local/diaspora/antispam_openai.joblib" if settings.SERVICE_MODE else pathlib.Path(
+    __file__).parent / "resources" / "antispam_openai.joblib"
 
 # Admin keyboard commands
 (ADMIN_DOWNLOAD_SPAM, ADMIN_DOWNLOAD_KEYWORDS, ADMIN_UPLOAD_KEYWORDS, ADMIN_UPLOAD_OPENAI) = (
@@ -219,7 +222,7 @@ async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE)
     query = update.callback_query
     user = query.from_user
 
-    if user.id not in settings.ADMINISTRATORS.keys():
+    if not is_admin(user):
         logging.error("User {username} is not listed as administrator!".format(username=user.username))
         return
 
@@ -261,7 +264,7 @@ async def handle_received_keywords(update: Update, context: ContextTypes.DEFAULT
 # noinspection PyUnusedLocal
 async def handle_received_openai(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user = update.effective_user
-    if user.id not in settings.ADMINISTRATORS.keys():
+    if not is_admin(user):
         logging.error("User {username} is not listed as administrator!".format(username=user.username))
         return ConversationHandler.END
 

@@ -1,0 +1,15 @@
+[Unit]
+Description=Diaspora Telegram bot service
+
+[Service]
+WorkingDirectory=/usr/local/lib/diaspora/
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=/usr/local/etc/diaspora/diaspora.env
+ExecStart=/usr/local/lib/diaspora/venv/bin/python /usr/local/lib/diaspora/bot.py
+StandardOutput=append:/var/log/diaspora.log
+StandardError=append:/var/log/diaspora.log
+
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

@@ -8,14 +8,14 @@ import pickle
 
 from telegram import Message
 
-import settings
-
+from common.settings import settings
 from . import const
 
 # Root dictionaries in the state
 _COMPLAINTS, _MAIN_CHAT_LOG, _POLLS, _RESTRICTIONS = "complaints", "main_chat_log", "polls", "restrictions"
 
-_STATE_FILENAME = pathlib.Path(__file__).parent.parent / "resources" / "moderation_state.pkl"
+_STATE_FILENAME = "/var/local/diaspora/moderation_state.pkl" if settings.SERVICE_MODE else pathlib.Path(
+    __file__).parent.parent / "resources" / "moderation_state.pkl"
 
 # State object.  Loaded once from the file, then used in-memory, saved to the file when changed.
 _state = {}
@@ -214,6 +214,7 @@ def restriction_add_or_elevate(user_id: int) -> Restriction:
 
     return restrictions[user_id]
 
+
 def clean(original_message_id: int) -> None:
     """Remove complaint and poll data (if any) associated with the original message with the given ID"""
 
@@ -247,4 +248,3 @@ def init() -> None:
         _state[_POLLS] = dict()
     if _RESTRICTIONS not in _state or not settings.MODERATION_IS_REAL:
         _state[_RESTRICTIONS] = dict()
-

@@ -14,9 +14,9 @@ from telegram.constants import ChatType
 # noinspection PyPackageRequirements
 from telegram.ext import Application, CallbackQueryHandler, ContextTypes, filters, MessageHandler, PollHandler
 
-import settings
 from common import i18n
 from common.checks import is_member_of_main_chat
+from common.settings import settings
 from . import state
 
 (_MODERATION_REASON_FRAUD, _MODERATION_REASON_OFFENSE, _MODERATION_REASON_RACISM, _MODERATION_REASON_SPAM,

@@ -15,23 +15,22 @@ from telegram import InlineKeyboardButton, Update
 from telegram.constants import ReactionEmoji
 from telegram.ext import Application, CallbackQueryHandler, ContextTypes, ConversationHandler, filters, MessageHandler
 
-import settings
-from common import i18n
+from common import i18n, settings
 from common.admin import register_buttons, save_file_with_backup
-from common.log import get_file_logger, LogTime
+from common.checks import is_admin
+from common.log import LogTime
 from common.messaging_helpers import self_destructing_reaction, self_destructing_reply
-from settings import ADMINISTRATORS
+from common.settings import settings
 
 TERMS_FILENAME = "glossary_terms.csv"
-TERMS_FILE_PATH = pathlib.Path(__file__).parent / "resources" / TERMS_FILENAME
+TERMS_FILE_PATH = "/var/local/diaspora/" + TERMS_FILENAME if settings.SERVICE_MODE else pathlib.Path(
+    __file__).parent / "resources" / TERMS_FILENAME
 
 # Admin keyboard commands
 ADMIN_DOWNLOAD_TERMS, ADMIN_UPLOAD_TERMS = "glossary-download-terms", "glossary-upload-terms"
 ADMIN_UPLOADING_TERMS = 1
 
 logger = logging.getLogger(__name__)
-
-glossary_logger = get_file_logger("glossary", "glossary.log")
 
 # Glossary data.  List of dictionary items with the following fields:
 # - regex: regular expression that should capture the trigger in a message in any form, including misspellings
@@ -165,7 +164,7 @@ async def process_normal_message(update: Update, context: ContextTypes.DEFAULT_T
 
     maybe_load_glossary_data()
 
-    with LogTime("Trigger lookup", glossary_logger):
+    with LogTime("Trigger lookup"):
         filtered = []
         for term in glossary_data:
             try:
@@ -301,7 +300,7 @@ async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE)
     query = update.callback_query
     user = query.from_user
 
-    if user.id not in ADMINISTRATORS.keys():
+    if not is_admin(user):
         logging.error("User {username} is not listed as administrator!".format(username=user.username))
         return
 

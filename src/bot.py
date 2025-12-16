@@ -1,5 +1,3 @@
-#!./venv/bin/python
-
 """
 This is the main script that contains the entry point of the bot.  Execute this file to run the bot.
 
@@ -20,19 +18,21 @@ from telegram import BotCommand, LinkPreviewOptions, MenuButtonCommands, Update
 from telegram.constants import ParseMode, ChatType
 from telegram.ext import Application, CommandHandler, ContextTypes, Defaults, filters, MessageHandler
 
-from common import db, i18n
-from common.admin import get_main_keyboard
-from common.checks import is_member_of_main_chat
-from common.messaging_helpers import safe_delete_message, self_destructing_reply
-from features import antispam, aprils_fool, glossary, moderation, services
-from settings import *
-
-# Configure logging
+# Configure logging before importing settings and other project modules to have messages that may be rendered during
+# initialisation logged correctly.
 # Set higher logging level for httpx to avoid all GET and POST requests being logged.
 # noinspection SpellCheckingInspection
 logging.basicConfig(format="[%(asctime)s %(levelname)s %(name)s %(filename)s:%(lineno)d] %(message)s",
-                    level=logging.INFO, filename="bot.log")
+                    level=logging.INFO)
 logging.getLogger("httpx").setLevel(logging.WARNING)
+
+from common import db, i18n
+from common.admin import get_main_keyboard
+from common.checks import is_admin, is_member_of_main_chat
+from common.messaging_helpers import safe_delete_message, self_destructing_reply
+from common.settings import settings
+from features import antispam, aprils_fool, glossary, moderation, services
+
 
 # Commands, sequences, and responses
 COMMAND_START, COMMAND_HELP, COMMAND_ADMIN = ("start", "help", "admin")
@@ -51,7 +51,7 @@ async def talking_private(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     if not update.effective_chat or update.effective_chat.type != ChatType.PRIVATE:
         await self_destructing_reply(update, context, i18n.trans(update.effective_message.from_user).gettext(
-            "MESSAGE_MC_LET_US_TALK_PRIVATE"), DELETE_MESSAGE_TIMEOUT)
+            "MESSAGE_MC_LET_US_TALK_PRIVATE"), settings.DELETE_MESSAGE_TIMEOUT)
         return False
     return True
 
@@ -66,20 +66,20 @@ async def greet_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         logging.info("Greeting new user {username} (chat ID {chat_id})".format(username=user.username, chat_id=user.id))
 
         greeting_message = i18n.trans(user).gettext(
-            "MESSAGE_MC_GREETING_M {user_first_name} {bot_first_name}") if BOT_IS_MALE else i18n.trans(user).gettext(
+            "MESSAGE_MC_GREETING_M {user_first_name} {bot_first_name}") if settings.BOT_IS_MALE else i18n.trans(user).gettext(
             "MESSAGE_MC_GREETING_F {user_first_name} {bot_first_name}")
 
         await self_destructing_reply(update, context, greeting_message.format(user_first_name=user.first_name,
                                                                               bot_first_name=context.bot.first_name),
-                                     GREETING_TIMEOUT, False)
+                                     settings.GREETING_TIMEOUT, False)
 
 
 async def detect_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Detect language of the incoming message in the main chat, and show a warning if there are too many messages
     written in non-default languages."""
 
-    if (update.effective_message.chat_id != MAIN_CHAT_ID or not hasattr(update.message, "text") or len(
-            update.message.text.split(" ")) < LANGUAGE_MODERATION_MIN_WORD_COUNT):
+    if (update.effective_message.chat_id != settings.MAIN_CHAT_ID or not hasattr(update.message, "text") or len(
+            update.message.text.split(" ")) < settings.LANGUAGE_MODERATION_MIN_WORD_COUNT):
         return
 
     global message_languages
@@ -90,15 +90,15 @@ async def detect_language(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         logging.warning("Caught LangDetectException while processing a message")
         return
 
-    if len(message_languages) < LANGUAGE_MODERATION_MAX_FOREIGN_MESSAGE_COUNT:
+    if len(message_languages) < settings.LANGUAGE_MODERATION_MAX_FOREIGN_MESSAGE_COUNT:
         return
 
-    while len(message_languages) > LANGUAGE_MODERATION_MAX_FOREIGN_MESSAGE_COUNT:
+    while len(message_languages) > settings.LANGUAGE_MODERATION_MAX_FOREIGN_MESSAGE_COUNT:
         message_languages.popleft()
 
-    if DEFAULT_LANGUAGE not in message_languages:
+    if settings.DEFAULT_LANGUAGE not in message_languages:
         message_languages = deque()
-        await context.bot.send_message(chat_id=MAIN_CHAT_ID,
+        await context.bot.send_message(chat_id=settings.MAIN_CHAT_ID,
                                        text=i18n.default().gettext("MESSAGE_MC_SPEAK_DEFAULT_LANGUAGE"))
 
 
@@ -111,7 +111,7 @@ async def handle_command_help(update: Update, context: ContextTypes.DEFAULT_TYPE
     trans = i18n.trans(user)
 
     if message.chat_id != user.id:
-        await self_destructing_reply(update, context, trans.gettext("MESSAGE_MC_HELP"), DELETE_MESSAGE_TIMEOUT)
+        await self_destructing_reply(update, context, trans.gettext("MESSAGE_MC_HELP"), settings.DELETE_MESSAGE_TIMEOUT)
         return
 
     if not await is_member_of_main_chat(user, context):
@@ -126,12 +126,12 @@ async def handle_command_start(update: Update, context: ContextTypes.DEFAULT_TYP
     message = update.effective_message
     user = message.from_user
 
-    if user.id == DEVELOPER_CHAT_ID and message.chat.id != DEVELOPER_CHAT_ID:
+    if user.id == settings.DEVELOPER_CHAT_ID and message.chat.id != settings.DEVELOPER_CHAT_ID:
         logging.info("This is the admin user {username} talking from \"{chat_name}\" (chat ID {chat_id})".format(
             username=user.username, chat_name=message.chat.title, chat_id=message.chat.id))
 
         await safe_delete_message(context, message.id, message.chat.id)
-        await context.bot.send_message(chat_id=DEVELOPER_CHAT_ID,
+        await context.bot.send_message(chat_id=settings.DEVELOPER_CHAT_ID,
                                        text=i18n.trans(user).gettext("MESSAGE_ADMIN_MAIN_CHAT_ID {title} {id}").format(
                                            title=message.chat.title, id=str(message.chat.id)))
         return
@@ -139,7 +139,7 @@ async def handle_command_start(update: Update, context: ContextTypes.DEFAULT_TYP
     if not await talking_private(update, context):
         return
 
-    if MAIN_CHAT_ID == 0:
+    if settings.MAIN_CHAT_ID == 0:
         logging.info("Welcoming user {username} (chat ID {chat_id}), is this the admin?".format(username=user.username,
                                                                                                 chat_id=user.id))
         return
@@ -156,7 +156,7 @@ async def handle_command_admin(update: Update, context: ContextTypes.DEFAULT_TYP
     message = update.effective_message
     user = message.from_user
 
-    if user.id not in ADMINISTRATORS.keys():
+    if not is_admin(user):
         logging.info("User {username} tried to invoke the admin UI".format(username=user.username))
         return
 
@@ -193,7 +193,7 @@ async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> No
         update=json.dumps(update_str, indent=2, ensure_ascii=False), user_data=str(context.user_data))
 
     # Notify the developer.
-    await context.bot.send_document(chat_id=DEVELOPER_CHAT_ID,
+    await context.bot.send_document(chat_id=settings.DEVELOPER_CHAT_ID,
                                     caption=trans.gettext("ERROR_REPORT_CAPTION {error_uuid}").format(
                                         error_uuid=error_uuid), document=io.BytesIO(bytes(error_message, "utf-8")),
                                     filename=f"diaspora-error-{error_uuid}.txt")
@@ -217,8 +217,8 @@ async def post_init(application: Application) -> None:
         [BotCommand(command=COMMAND_START, description=trans.gettext("COMMAND_DESCRIPTION_START")),
          BotCommand(command=COMMAND_ADMIN, description=trans.gettext("COMMAND_DESCRIPTION_ADMIN"))])
 
-    for chat_id in ADMINISTRATORS.keys():
-        await bot.set_chat_menu_button(chat_id, MenuButtonCommands())
+    for administrator in settings.ADMINISTRATORS:
+        await bot.set_chat_menu_button(administrator["id"], MenuButtonCommands())
 
     antispam.post_init(application, group=1)
     glossary.post_init(application, group=4)
@@ -227,10 +227,12 @@ async def post_init(application: Application) -> None:
 def main() -> None:
     """Run the bot"""
 
+    logging.info("The bot starts in {m} mode".format(m="service" if settings.SERVICE_MODE else "direct"))
+
     db.connect()
 
     application = (Application.builder()
-                   .token(BOT_TOKEN)
+                   .token(settings.BOT_TOKEN)
                    .defaults(Defaults(link_preview_options=LinkPreviewOptions(is_disabled=True),
                                       parse_mode=ParseMode.HTML))
                    .post_init(post_init)
@@ -246,10 +248,10 @@ def main() -> None:
     application.add_handler(CommandHandler(COMMAND_HELP, handle_command_help))
     application.add_handler(CommandHandler(COMMAND_ADMIN, handle_command_admin))
 
-    if GREETING_ENABLED:
+    if settings.GREETING_ENABLED:
         application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, greet_new_member))
 
-    if LANGUAGE_SERVICES_MODERATION_ENABLED:
+    if settings.LANGUAGE_MODERATION_ENABLED:
         global message_languages
         message_languages = deque()
 

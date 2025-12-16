@@ -9,8 +9,8 @@ import re
 from telegram import Message, Update, User
 from telegram.ext import Application, CallbackQueryHandler, ContextTypes, ConversationHandler, filters, MessageHandler
 
-import settings
 from common import i18n, db
+from common.settings import settings
 from . import const, keyboards
 
 
@@ -59,7 +59,7 @@ async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: Message,
 
 # noinspection PyUnusedLocal
 async def moderate_new_data(update: Update, context: ContextTypes.DEFAULT_TYPE, data) -> None:
-    moderator_ids = settings.ADMINISTRATORS.keys() if settings.ADMINISTRATORS else (settings.DEVELOPER_CHAT_ID,)
+    moderator_ids = [admin["id"] for admin in settings.ADMINISTRATORS] if settings.ADMINISTRATORS else (settings.DEVELOPER_CHAT_ID,)
 
     for moderator_id in moderator_ids:
         logging.info("Sending moderation request to moderator ID {id}".format(id=moderator_id))

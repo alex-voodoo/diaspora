@@ -7,7 +7,7 @@ import logging
 from telegram import ChatMember, ChatMemberLeft, ChatMemberBanned, User
 from telegram.ext import ContextTypes
 
-from settings import MAIN_CHAT_ID
+from common.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ async def is_member_of_main_chat(user: User, context: ContextTypes.DEFAULT_TYPE)
             return "banned"
         return None
 
-    reason = should_be_blocked(await context.bot.get_chat_member(MAIN_CHAT_ID, user.id))
+    reason = should_be_blocked(await context.bot.get_chat_member(settings.MAIN_CHAT_ID, user.id))
     if reason:
         logger.info("User {username} (chat ID {chat_id}) is not allowed: {reason}".format(username=user.username,
                                                                                           chat_id=user.id,
@@ -31,3 +31,5 @@ async def is_member_of_main_chat(user: User, context: ContextTypes.DEFAULT_TYPE)
     return True
 
 
+def is_admin(user: User):
+    return user.id in [admin["id"] for admin in settings.ADMINISTRATORS]

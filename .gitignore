@@ -2,7 +2,7 @@
 features/resources
 people.db
 __pycache__
-settings.py
+settings.yaml
 venv
 *.log
 *.pot
