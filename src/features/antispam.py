@@ -22,11 +22,9 @@ from common.messaging_helpers import delete_message, safe_delete_message
 from common.settings import settings
 
 KEYWORDS_FILENAME = "antispam_keywords.txt"
-KEYWORDS_FILE_PATH = "/var/local/diaspora/" + KEYWORDS_FILENAME if settings.SERVICE_MODE else pathlib.Path(
-    __file__).parent / "resources" / KEYWORDS_FILENAME
+KEYWORDS_FILE_PATH = settings.data_dir() / KEYWORDS_FILENAME
 
-OPENAI_FILE_PATH = "/var/local/diaspora/antispam_openai.joblib" if settings.SERVICE_MODE else pathlib.Path(
-    __file__).parent / "resources" / "antispam_openai.joblib"
+OPENAI_FILE_PATH = settings.data_dir() / "antispam_openai.joblib"
 
 # Admin keyboard commands
 (ADMIN_DOWNLOAD_SPAM, ADMIN_DOWNLOAD_KEYWORDS, ADMIN_UPLOAD_KEYWORDS, ADMIN_UPLOAD_OPENAI) = (

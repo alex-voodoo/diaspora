@@ -14,8 +14,7 @@ from . import const
 # Root dictionaries in the state
 _COMPLAINTS, _MAIN_CHAT_LOG, _POLLS, _RESTRICTIONS = "complaints", "main_chat_log", "polls", "restrictions"
 
-_STATE_FILENAME = "/var/local/diaspora/moderation_state.pkl" if settings.SERVICE_MODE else pathlib.Path(
-    __file__).parent.parent / "resources" / "moderation_state.pkl"
+_STATE_FILENAME = settings.data_dir() / "moderation_state.pkl"
 
 # State object.  Loaded once from the file, then used in-memory, saved to the file when changed.
 _state = {}

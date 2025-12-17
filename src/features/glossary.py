@@ -23,8 +23,7 @@ from common.messaging_helpers import self_destructing_reaction, self_destructing
 from common.settings import settings
 
 TERMS_FILENAME = "glossary_terms.csv"
-TERMS_FILE_PATH = "/var/local/diaspora/" + TERMS_FILENAME if settings.SERVICE_MODE else pathlib.Path(
-    __file__).parent / "resources" / TERMS_FILENAME
+TERMS_FILE_PATH = settings.data_dir() / TERMS_FILENAME
 
 # Admin keyboard commands
 ADMIN_DOWNLOAD_TERMS, ADMIN_UPLOAD_TERMS = "glossary-download-terms", "glossary-upload-terms"
