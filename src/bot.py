@@ -172,6 +172,9 @@ async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> No
 
     exception = context.error
 
+    if isinstance(exception, telegram.error.BadRequest):
+        logging.error(f"An exception of type {type(exception)} was raised: {exception}.")
+        return
     if isinstance(exception, httpx.RemoteProtocolError) or isinstance(exception, telegram.error.NetworkError):
         # Connection errors happen regularly, and they are caused by reasons external to the bot, so it makes no
         # sense notifying the developer about them.  Log an error and bail out.
