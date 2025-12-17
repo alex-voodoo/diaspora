@@ -15,11 +15,15 @@ import yaml
 
 class Settings:
     def __init__(self):
-        # ----------------------------------------------------------------------------------------------------------------------
+        # The below, between two YAML_SETTINGS markers, is parsed by setup.py to generate settings.yaml.
+        # Each setting must have a default value that will be used if the user does not override it.
+
+        # YAML_SETTINGS
+        # --------------------------------------------------------------------------------------------------------------
         # Mandatory settings
 
-        # Token of the bot, obtained from BotFather
-        self.BOT_TOKEN = ""
+        # Token of the bot, obtained from BotFather.
+        self.BOT_TOKEN = "%BOT_TOKEN%"
 
         # ID of the chat with the developer
         self.DEVELOPER_CHAT_ID = 0
@@ -192,9 +196,10 @@ class Settings:
         self.DELETE_MESSAGE_TIMEOUT = 60
         # Administrators (key is Telegram ID and value is Telegram username)
         self.ADMINISTRATORS = dict()
+        # YAML_SETTINGS
 
         # Working mode.
-        self.SERVICE_MODE = os.getenv("AUDAX_TRACKER_SERVICE_MODE") == "1"
+        self.SERVICE_MODE = os.getenv("DIASPORA_SERVICE_MODE") == "1"
 
         config_path = self.conf_dir() / "settings.yaml"
         if not config_path.is_file():
