@@ -200,7 +200,8 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     except Exception as e:
         logger.error("Exception while trying to detect spam:", exc_info=e)
 
-        await context.bot.send_message(chat_id=settings.DEVELOPER_CHAT_ID, text=str(e))
+        await context.bot.send_message(chat_id=settings.DEVELOPER_CHAT_ID,
+                                       text=f"Exception caught while analysing spam: {str(e)}")
         return
 
     await safe_delete_message(context, message.id, message.chat.id)

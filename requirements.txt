@@ -10,7 +10,7 @@ idna==3.6
 joblib==1.4.0
 langdetect==1.0.9
 numpy==1.26.4
-openai==1.25.0
+openai==2.13.0
 pydantic==2.7.1
 pydantic_core==2.18.2
 python-telegram-bot==21.10
