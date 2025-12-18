@@ -10,6 +10,7 @@ import logging
 import os
 import pathlib
 import shutil
+import datetime
 
 import yaml
 
@@ -232,6 +233,9 @@ class Settings:
             else:
                 logging.warning(f"Unknown setting \"{k}\"")
 
+        # TODO: Move this out of settings to some better place?
+        self._start_timestamp = datetime.datetime.now()
+
     def data_dir(self) -> pathlib.Path:
         if self.SERVICE_MODE:
             return pathlib.Path("/var") / "local" / "diaspora"
@@ -241,6 +245,14 @@ class Settings:
         if self.SERVICE_MODE:
             return pathlib.Path("/usr") / "local" / "etc" / "diaspora"
         return pathlib.Path(__file__).parent.parent / "conf"
+
+    @property
+    def start_timestamp(self) -> datetime.datetime:
+        return self._start_timestamp
+
+    @property
+    def uptime(self) -> datetime.timedelta:
+        return datetime.datetime.now() - self._start_timestamp
 
 
 settings = Settings()

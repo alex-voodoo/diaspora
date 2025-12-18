@@ -33,7 +33,6 @@ from common.messaging_helpers import safe_delete_message, self_destructing_reply
 from common.settings import settings
 from features import antispam, aprils_fool, glossary, moderation, services
 
-
 # Commands, sequences, and responses
 COMMAND_START, COMMAND_HELP, COMMAND_ADMIN = ("start", "help", "admin")
 
@@ -66,8 +65,8 @@ async def greet_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         logging.info("Greeting new user {username} (chat ID {chat_id})".format(username=user.username, chat_id=user.id))
 
         greeting_message = i18n.trans(user).gettext(
-            "MESSAGE_MC_GREETING_M {user_first_name} {bot_first_name}") if settings.BOT_IS_MALE else i18n.trans(user).gettext(
-            "MESSAGE_MC_GREETING_F {user_first_name} {bot_first_name}")
+            "MESSAGE_MC_GREETING_M {user_first_name} {bot_first_name}") if settings.BOT_IS_MALE else i18n.trans(
+            user).gettext("MESSAGE_MC_GREETING_F {user_first_name} {bot_first_name}")
 
         await self_destructing_reply(update, context, greeting_message.format(user_first_name=user.first_name,
                                                                               bot_first_name=context.bot.first_name),
@@ -163,7 +162,9 @@ async def handle_command_admin(update: Update, context: ContextTypes.DEFAULT_TYP
     if not await talking_private(update, context):
         await safe_delete_message(context, message.id, message.chat.id)
 
-    await context.bot.send_message(chat_id=user.id, text=i18n.trans(user).gettext("MESSAGE_DM_ADMIN"),
+    await context.bot.send_message(chat_id=user.id,
+                                   text=i18n.trans(user).gettext("MESSAGE_DM_ADMIN {since} {uptime}").format(
+                                       since=settings.start_timestamp, uptime=settings.uptime),
                                    reply_markup=get_main_keyboard())
 
 
@@ -225,6 +226,10 @@ async def post_init(application: Application) -> None:
 
     antispam.post_init(application, group=1)
     glossary.post_init(application, group=4)
+
+    if settings.DEVELOPER_CHAT_ID:
+        await bot.send_message(chat_id=settings.DEVELOPER_CHAT_ID,
+                               text=i18n.default().gettext("MESSAGE_ADMIN_HELLO_ON_STARTUP"))
 
 
 def main() -> None:
