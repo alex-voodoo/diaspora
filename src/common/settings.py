@@ -39,12 +39,21 @@ class Settings:
         # General settings
 
         # Bot name may imply its "gender" that affects "personal" messages, like "I am the host" vs. "I am the hostess".
-        # This setting tells which one to pick.  Default is False.
+        # This setting tells which one to pick.  Default is false.
         self.BOT_IS_MALE = False
         # Generic delay in seconds for self-destructing messages.  Default is 60.
         self.DELETE_MESSAGE_TIMEOUT = 60
-        # Administrators (key is Telegram ID and value is Telegram username)
-        self.ADMINISTRATORS = {}
+        # Administrators (list of objects where each record has Telegram ID and Telegram username of the administrator).
+        # These users have access to the bot's `/admin` command.  Example:
+        #
+        # ADMINISTRATORS:
+        # - id: 0
+        #   username: AlexVoodoo
+        # - id: 1
+        #   username: JoeBlade
+        #
+        # Default is empty list.
+        self.ADMINISTRATORS = []
 
         # --------------------------------------------------------------------------------------------------------------
         # Internationalisation
@@ -56,12 +65,12 @@ class Settings:
         # The settings below define the "standard" behaviour suggested by the Telegram documentation, but may be
         # overridden in settings.yaml.
 
-        # Whether the bot should try to switch to the user's language.  Default is True.
+        # Whether the bot should try to switch to the user's language.  Default is true.
         self.SPEAK_USER_LANGUAGE = True
         # Language to fall back to if there is no translation to the user's language. Default is "en".
         self.DEFAULT_LANGUAGE = "en"
         # Supported languages.  Must be a subset of languages that present in the `locales` directory.  Default is a
-        # tuple that contains all available languages.
+        # list that contains all available languages.
         self.SUPPORTED_LANGUAGES = ["en", "ru"]
 
         # --------------------------------------------------------------------------------------------------------------
@@ -76,7 +85,7 @@ class Settings:
         # Maximum length of a message that the bot should send to the users.  Default is 4096, which is the hard limit
         # at the server side.
         self.MAX_MESSAGE_LENGTH = 4096
-        # Whether to force two-step mode always.  Default is False.
+        # Whether to force two-step mode always.  Default is false.
         self.SHOW_CATEGORIES_ALWAYS = False
 
         # --------------------------------------------------------------------------------------------------------------
@@ -85,7 +94,7 @@ class Settings:
         # The bot can reply to each service message about a new user joining the group.  These bot replies can be
         # deleted by the bot after the specified delay.
 
-        # Whether to greet users that join the group.  Default is True.
+        # Whether to greet users that join the group.  Default is true.
         self.GREETING_ENABLED = True
         # Delay in seconds for deleting the greeting, 0 for not deleting the greetings.  Default is 300.
         self.GREETING_TIMEOUT = 300
@@ -95,9 +104,9 @@ class Settings:
         #
         # The bot can ask the moderators to approve changes made by users to their data records.
 
-        # Whether moderation of services is enabled.  Default is True.
+        # Whether moderation of services is enabled.  Default is true.
         self.SERVICES_MODERATION_ENABLED = True
-        # Whether moderation of services is "lazy" (True) or "mandatory" (False).  Default is True.
+        # Whether moderation of services is "lazy" (true) or "mandatory" (false).  Default is true.
         self.SERVICES_MODERATION_IS_LAZY = True
 
         # --------------------------------------------------------------------------------------------------------------
@@ -107,7 +116,7 @@ class Settings:
         # written in languages other than the default one, it posts a message that reminds the people about rules of the
         # group.
 
-        # Whether bot controls languages.  Default is False.
+        # Whether bot controls languages.  Default is false.
         self.LANGUAGE_MODERATION_ENABLED = False
         #
         # Maximum number of languages in non-default language.  Default is 3.
@@ -126,7 +135,15 @@ class Settings:
         # the good user before sending spam.  Therefore, to eliminate most spam, it should be enough to evaluate the
         # first message a new user sends to the group.
 
-        # List of layers of spam detection.  Default is empty list.
+        # Enabled layers of spam detection.  Can be any combination of: emojis, keywords, openai.  Order does not make
+        # any difference.  Example:
+        #
+        # ANTISPAM_ENABLED:
+        # - openai
+        # - emojis
+        # - keywords
+        #
+        # Default is empty list.
         self.ANTISPAM_ENABLED = []
         # Maximum number of custom emojis in a message.  Default is 5.
         self.ANTISPAM_EMOJIS_MAX_CUSTOM_EMOJI_COUNT = 5
@@ -146,16 +163,16 @@ class Settings:
         # The glossary contains a set of trigger words which are sought for in every message sent to the main chat.
         # If a trigger word is found, the bot can react one or more way, as configured below.
 
-        # Whether glossary is enabled.  Default is False.
+        # Whether glossary is enabled.  Default is false.
         self.GLOSSARY_ENABLED = False
-        # Whether the bot should send a reply to every message that contains triggers.  Default is False.
+        # Whether the bot should send a reply to every message that contains triggers.  Default is false.
         self.GLOSSARY_REPLY_TO_TRIGGER = False
         # Minimum number of triggers in a message that the bot will reply to.  Default is 3.
         self.GLOSSARY_REPLY_TO_MIN_TRIGGER_COUNT = 3
         # Delay in seconds for deleting a reply sent if GLOSSARY_REPLY_TO_TRIGGER is True, 0 for not deleting it.
         # Default is 30.
         self.GLOSSARY_REPLY_TO_TRIGGER_TIMEOUT = 30
-        # Whether the bot should react with an emoji to every message that contains a trigger.  Default is False.
+        # Whether the bot should react with an emoji to every message that contains a trigger.  Default is false.
         self.GLOSSARY_REACT_TO_TRIGGER = False
         # Maximum age in seconds of a trigger to explain.  Default is 300.
         self.GLOSSARY_MAX_TRIGGER_AGE = 300
@@ -171,7 +188,7 @@ class Settings:
         #
         # Settings marked with asterisks should be tuned or at least revised to be adequate to the size of the group.
 
-        # Whether moderation is enabled.  See also MODERATION_IS_REAL.  Default is False.
+        # Whether moderation is enabled.  See also MODERATION_IS_REAL.  Default is false.
         self.MODERATION_ENABLED = False
         # ID of the moderators' chat.  Mandatory if the feature is enabled.  Default is 0.
         self.MODERATION_CHAT_ID = 0
@@ -187,7 +204,7 @@ class Settings:
         self.MODERATION_WINNING_THRESHOLD = 0.75
         # Whether the bot should work in earnest and punish participants when complaints are approved.  When this is
         # False, the bot will only announce in the moderation chat what it would do, and also it will reset the
-        # moderation persistent state (complaints, polls and restrictions) upon restart.  Default is False.
+        # moderation persistent state (complaints, polls and restrictions) upon restart.  Default is false.
         self.MODERATION_IS_REAL = False
         # Ladder of restrictions.  Defines how a participant would progress if they keep violating rules of the chat and
         # do not let their most recent restriction to cool down (see README for the detailed explanation).
@@ -262,9 +279,10 @@ def update_settings_yaml(bot_token) -> None:
                 assert current_name and current_value
 
                 overridden = current_name in existing_user_settings.keys()
+                mandatory = current_name in ("BOT_TOKEN", "DEVELOPER_CHAT_ID", "MAIN_CHAT_ID")
                 for line in yaml.dump({current_name: existing_user_settings[current_name] if overridden else eval(
                         current_value)}).splitlines():
-                    if overridden:
+                    if overridden or mandatory:
                         lines.append(line)
                     else:
                         lines.append("# " + line)
