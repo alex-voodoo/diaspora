@@ -9,14 +9,20 @@ either `settings.yaml` located near the entry point script (`./bot.py`) if the b
 import logging
 import os
 import pathlib
+import shutil
 
 import yaml
 
 
+INVALID_BOT_TOKEN = "%BOT_TOKEN%"
+
+
 class Settings:
     def __init__(self):
-        # The below, between two YAML_SETTINGS markers, is parsed by setup.py to generate settings.yaml.
+        # Part of this file between two YAML_SETTINGS markers is parsed by setup.py to generate settings.yaml.
         # Each setting must have a default value that will be used if the user does not override it.
+        # The value is parsed with eval(), and must be compatible with yaml.dump().  In particular, tuples are not
+        # welcome, lists should be used instead.
 
         # YAML_SETTINGS
         # --------------------------------------------------------------------------------------------------------------
@@ -24,11 +30,21 @@ class Settings:
 
         # Token of the bot, obtained from BotFather.
         self.BOT_TOKEN = "%BOT_TOKEN%"
-
         # ID of the chat with the developer
         self.DEVELOPER_CHAT_ID = 0
         # ID of the main chat where the bot should have administrator privileges
         self.MAIN_CHAT_ID = 0
+
+        # --------------------------------------------------------------------------------------------------------------
+        # General settings
+
+        # Bot name may imply its "gender" that affects "personal" messages, like "I am the host" vs. "I am the hostess".
+        # This setting tells which one to pick.  Default is False.
+        self.BOT_IS_MALE = False
+        # Generic delay in seconds for self-destructing messages.  Default is 60.
+        self.DELETE_MESSAGE_TIMEOUT = 60
+        # Administrators (key is Telegram ID and value is Telegram username)
+        self.ADMINISTRATORS = {}
 
         # --------------------------------------------------------------------------------------------------------------
         # Internationalisation
@@ -42,20 +58,11 @@ class Settings:
 
         # Whether the bot should try to switch to the user's language.  Default is True.
         self.SPEAK_USER_LANGUAGE = True
-
         # Language to fall back to if there is no translation to the user's language. Default is "en".
         self.DEFAULT_LANGUAGE = "en"
-
         # Supported languages.  Must be a subset of languages that present in the `locales` directory.  Default is a
         # tuple that contains all available languages.
-        self.SUPPORTED_LANGUAGES = ("en", "ru")
-
-        # --------------------------------------------------------------------------------------------------------------
-        # Bot personality
-        #
-        # Bot name may imply its "gender" that affects "personal" messages, like "I am the host" vs. "I am the hostess".
-        # This setting tells which one to pick.  Default is False.
-        self.BOT_IS_MALE = False
+        self.SUPPORTED_LANGUAGES = ["en", "ru"]
 
         # --------------------------------------------------------------------------------------------------------------
         # User directory settings
@@ -119,8 +126,8 @@ class Settings:
         # the good user before sending spam.  Therefore, to eliminate most spam, it should be enough to evaluate the
         # first message a new user sends to the group.
 
-        # List of layers of spam detection.  Default is empty tuple.
-        self.ANTISPAM_ENABLED = tuple()
+        # List of layers of spam detection.  Default is empty list.
+        self.ANTISPAM_ENABLED = []
         # Maximum number of custom emojis in a message.  Default is 5.
         self.ANTISPAM_EMOJIS_MAX_CUSTOM_EMOJI_COUNT = 5
         # API key for the OpenAI-backed filter (the openai layer).  Mandatory for that layer if it is enabled.
@@ -156,7 +163,7 @@ class Settings:
         self.GLOSSARY_EXTERNAL_URL = ""
 
         # --------------------------------------------------------------------------------------------------------------
-        # Moderation
+        # Public moderation (experimental, work in progress)
         #
         # The bot can coordinate public-driven moderation in the chat.  The additional chat of moderators is configured.
         # Users of the main chat may send requests to moderate messages to the bot, these requests are redirected to the
@@ -189,13 +196,6 @@ class Settings:
                                               {"action": "restrict", "duration": 1800, "cooldown": 1800},
                                               {"action": "ban"}]
 
-        # --------------------------------------------------------------------------------------------------------------
-        # General settings
-
-        # Generic delay in seconds for self-destructing messages.  Default is 60.
-        self.DELETE_MESSAGE_TIMEOUT = 60
-        # Administrators (key is Telegram ID and value is Telegram username)
-        self.ADMINISTRATORS = dict()
         # YAML_SETTINGS
 
         # Working mode.
@@ -218,12 +218,89 @@ class Settings:
     def data_dir(self) -> pathlib.Path:
         if self.SERVICE_MODE:
             return pathlib.Path("/var") / "local" / "diaspora"
-        return pathlib.Path(__file__).parent.parent
+        return pathlib.Path(__file__).parent.parent / "data"
 
     def conf_dir(self) -> pathlib.Path:
         if self.SERVICE_MODE:
             return pathlib.Path("/usr") / "local" / "etc" / "diaspora"
-        return pathlib.Path(__file__).parent.parent
+        return pathlib.Path(__file__).parent.parent / "conf"
 
 
 settings = Settings()
+
+
+def update_settings_yaml(bot_token) -> None:
+    """Renders a new settings.yaml, preserving the existing settings and adding new ones"""
+
+    target_yaml_path = settings.conf_dir() / "settings.yaml"
+    existing_user_settings = yaml.safe_load(open(target_yaml_path)) if target_yaml_path.is_file() else dict()
+    assert bot_token != "" or (settings.BOT_TOKEN != "" and settings.BOT_TOKEN != INVALID_BOT_TOKEN)
+
+    new_path = target_yaml_path.with_suffix(".yaml.new")
+
+    with open(__file__, "r") as inp:
+        yaml_settings = inp.read().split("# YAML_SETTINGS\n")[1].replace(INVALID_BOT_TOKEN,
+                                                                         bot_token.replace("\"", "\\\""))
+
+        with open(new_path, "w") as outp:
+            outp.write("%YAML 1.2\n"
+                       "---\n"
+                       "# Configuration for the diaspora Telegram bot\n"
+                       "\n")
+
+            lines = []
+
+            current_name = ""
+            current_value = ""
+
+            def commit():
+                nonlocal current_name, current_value, lines
+
+                if not current_name and not current_value:
+                    return
+
+                assert current_name and current_value
+
+                overridden = current_name in existing_user_settings.keys()
+                for line in yaml.dump({current_name: existing_user_settings[current_name] if overridden else eval(
+                        current_value)}).splitlines():
+                    if overridden:
+                        lines.append(line)
+                    else:
+                        lines.append("# " + line)
+                current_name = ""
+                current_value = ""
+
+            for line in yaml_settings.splitlines():
+                line = line.strip()
+                if line.startswith("#") or len(line) == 0:
+                    commit()
+                    lines.append(line)
+                    continue
+                if line.startswith("self."):
+                    commit()
+                    line = line[len("self."):]
+                    current_name, current_value = [p.strip() for p in line.split("=")]
+                else:
+                    current_value += line
+
+            outp.write("\n".join(lines))
+
+    try:
+        backup_path = target_yaml_path.with_suffix(".yaml.backup")
+        backup_backup_path = ""
+
+        if os.path.exists(target_yaml_path):
+            if os.path.exists(backup_path):
+                backup_backup_path = backup_path.with_suffix(".yaml.backup.backup")
+                shutil.move(backup_path, backup_backup_path)
+
+            shutil.move(target_yaml_path, backup_path)
+
+        shutil.move(new_path, target_yaml_path)
+
+        if backup_backup_path and os.path.exists(backup_backup_path):
+            os.remove(backup_backup_path)
+    except OSError as e:
+        logging.error(e)
+

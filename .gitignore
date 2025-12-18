@@ -1,8 +1,6 @@
 .idea
-features/resources
-people.db
 __pycache__
-settings.yaml
+src/conf
+src/data
 venv
-*.log
 *.pot
