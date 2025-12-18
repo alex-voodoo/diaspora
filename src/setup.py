@@ -1,8 +1,8 @@
 """
-Sets up a new instance of the bot
+Create or update the configuration file
 
-This script creates a new empty database and renders `settings.yaml` based on `common/settings.py` and the Telegram API
-key provided by the user at the run time.
+This script either renders a new `settings.yaml` with a Telegram API token provided by the user at run time, or updates
+the existing settings, preserving the values overridden by the user.
 """
 
 import os.path
@@ -18,8 +18,6 @@ def main() -> None:
     bot_token = input("Please enter the API token of your bot: ") if settings.BOT_TOKEN == INVALID_BOT_TOKEN else ""
 
     update_settings_yaml(bot_token)
-
-    print("The first step of your setup is complete.  Refer to README.md for more information.")
 
 
 if __name__ == "__main__":

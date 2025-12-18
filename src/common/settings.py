@@ -262,7 +262,7 @@ def update_settings_yaml(bot_token) -> None:
         with open(new_path, "w") as outp:
             outp.write("%YAML 1.2\n"
                        "---\n"
-                       "# Configuration for the diaspora Telegram bot\n"
+                       "# Configuration for the Diaspora Telegram bot\n"
                        "\n")
 
             lines = []
