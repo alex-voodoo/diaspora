@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2025-08-29 21:43+0200\n"
+"POT-Creation-Date: 2025-12-18 15:35+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -76,7 +76,7 @@ msgstr "The ID of the \"{title}\" group is {id}"
 msgid "MESSAGE_DM_ADMIN"
 msgstr "At your service."
 
-#: bot.py:190
+#: bot.py:193
 msgid "ERROR_REPORT_BODY {error_uuid} {traceback} {update} {chat_data} {user_data}"
 msgstr ""
 "Error UUID {error_uuid}\n"
@@ -95,149 +95,149 @@ msgstr ""
 "\n"
 "context.user_data = {user_data}"
 
-#: bot.py:197
+#: bot.py:200
 msgid "ERROR_REPORT_CAPTION {error_uuid}"
 msgstr "Report for error <code>{error_uuid}</code>"
 
-#: bot.py:207
+#: bot.py:210
 msgid "MESSAGE_DM_INTERNAL_ERROR {error_uuid}"
 msgstr "Something went wrong (in me).  The error is registered with code <code>{error_uuid}</code>.  I will notify my administrator."
 
-#: bot.py:217
+#: bot.py:220
 msgid "COMMAND_DESCRIPTION_START"
 msgstr "Main menu"
 
-#: bot.py:218
+#: bot.py:221
 msgid "COMMAND_DESCRIPTION_ADMIN"
 msgstr "Administrator's menu"
 
-#: common/admin.py:61
+#: common/admin.py:62
 msgid "ADMIN_MESSAGE_DM_EXPECTED_REGULAR_FILE"
 msgstr "Please send a regular file."
 
-#: common/admin.py:70
+#: common/admin.py:71
 msgid "ADMIN_MESSAGE_DM_UNEXPECTED_FILE_TYPE {expected} {actual}"
 msgstr "Wrong file type!  Expected `{expected}` but got `{actual}` instead."
 
-#: common/admin.py:75
+#: common/admin.py:76
 msgid "ADMIN_MESSAGE_DM_INTERNAL_ERROR"
 msgstr "An internal error occurred.  See details in the log."
 
-#: common/admin.py:88
+#: common/admin.py:89
 msgid "ADMIN_MESSAGE_DM_VALIDATION_FAILED {message}"
 msgstr ""
 "This file cannot be used.\n"
 "{message}"
 
-#: common/admin.py:111
+#: common/admin.py:112
 msgid "ADMIN_MESSAGE_DM_OS_ERROR_WHILE_SAVING {error}"
 msgstr ""
 "Something terrible happened:\n"
 "{error}"
 
-#: features/antispam.py:208
+#: features/antispam.py:209
 msgid "ANTISPAM_MESSAGE_MC_SPAM_DETECTED_M {username}"
 msgstr "⛔️ I have deleted a message sent by {username} because it looked like spam.  If you think that it was a mistake, talk to administrators."
 
-#: features/antispam.py:210
+#: features/antispam.py:211
 msgid "ANTISPAM_MESSAGE_MC_SPAM_DETECTED_F {username}"
 msgstr "⛔️ I have deleted a message sent by {username} because it looked like spam.  If you think that it was a mistake, talk to administrators."
 
-#: features/antispam.py:237
+#: features/antispam.py:238
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_REQUEST_KEYWORDS"
 msgstr "Awaiting a text file."
 
-#: features/antispam.py:241
+#: features/antispam.py:242
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_REQUEST_OPENAI"
 msgstr "Awaiting a .joblib file."
 
-#: features/antispam.py:255
+#: features/antispam.py:256
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_KEYWORDS_UPDATED"
 msgstr "Accepted."
 
-#: features/antispam.py:277
+#: features/antispam.py:278
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_OPENAI_UPDATED"
 msgstr "Accepted."
 
-#: features/antispam.py:280
+#: features/antispam.py:281
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_OPENAI_CANNOT_USE"
 msgstr "Could not load the new model.  I will use the old one."
 
-#: features/antispam.py:303
+#: features/antispam.py:304
 msgid "ANTISPAM_BUTTON_DOWNLOAD_ANTISPAM_KEYWORDS"
 msgstr "Download spam keywords"
 
-#: features/antispam.py:305
+#: features/antispam.py:306
 msgid "ANTISPAM_BUTTON_UPLOAD_ANTISPAM_KEYWORDS"
 msgstr "Upload spam keywords"
 
-#: features/antispam.py:316
+#: features/antispam.py:317
 msgid "ANTISPAM_BUTTON_DOWNLOAD_SPAM"
 msgstr "Download spam"
 
-#: features/antispam.py:318
+#: features/antispam.py:319
 msgid "ANTISPAM_BUTTON_UPLOAD_ANTISPAM_OPENAI"
 msgstr "Upload the OpenAI model"
 
-#: features/glossary.py:156
+#: features/glossary.py:154
 msgid "GLOSSARY_EXTERNAL_URL_NOTE {url}"
 msgstr "These and other words can be found in our <a href='{url}'>glossary</a>."
 
-#: features/glossary.py:188
+#: features/glossary.py:186
 msgid "GLOSSARY_TRIGGERED_EXPLANATION_HEADER"
 msgstr "This message contains several words that may appear unclear to the participants, especially those who joined this group lately.  Here they are:"
 
-#: features/glossary.py:217
+#: features/glossary.py:215
 msgid "GLOSSARY_EMPTY_CONTEXT"
 msgstr "In the recent conversation I did not notice any words that would require explanation."
 
-#: features/glossary.py:220
+#: features/glossary.py:218
 msgid "GLOSSARY_EXPLANATION_HEADER"
 msgstr "Word in the recent conversation that may require explanation:"
 
-#: features/glossary.py:259
+#: features/glossary.py:257
 msgid "GLOSSARY_WHATISIT_FUZZY_MATCH"
 msgstr "This word is not in my list, but here are some similar ones."
 
-#: features/glossary.py:265
+#: features/glossary.py:263
 msgid "GLOSSARY_I_DO_NOT_KNOW"
 msgstr "I don't know!"
 
-#: features/glossary.py:295
+#: features/glossary.py:293
 msgid "GLOSSARY_UNKNOWN_COMMAND {url}"
 msgstr ""
 "I can <b>explain</b> words in the recent discussion that could appear unclear to people.  All words can be found in the <a href='{url}'>dictionary</a>.\n"
 "\n"
 "Also you can ask me <b>what does something mean</b>, and I will give the explanation if I have it."
 
-#: features/glossary.py:297
+#: features/glossary.py:295
 msgid "GLOSSARY_UNKNOWN_COMMAND"
 msgstr ""
 "I can <b>explain</b> words in the recent discussion that could appear unclear to people.\n"
 "\n"
 "Also you can ask me <b>what does something mean</b>, and I will give the explanation if I have it."
 
-#: features/glossary.py:315
+#: features/glossary.py:313
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_REQUEST_TERMS"
 msgstr "Awaiting a CSV file."
 
-#: features/glossary.py:330
+#: features/glossary.py:328
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_TERMS_UPDATED"
 msgstr "Accepted."
 
-#: features/glossary.py:352
+#: features/glossary.py:350
 msgid "GLOSSARY_COMMAND_EXPLAIN"
 msgstr "(decipher|explain|translate|help)"
 
-#: features/glossary.py:353
+#: features/glossary.py:351
 msgid "GLOSSARY_COMMAND_WHATISIT"
 msgstr "what is (?P<term>\\w+)"
 
-#: features/glossary.py:363
+#: features/glossary.py:361
 msgid "GLOSSARY_BUTTON_DOWNLOAD_TERMS"
 msgstr "Download glossary"
 
-#: features/glossary.py:365
+#: features/glossary.py:363
 msgid "GLOSSARY_BUTTON_UPLOAD_TERMS"
 msgstr "Upload glossary"
 

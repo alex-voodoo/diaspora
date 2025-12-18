@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2025-08-29 21:43+0200\n"
+"POT-Creation-Date: 2025-12-18 15:35+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -76,7 +76,7 @@ msgstr "ID группы «{title}»: {id}"
 msgid "MESSAGE_DM_ADMIN"
 msgstr "Чего изволите?"
 
-#: bot.py:190
+#: bot.py:193
 msgid "ERROR_REPORT_BODY {error_uuid} {traceback} {update} {chat_data} {user_data}"
 msgstr ""
 "UUID ошибки {error_uuid}\n"
@@ -95,151 +95,151 @@ msgstr ""
 "\n"
 "context.user_data = {user_data}"
 
-#: bot.py:197
+#: bot.py:200
 msgid "ERROR_REPORT_CAPTION {error_uuid}"
 msgstr "Отчёт об ошибке <code>{error_uuid}</code>"
 
-#: bot.py:207
+#: bot.py:210
 msgid "MESSAGE_DM_INTERNAL_ERROR {error_uuid}"
 msgstr "Что-то сломалось (во мне). Ошибка зарегистрирована с кодом <code>{error_uuid}</code>. Я сообщу моему администратору."
 
-#: bot.py:217
+#: bot.py:220
 msgid "COMMAND_DESCRIPTION_START"
 msgstr "Главное меню"
 
-#: bot.py:218
+#: bot.py:221
 msgid "COMMAND_DESCRIPTION_ADMIN"
 msgstr "Меню администратора"
 
-#: common/admin.py:61
+#: common/admin.py:62
 msgid "ADMIN_MESSAGE_DM_EXPECTED_REGULAR_FILE"
 msgstr "Пожалуйста, пришлите обычный файл."
 
-#: common/admin.py:70
+#: common/admin.py:71
 msgid "ADMIN_MESSAGE_DM_UNEXPECTED_FILE_TYPE {expected} {actual}"
 msgstr "Не тот вид файла! Нужен `{expected}`, а вы прислали `{actual}`."
 
-#: common/admin.py:75
+#: common/admin.py:76
 msgid "ADMIN_MESSAGE_DM_INTERNAL_ERROR"
 msgstr "Произошла внутренняя ошибка. Подробности должны быть в журнале."
 
-#: common/admin.py:88
+#: common/admin.py:89
 msgid "ADMIN_MESSAGE_DM_VALIDATION_FAILED {message}"
 msgstr ""
 "Этот файл не подходит.\n"
 "{message}"
 
-#: common/admin.py:111
+#: common/admin.py:112
 msgid "ADMIN_MESSAGE_DM_OS_ERROR_WHILE_SAVING {error}"
 msgstr ""
 "Случилось страшное:\n"
 "{error}"
 
-#: features/antispam.py:208
+#: features/antispam.py:209
 msgid "ANTISPAM_MESSAGE_MC_SPAM_DETECTED_M {username}"
 msgstr "⛔️ Я удалил сообщение пользователя {username}, похожее на спам. Если я ошибся, напишите администраторам."
 
-#: features/antispam.py:210
+#: features/antispam.py:211
 msgid "ANTISPAM_MESSAGE_MC_SPAM_DETECTED_F {username}"
 msgstr "⛔️ Я удалила сообщение пользователя {username}, похожее на спам. Если я ошиблась, напишите администраторам."
 
-#: features/antispam.py:237
+#: features/antispam.py:238
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_REQUEST_KEYWORDS"
 msgstr "Ожидаю текстовый файл с ключевыми словами."
 
-#: features/antispam.py:241
+#: features/antispam.py:242
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_REQUEST_OPENAI"
 msgstr "Ожидаю файл .joblib, содержащий модель OpenAI."
 
-#: features/antispam.py:255
+#: features/antispam.py:256
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_KEYWORDS_UPDATED"
 msgstr "Принято."
 
-#: features/antispam.py:277
+#: features/antispam.py:278
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_OPENAI_UPDATED"
 msgstr "Принято."
 
-#: features/antispam.py:280
+#: features/antispam.py:281
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_OPENAI_CANNOT_USE"
 msgstr "Не удалось загрузить новую модель."
 
-#: features/antispam.py:303
+#: features/antispam.py:304
 msgid "ANTISPAM_BUTTON_DOWNLOAD_ANTISPAM_KEYWORDS"
 msgstr "Выгрузить стоп-слова"
 
-#: features/antispam.py:305
+#: features/antispam.py:306
 msgid "ANTISPAM_BUTTON_UPLOAD_ANTISPAM_KEYWORDS"
 msgstr "Загрузить стоп-слова"
 
-#: features/antispam.py:316
+#: features/antispam.py:317
 msgid "ANTISPAM_BUTTON_DOWNLOAD_SPAM"
 msgstr "Выгрузить спам"
 
-#: features/antispam.py:318
+#: features/antispam.py:319
 msgid "ANTISPAM_BUTTON_UPLOAD_ANTISPAM_OPENAI"
 msgstr "Загрузить модель OpenAI"
 
-#: features/glossary.py:156
+#: features/glossary.py:154
 msgid "GLOSSARY_EXTERNAL_URL_NOTE {url}"
 msgstr ""
 "\n"
 "<em>Больше локальных слов и их толкований — в нашем <a href='{url}'>словаре</a>.</em>"
 
-#: features/glossary.py:188
+#: features/glossary.py:186
 msgid "GLOSSARY_TRIGGERED_EXPLANATION_HEADER"
 msgstr "Позвольте, я поясню некоторые слова:\n"
 
-#: features/glossary.py:217
+#: features/glossary.py:215
 msgid "GLOSSARY_EMPTY_CONTEXT"
 msgstr "За последние несколько минут мне не встречались слова, которые есть в моём словаре."
 
-#: features/glossary.py:220
+#: features/glossary.py:218
 msgid "GLOSSARY_EXPLANATION_HEADER"
 msgstr "Непонятные слова в недавней беседе:\n"
 
-#: features/glossary.py:259
+#: features/glossary.py:257
 msgid "GLOSSARY_WHATISIT_FUZZY_MATCH"
 msgstr "Такого слова нет в моём словаре, но есть несколько похожих."
 
-#: features/glossary.py:265
+#: features/glossary.py:263
 msgid "GLOSSARY_I_DO_NOT_KNOW"
 msgstr "Я не знаю. Попрошу добавить это слово в мой словарь."
 
-#: features/glossary.py:295
+#: features/glossary.py:293
 msgid "GLOSSARY_UNKNOWN_COMMAND {url}"
 msgstr ""
 "Я понимаю просьбы <em>помочь</em>, <em>объяснить</em>, <em>расшифровать</em> и <em>перевести</em>. Найду непонятные слова в беседе и приведу толкования из <a href='{url}'>словаря</a>.\n"
 "\n"
 "Также меня можно спросить, <em>что значит</em> или <em>что означает</em> конкретное слово — постараюсь найти ответ."
 
-#: features/glossary.py:297
+#: features/glossary.py:295
 msgid "GLOSSARY_UNKNOWN_COMMAND"
 msgstr ""
 "Я понимаю просьбы <em>помочь</em>, <em>объяснить</em>, <em>расшифровать</em> и <em>перевести</em>. Найду непонятные слова в беседе и приведу толкования из словаря.\n"
 "\n"
 "Также меня можно спросить, <em>что значит</em> или <em>что означает</em> конкретное слово — постараюсь найти ответ."
 
-#: features/glossary.py:315
+#: features/glossary.py:313
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_REQUEST_TERMS"
 msgstr "Ожидаю CSV-файл с глоссарием."
 
-#: features/glossary.py:330
+#: features/glossary.py:328
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_TERMS_UPDATED"
 msgstr "Принято."
 
-#: features/glossary.py:352
+#: features/glossary.py:350
 msgid "GLOSSARY_COMMAND_EXPLAIN"
 msgstr "((объ|по)ясн(ять|ить|и|ишь)|расшифр(овывать|овать|уй|уешь)|перев(одить|ести|еди|едешь|едёшь)|пом(огать|очь|оги|ожешь))"
 
-#: features/glossary.py:353
+#: features/glossary.py:351
 msgid "GLOSSARY_COMMAND_WHATISIT"
 msgstr "что (значит|означает|такое) (?P<term>\\w+)"
 
-#: features/glossary.py:363
+#: features/glossary.py:361
 msgid "GLOSSARY_BUTTON_DOWNLOAD_TERMS"
 msgstr "Выгрузить глоссарий"
 
-#: features/glossary.py:365
+#: features/glossary.py:363
 msgid "GLOSSARY_BUTTON_UPLOAD_TERMS"
 msgstr "Загрузить глоссарий"
 
