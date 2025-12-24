@@ -9,15 +9,15 @@ import re
 from telegram import Message, Update, User
 from telegram.ext import Application, CallbackQueryHandler, ContextTypes, ConversationHandler, filters, MessageHandler
 
-from common import i18n, db
+from common import i18n
 from common.settings import settings
-from . import const, keyboards
+from . import const, keyboards, state
 
 
 async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: Message, user: User, prefix="") -> None:
     """Show the current status of the user"""
 
-    records = [r for r in db.people_records(user.id)]
+    records = [r for r in state.people_records(user.id)]
 
     trans = i18n.trans(user)
 
@@ -145,10 +145,10 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     categorised_people = {
         0: {"title": trans.gettext("SERVICES_DM_WHO_CATEGORY_DEFAULT"), "category_id": 0, "people": []}}
 
-    for category in db.people_category_select_all():
+    for category in state.people_category_select_all():
         categorised_people[category["id"]] = {"title": category["title"], "people": []}
 
-    for person in db.people_select_all():
+    for person in state.people_select_all():
         if "category_id" not in person or person["category_id"] not in categorised_people:
             person["category_id"] = 0
         categorised_people[person["category_id"]]["people"].append(person)
@@ -199,8 +199,8 @@ async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     await query.message.reply_text(trans.gettext("SERVICES_DM_ENROLL_START"))
 
-    existing_category_ids = [r["id"] for r in db.people_records(query.from_user.id)]
-    categories = [c for c in db.people_category_select_all() if c["id"] not in existing_category_ids]
+    existing_category_ids = [r["id"] for r in state.people_records(query.from_user.id)]
+    categories = [c for c in state.people_category_select_all() if c["id"] not in existing_category_ids]
 
     category_buttons = keyboards.select_category(query.from_user, categories, 0 not in existing_category_ids)
 
@@ -227,7 +227,7 @@ async def handle_command_update(update: Update, context: ContextTypes.DEFAULT_TY
     await query.edit_message_reply_markup(None)
     await query.message.reply_text(i18n.trans(query.from_user).gettext("SERVICES_DM_SELECT_CATEGORY_FOR_UPDATE"),
                                    reply_markup=keyboards.select_category(query.from_user,
-                                                                          db.people_records(query.from_user.id)))
+                                                                          state.people_records(query.from_user.id)))
 
     context.user_data["mode"] = "update"
 
@@ -248,7 +248,7 @@ async def received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     await query.edit_message_reply_markup(None)
 
     if "mode" in context.user_data and context.user_data["mode"] == "update":
-        records = [r for r in db.people_record(query.from_user.id, int(query.data))]
+        records = [r for r in state.people_record(query.from_user.id, int(query.data))]
         await query.message.reply_text(
             trans.gettext("SERVICES_DM_UPDATE_OCCUPATION {title} {occupation}").format(title=records[0]["title"],
                                                                                        occupation=records[0][
@@ -304,8 +304,8 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     trans = i18n.trans(query.from_user)
 
     if query.data == const.RESPONSE_YES:
-        db.people_insert_or_update(from_user.id, from_user.username, user_data["occupation"], user_data["location"],
-                                   (0 if settings.SERVICES_MODERATION_IS_LAZY else 1), user_data["category_id"])
+        state.people_insert_or_update(from_user.id, from_user.username, user_data["occupation"], user_data["location"],
+                                      (0 if settings.SERVICES_MODERATION_IS_LAZY else 1), user_data["category_id"])
 
         saved_user_data = copy.deepcopy(user_data)
         user_data.clear()
@@ -328,7 +328,7 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             await moderate_new_data(update, context, saved_user_data)
 
     elif query.data == const.RESPONSE_NO:
-        db.people_delete(from_user.id, int(user_data["category_id"]))
+        state.people_delete(from_user.id, int(user_data["category_id"]))
         user_data.clear()
 
         await query.edit_message_reply_markup(None)
@@ -358,7 +358,7 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                 moderator_id=query.from_user.id, user_id=tg_id, category_id=category_id))
 
         if not settings.SERVICES_MODERATION_IS_LAZY:
-            db.people_approve(tg_id, category_id)
+            state.people_approve(tg_id, category_id)
 
         await query.edit_message_reply_markup(None)
         await query.message.reply_text(trans.gettext("SERVICES_ADMIN_USER_RECORD_APPROVED"))
@@ -368,7 +368,7 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                 moderator_id=query.from_user.id, user_id=tg_id, category_id=category_id))
 
         if settings.SERVICES_MODERATION_IS_LAZY:
-            db.people_suspend(tg_id, category_id)
+            state.people_suspend(tg_id, category_id)
 
         await query.edit_message_reply_markup(None)
         await query.message.reply_text(trans.gettext("SERVICES_ADMIN_USER_RECORD_SUSPENDED"))
@@ -388,7 +388,7 @@ async def handle_command_retire(update: Update, context: ContextTypes.DEFAULT_TY
     await query.edit_message_reply_markup(None)
     await query.message.reply_text(i18n.trans(query.from_user).gettext("SERVICES_DM_SELECT_CATEGORY_FOR_RETIRE"),
                                    reply_markup=keyboards.select_category(query.from_user,
-                                                                          db.people_records(query.from_user.id)))
+                                                                          state.people_records(query.from_user.id)))
 
     return const.SELECTING_CATEGORY
 
@@ -401,7 +401,7 @@ async def retire_received_category(update: Update, context: ContextTypes.DEFAULT
     await query.answer()
     await query.edit_message_reply_markup(None)
 
-    db.people_delete(query.from_user.id, int(query.data))
+    state.people_delete(query.from_user.id, int(query.data))
 
     await show_main_status(context, query.message, query.from_user,
                            i18n.trans(query.from_user).gettext("SERVICES_DM_RETIRE"))
