@@ -6,7 +6,6 @@ import csv
 import datetime
 import io
 import logging
-import pathlib
 import re
 import unicodedata
 from collections import deque
