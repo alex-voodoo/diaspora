@@ -31,7 +31,7 @@ from common.admin import get_main_keyboard
 from common.checks import is_admin, is_member_of_main_chat
 from common.messaging_helpers import safe_delete_message, self_destructing_reply
 from common.settings import settings
-from features import antispam, aprils_fool, glossary, moderation, services
+from features import antispam, glossary, moderation, services
 
 # Commands, sequences, and responses
 COMMAND_START, COMMAND_HELP, COMMAND_ADMIN = ("start", "help", "admin")
@@ -267,7 +267,6 @@ def main() -> None:
 
     antispam.init(application, group=1)
     glossary.init(application, group=4)
-    aprils_fool.init(application, group=5)
     moderation.init(application, group=6)
 
     application.add_error_handler(handle_error)
