@@ -5,7 +5,6 @@ Antispam
 import io
 import json
 import logging
-import pathlib
 import string
 
 import joblib
@@ -21,10 +20,11 @@ from common.checks import is_admin
 from common.messaging_helpers import delete_message, safe_delete_message
 from common.settings import settings
 
-KEYWORDS_FILENAME = "antispam_keywords.txt"
-KEYWORDS_FILE_PATH = settings.data_dir() / KEYWORDS_FILENAME
 
-OPENAI_FILE_PATH = settings.data_dir() / "antispam_openai.joblib"
+KEYWORDS_FILENAME = "antispam_keywords.txt"
+KEYWORDS_FILE_PATH = settings.data_dir / KEYWORDS_FILENAME
+
+OPENAI_FILE_PATH = settings.data_dir / "antispam_openai.joblib"
 
 # Admin keyboard commands
 (ADMIN_DOWNLOAD_SPAM, ADMIN_DOWNLOAD_KEYWORDS, ADMIN_UPLOAD_KEYWORDS, ADMIN_UPLOAD_OPENAI) = (

@@ -19,4 +19,4 @@ This module contains isolated bot features.
 - A feature should be implemented in a single file or as a submodule
 - Translatable strings and feature settings should have `FEATURE_` prefix, where FEATURE is the name of the feature
 - A feature should have `init()` and `post_init()` functions that will be called from the main program.  If the feature is disabled, those functions should return early, before initialising data or adding any handlers to the application.  
-- Should the feature store persistent data in files, these files should reside in the directory returned by `Settings.data_dir()`, and their names should have `feature_` prefix, where `feature` is the name of the feature
+- Should the feature store persistent data in files, these files should reside in the directory returned by `Settings.data_dir`, and their names should have `feature_` prefix, where `feature` is the name of the feature

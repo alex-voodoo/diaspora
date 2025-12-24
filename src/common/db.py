@@ -1,6 +1,7 @@
 """
 Database stuff
 """
+
 import logging
 import os
 import pathlib
@@ -13,7 +14,7 @@ from .settings import settings
 
 db_connection: Connection
 
-_DB_FILENAME = settings.data_dir() / "people.db"
+_DB_FILENAME = "people.db"
 
 
 def _init() -> None:
@@ -89,7 +90,8 @@ def connect() -> None:
     """Initialise the DB connection"""
 
     global db_connection
-    db_connection = sqlite3.connect(_DB_FILENAME)
+
+    db_connection = sqlite3.connect(settings.data_dir / _DB_FILENAME)
 
     _init()
 

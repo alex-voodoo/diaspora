@@ -17,6 +17,8 @@ import yaml
 
 INVALID_BOT_TOKEN = "%BOT_TOKEN%"
 
+_SETTINGS_FILENAME = "settings.yaml"
+
 
 class Settings:
     def __init__(self):
@@ -219,7 +221,12 @@ class Settings:
         # Working mode.
         self.SERVICE_MODE = os.getenv("DIASPORA_SERVICE_MODE") == "1"
 
-        config_path = self.conf_dir() / "settings.yaml"
+        # Ensure that directories exist.
+        for p in (self.conf_dir, self.data_dir):
+            p.mkdir(parents=True, exist_ok=True)
+
+        # Try to load settings.
+        config_path = self.conf_dir / "settings.yaml"
         if not config_path.is_file():
             logging.warning(f"{config_path} does not exist (yet?), cannot load settings.")
             return
@@ -236,11 +243,13 @@ class Settings:
         # TODO: Move this out of settings to some better place?
         self._start_timestamp = datetime.datetime.now()
 
+    @property
     def data_dir(self) -> pathlib.Path:
         if self.SERVICE_MODE:
             return pathlib.Path("/var") / "local" / "diaspora"
         return pathlib.Path(__file__).parent.parent / "data"
 
+    @property
     def conf_dir(self) -> pathlib.Path:
         if self.SERVICE_MODE:
             return pathlib.Path("/usr") / "local" / "etc" / "diaspora"
@@ -261,7 +270,7 @@ settings = Settings()
 def update_settings_yaml(bot_token) -> None:
     """Renders a new settings.yaml, preserving the existing settings and adding new ones"""
 
-    target_yaml_path = settings.conf_dir() / "settings.yaml"
+    target_yaml_path = settings.conf_dir / _SETTINGS_FILENAME
     existing_user_settings = yaml.safe_load(open(target_yaml_path)) if target_yaml_path.is_file() else dict()
     assert bot_token != "" or (settings.BOT_TOKEN != "" and settings.BOT_TOKEN != INVALID_BOT_TOKEN)
 
@@ -271,11 +280,11 @@ def update_settings_yaml(bot_token) -> None:
         yaml_settings = inp.read().split("# YAML_SETTINGS\n")[1].replace(INVALID_BOT_TOKEN,
                                                                          bot_token.replace("\"", "\\\""))
 
-        with open(new_path, "w") as outp:
-            outp.write("%YAML 1.2\n"
-                       "---\n"
-                       "# Configuration for the Diaspora Telegram bot\n"
-                       "\n")
+        with open(new_path, "w") as new_settings:
+            new_settings.write("%YAML 1.2\n"
+                               "---\n"
+                               "# Configuration for the Diaspora Telegram bot\n"
+                               "\n")
 
             lines = []
 
@@ -283,7 +292,7 @@ def update_settings_yaml(bot_token) -> None:
             current_value = ""
 
             def commit():
-                nonlocal current_name, current_value, lines
+                nonlocal current_name, current_value, existing_user_settings, lines
 
                 if not current_name and not current_value:
                     return
@@ -292,12 +301,12 @@ def update_settings_yaml(bot_token) -> None:
 
                 overridden = current_name in existing_user_settings.keys()
                 mandatory = current_name in ("BOT_TOKEN", "DEVELOPER_CHAT_ID", "MAIN_CHAT_ID")
-                for line in yaml.dump({current_name: existing_user_settings[current_name] if overridden else eval(
+                for l in yaml.dump({current_name: existing_user_settings[current_name] if overridden else eval(
                         current_value)}).splitlines():
                     if overridden or mandatory:
-                        lines.append(line)
+                        lines.append(l)
                     else:
-                        lines.append("# " + line)
+                        lines.append("# " + l)
                 current_name = ""
                 current_value = ""
 
@@ -314,7 +323,7 @@ def update_settings_yaml(bot_token) -> None:
                 else:
                     current_value += line
 
-            outp.write("\n".join(lines))
+            new_settings.write("\n".join(lines))
 
     try:
         backup_path = target_yaml_path.with_suffix(".yaml.backup")
