@@ -1,0 +1,19 @@
+CREATE TABLE "new_people" (
+	"tg_id"	INTEGER,
+	"tg_username"	TEXT,
+	"category_id"	INTEGER,
+	"is_suspended"	INTEGER DEFAULT 0,
+	"last_modified"	DATETIME DEFAULT CURRENT_TIMESTAMP,
+	"occupation"	TEXT,
+	"description"   TEXT,
+	"location"	TEXT,
+	PRIMARY KEY("tg_id","category_id")
+);
+
+INSERT INTO "new_people" ("category_id","is_suspended","last_modified","location","occupation","description","tg_id","tg_username")
+SELECT "category_id","is_suspended","last_modified","location","occupation","occupation","tg_id","tg_username" FROM "people";
+
+DROP TABLE "people";
+
+ALTER TABLE "new_people"
+RENAME TO "people";
