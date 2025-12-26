@@ -14,6 +14,14 @@ from common.settings import settings
 from . import const, keyboards, state
 
 
+def _maybe_append_limit_warning(trans, message: list, limit: int) -> None:
+    if limit == 0:
+        return
+
+    message.append(trans.ngettext("SERVICES_DM_DATA_FIELD_LIMIT_S {limit}", "SERVICES_DM_DATA_FIELD_LIMIT_P {limit}",
+                                  limit).format(limit=limit))
+
+
 async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: Message, user: User, prefix="") -> None:
     """Show the current status of the user"""
 
@@ -58,19 +66,20 @@ async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: Message,
 
 
 # noinspection PyUnusedLocal
-async def moderate_new_data(update: Update, context: ContextTypes.DEFAULT_TYPE, data) -> None:
-    moderator_ids = [admin["id"] for admin in settings.ADMINISTRATORS] if settings.ADMINISTRATORS else (settings.DEVELOPER_CHAT_ID,)
+async def _moderate_new_data(update: Update, context: ContextTypes.DEFAULT_TYPE, data) -> None:
+    moderator_ids = [admin["id"] for admin in settings.ADMINISTRATORS] if settings.ADMINISTRATORS else (
+        settings.DEVELOPER_CHAT_ID,)
 
     for moderator_id in moderator_ids:
         logging.info("Sending moderation request to moderator ID {id}".format(id=moderator_id))
         await context.bot.send_message(chat_id=moderator_id, text=i18n.default().gettext(
             "SERVICES_ADMIN_APPROVE_USER_DATA {username}").format(username=data["tg_username"],
-            occupation=data["occupation"], location=data["location"]),
+                                                                  occupation=data["occupation"],
+                                                                  location=data["location"]),
                                        reply_markup=keyboards.approve_service_change(data))
 
 
-# noinspection PyUnusedLocal
-def who_people_to_message(people: list) -> list:
+def _who_people_to_message(people: list) -> list:
     result = []
     for p in people:
         result.append(
@@ -79,7 +88,7 @@ def who_people_to_message(people: list) -> list:
     return result
 
 
-async def who_request_category(update: Update, context: ContextTypes.DEFAULT_TYPE, filtered_people: list) -> int:
+async def _who_request_category(update: Update, context: ContextTypes.DEFAULT_TYPE, filtered_people: list) -> int:
     """Ask user for a category to show"""
 
     query = update.callback_query
@@ -102,7 +111,7 @@ async def who_request_category(update: Update, context: ContextTypes.DEFAULT_TYP
     return const.SELECTING_CATEGORY
 
 
-async def who_received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def _who_received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """List users in the category that the user selected previously"""
 
     query = update.callback_query
@@ -122,7 +131,7 @@ async def who_received_category(update: Update, context: ContextTypes.DEFAULT_TY
                                        reply_markup=keyboards.standard(query.from_user))
         return ConversationHandler.END
 
-    user_list = ["<b>{t}</b>".format(t=category["title"])] + who_people_to_message(category["people"])
+    user_list = ["<b>{t}</b>".format(t=category["title"])] + _who_people_to_message(category["people"])
 
     await query.message.reply_text(text="\n".join(user_list), reply_markup=keyboards.standard(query.from_user))
 
@@ -131,7 +140,7 @@ async def who_received_category(update: Update, context: ContextTypes.DEFAULT_TY
 
 
 # noinspection PyUnusedLocal
-async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def _who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Show the current registry"""
 
     query = update.callback_query
@@ -159,15 +168,15 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         filtered_people.append(categorised_people[0])
 
     if settings.SHOW_CATEGORIES_ALWAYS and len(filtered_people) > 1:
-        return await who_request_category(update, context, filtered_people)
+        return await _who_request_category(update, context, filtered_people)
     else:
         if len(filtered_people) == 1:
-            user_list += who_people_to_message(filtered_people[0]["people"])
+            user_list += _who_people_to_message(filtered_people[0]["people"])
         else:
             for category in filtered_people:
                 user_list.append("")
                 user_list.append("<b>{t}</b>".format(t=category["title"]))
-                user_list += who_people_to_message(category["people"])
+                user_list += _who_people_to_message(category["people"])
 
         if len(user_list) == 1:
             user_list = [trans.gettext("SERVICES_DM_WHO_EMPTY")]
@@ -178,11 +187,11 @@ async def who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             await query.message.reply_text(text=united_message, reply_markup=keyboards.standard(query.from_user))
             return ConversationHandler.END
         else:
-            return await who_request_category(update, context, filtered_people)
+            return await _who_request_category(update, context, filtered_people)
 
 
 # noinspection PyUnusedLocal
-async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def _enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation about adding the first user record"""
 
     query = update.callback_query
@@ -218,7 +227,7 @@ async def enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 
 # noinspection PyUnusedLocal
-async def handle_command_update(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def _handle_command_update(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation about updating an existing user record"""
 
     query = update.callback_query
@@ -234,7 +243,7 @@ async def handle_command_update(update: Update, context: ContextTypes.DEFAULT_TY
     return const.SELECTING_CATEGORY
 
 
-async def received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def _received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation and ask user for input"""
 
     query = update.callback_query
@@ -247,21 +256,26 @@ async def received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     await query.answer()
     await query.edit_message_reply_markup(None)
 
+    lines = []
     if "mode" in context.user_data and context.user_data["mode"] == "update":
         records = [r for r in state.people_record(query.from_user.id, int(query.data))]
-        await query.message.reply_text(
-            trans.gettext("SERVICES_DM_UPDATE_OCCUPATION {title} {occupation}").format(title=records[0]["title"],
-                                                                                       occupation=records[0][
-                                                                                           "occupation"]))
         user_data["category_title"] = records[0]["title"]
         user_data["location"] = records[0]["location"]
-    else:
-        await query.message.reply_text(trans.gettext("SERVICES_DM_ENROLL_ASK_OCCUPATION"))
+        user_data["occupation"] = records[0]["occupation"]
+        user_data["description"] = records[0]["description"]
 
+        lines.append(
+            trans.gettext("SERVICES_DM_UPDATE_OCCUPATION {title} {occupation}").format(
+                title=user_data["category_title"], occupation=user_data["occupation"]))
+    else:
+        lines.append(trans.gettext("SERVICES_DM_ENROLL_ASK_OCCUPATION"))
+
+    _maybe_append_limit_warning(trans, lines, settings.SERVICES_OCCUPATION_MAX_LENGTH)
+    await query.message.reply_text("\n".join(lines))
     return const.TYPING_OCCUPATION
 
 
-async def received_occupation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def _received_occupation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Store info provided by user and ask for the next category"""
 
     user_data = context.user_data
@@ -269,17 +283,42 @@ async def received_occupation(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     trans = i18n.trans(update.message.from_user)
 
+    lines = []
     if "mode" in context.user_data and context.user_data["mode"] == "update":
-        await update.message.reply_text(
+        lines.append(
+            trans.gettext("SERVICES_DM_UPDATE_DESCRIPTION {title} {description}").format(
+                title=user_data["category_title"],
+                description=user_data["description"]))
+    else:
+        lines.append(trans.gettext("SERVICES_DM_ENROLL_ASK_DESCRIPTION"))
+
+    _maybe_append_limit_warning(trans, lines, settings.SERVICES_DESCRIPTION_MAX_LENGTH)
+    await update.message.reply_text("\n".join(lines))
+    return const.TYPING_DESCRIPTION
+
+
+async def _received_description(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Store info provided by user and ask for the next category"""
+
+    user_data = context.user_data
+    user_data["description"] = update.message.text
+
+    trans = i18n.trans(update.message.from_user)
+
+    lines = []
+    if "mode" in context.user_data and context.user_data["mode"] == "update":
+        lines.append(
             trans.gettext("SERVICES_DM_UPDATE_LOCATION {title} {location}").format(title=user_data["category_title"],
                                                                                    location=user_data["location"]))
     else:
-        await update.message.reply_text(trans.gettext("SERVICES_DM_ENROLL_ASK_LOCATION"))
+        lines.append(trans.gettext("SERVICES_DM_ENROLL_ASK_LOCATION"))
 
+    _maybe_append_limit_warning(trans, lines, settings.SERVICES_LOCATION_MAX_LENGTH)
+    await update.message.reply_text("\n".join(lines))
     return const.TYPING_LOCATION
 
 
-async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def _received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Store info provided by user and ask for the legality"""
 
     user_data = context.user_data
@@ -291,7 +330,7 @@ async def received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     return const.CONFIRMING_LEGALITY
 
 
-async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def _confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Complete the enrollment"""
 
     query = update.callback_query
@@ -304,7 +343,8 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     trans = i18n.trans(query.from_user)
 
     if query.data == const.RESPONSE_YES:
-        state.people_insert_or_update(from_user.id, from_user.username, user_data["occupation"], user_data["location"],
+        state.people_insert_or_update(from_user.id, from_user.username, user_data["occupation"],
+                                      user_data["description"], user_data["location"],
                                       (0 if settings.SERVICES_MODERATION_IS_LAZY else 1), user_data["category_id"])
 
         saved_user_data = copy.deepcopy(user_data)
@@ -325,7 +365,7 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         await query.message.reply_text(message, reply_markup=keyboards.standard(from_user))
 
         if settings.SERVICES_MODERATION_ENABLED:
-            await moderate_new_data(update, context, saved_user_data)
+            await _moderate_new_data(update, context, saved_user_data)
 
     elif query.data == const.RESPONSE_NO:
         state.people_delete(from_user.id, int(user_data["category_id"]))
@@ -339,7 +379,7 @@ async def confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 
 # noinspection PyUnusedLocal
-async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def _confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Approve or decline changes to user data"""
 
     query = update.callback_query
@@ -379,7 +419,7 @@ async def confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
 
 # noinspection PyUnusedLocal
-async def handle_command_retire(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def _handle_command_retire(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation about removing an existing user record"""
 
     query = update.callback_query
@@ -393,7 +433,7 @@ async def handle_command_retire(update: Update, context: ContextTypes.DEFAULT_TY
     return const.SELECTING_CATEGORY
 
 
-async def retire_received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def _retire_received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Remove the user record in a category selected on the previous step"""
 
     query = update.callback_query
@@ -409,7 +449,7 @@ async def retire_received_category(update: Update, context: ContextTypes.DEFAULT
     return ConversationHandler.END
 
 
-async def abort_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def _abort_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Reset the conversation state when it goes off track, and return to the starting point
 
     Used as fallback handler in stateful conversations with a regular user.
@@ -430,25 +470,26 @@ def init(application: Application, group: int):
 
     # Enrolling
     application.add_handler(ConversationHandler(
-        entry_points=[CallbackQueryHandler(enroll, pattern=const.COMMAND_ENROLL),
-                      CallbackQueryHandler(handle_command_update, pattern=const.COMMAND_UPDATE)],
-        states={const.SELECTING_CATEGORY: [CallbackQueryHandler(received_category)],
-                const.TYPING_OCCUPATION: [MessageHandler(filters.TEXT & (~ filters.COMMAND), received_occupation)],
-                const.TYPING_LOCATION: [MessageHandler(filters.TEXT & (~ filters.COMMAND), received_location)],
-                const.CONFIRMING_LEGALITY: [CallbackQueryHandler(confirm_legality)]},
-        fallbacks=[MessageHandler(filters.ALL, abort_conversation)]))
+        entry_points=[CallbackQueryHandler(_enroll, pattern=const.COMMAND_ENROLL),
+                      CallbackQueryHandler(_handle_command_update, pattern=const.COMMAND_UPDATE)],
+        states={const.SELECTING_CATEGORY: [CallbackQueryHandler(_received_category)],
+                const.TYPING_OCCUPATION: [MessageHandler(filters.TEXT & (~ filters.COMMAND), _received_occupation)],
+                const.TYPING_DESCRIPTION: [MessageHandler(filters.TEXT & (~ filters.COMMAND), _received_description)],
+                const.TYPING_LOCATION: [MessageHandler(filters.TEXT & (~ filters.COMMAND), _received_location)],
+                const.CONFIRMING_LEGALITY: [CallbackQueryHandler(_confirm_legality)]},
+        fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]))
 
-    application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(who, pattern=const.COMMAND_WHO)],
+    application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(_who, pattern=const.COMMAND_WHO)],
                                                 states={const.SELECTING_CATEGORY: [
-                                                    CallbackQueryHandler(who_received_category)]},
-                                                fallbacks=[MessageHandler(filters.ALL, abort_conversation)]))
+                                                    CallbackQueryHandler(_who_received_category)]},
+                                                fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]))
 
     application.add_handler(
-        ConversationHandler(entry_points=[CallbackQueryHandler(handle_command_retire, pattern=const.COMMAND_RETIRE)],
-                            states={const.SELECTING_CATEGORY: [CallbackQueryHandler(retire_received_category)]},
-                            fallbacks=[MessageHandler(filters.ALL, abort_conversation)]))
+        ConversationHandler(entry_points=[CallbackQueryHandler(_handle_command_retire, pattern=const.COMMAND_RETIRE)],
+                            states={const.SELECTING_CATEGORY: [CallbackQueryHandler(_retire_received_category)]},
+                            fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]))
 
     if settings.SERVICES_MODERATION_ENABLED:
-        application.add_handler(CallbackQueryHandler(confirm_user_data, pattern=re.compile(
+        application.add_handler(CallbackQueryHandler(_confirm_user_data, pattern=re.compile(
             "^({approve}|{decline}):[0-9]+:[0-9]+$".format(approve=const.MODERATOR_APPROVE,
                                                            decline=const.MODERATOR_DECLINE))), group=2)

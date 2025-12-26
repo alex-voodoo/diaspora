@@ -25,7 +25,7 @@ def people_exists(td_ig: int) -> bool:
     with LogTime("SELECT FROM people WHERE tg_id=?"):
         c = db.cursor()
 
-        for _ in c.execute("SELECT tg_username, occupation, location FROM people WHERE tg_id=?", (td_ig,)):
+        for _ in c.execute("SELECT tg_username FROM people WHERE tg_id=?", (td_ig,)):
             return True
 
         return False
@@ -37,10 +37,10 @@ def people_records(td_ig: int) -> Iterator:
     with LogTime("SELECT FROM people WHERE tg_id=?"):
         c = db.cursor()
 
-        for record in c.execute("SELECT pc.title, pc.id, p.occupation, p.location "
+        for record in c.execute("SELECT pc.title, pc.id, p.occupation, p.description, p.location "
                                 "FROM people p LEFT JOIN people_category pc ON p.category_id = pc.id "
                                 "WHERE p.tg_id=?", (td_ig,)):
-            yield {key: value for (key, value) in zip(("title", "id", "occupation", "location"), record)}
+            yield {key: value for (key, value) in zip(("title", "id", "occupation", "description", "location"), record)}
 
 
 def people_record(td_ig: int, category_id: int) -> Iterator:
@@ -49,21 +49,21 @@ def people_record(td_ig: int, category_id: int) -> Iterator:
     with LogTime("SELECT FROM people WHERE tg_id=? AND category_id=?"):
         c = db.cursor()
 
-        for record in c.execute("SELECT pc.title, pc.id, p.occupation, p.location "
+        for record in c.execute("SELECT pc.title, pc.id, p.occupation, p.description, p.location "
                                 "FROM people p LEFT JOIN people_category pc ON p.category_id = pc.id "
                                 "WHERE p.tg_id=? AND pc.id=?", (td_ig, category_id)):
-            yield {key: value for (key, value) in zip(("title", "id", "occupation", "location"), record)}
+            yield {key: value for (key, value) in zip(("title", "id", "occupation", "description", "location"), record)}
 
 
-def people_insert_or_update(tg_id: int, tg_username: str, occupation: str, location: str, is_suspended: int,
-                            category_id: int) -> None:
+def people_insert_or_update(tg_id: int, tg_username: str, occupation: str, description: str, location: str,
+                            is_suspended: int, category_id: int) -> None:
     """Create a new or update the existing record identified by `tg_id` in the `people` table"""
 
     with LogTime("INSERT OR REPLACE INTO people"):
         db.cursor().execute("INSERT OR REPLACE INTO people "
-                            "(tg_id, tg_username, occupation, location, is_suspended, category_id) "
-                            "VALUES(?, ?, ?, ?, ?, ?)",
-                            (tg_id, tg_username, occupation, location, is_suspended, category_id))
+                            "(tg_id, tg_username, occupation, description, location, is_suspended, category_id) "
+                            "VALUES(?, ?, ?, ?, ?, ?, ?)",
+                            (tg_id, tg_username, occupation, description, location, is_suspended, category_id))
 
         db.commit()
 

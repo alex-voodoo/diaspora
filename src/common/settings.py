@@ -90,6 +90,12 @@ class Settings:
         self.MAX_MESSAGE_LENGTH = 4096
         # Whether to force two-step mode always.  Default is false.
         self.SHOW_CATEGORIES_ALWAYS = False
+        # Maximum length of the Location.  0 means no limit (not recommended).  Default is 30.
+        self.SERVICES_LOCATION_MAX_LENGTH = 30
+        # Maximum length of the Occupation.  0 means no limit (not recommended).  Default is 30.
+        self.SERVICES_OCCUPATION_MAX_LENGTH = 30
+        # Maximum length of the Description.  0 means no limit (not recommended).  Default is 1000.
+        self.SERVICES_DESCRIPTION_MAX_LENGTH = 1000
 
         # --------------------------------------------------------------------------------------------------------------
         # Greeting new users
