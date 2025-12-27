@@ -22,6 +22,11 @@ def _maybe_append_limit_warning(trans, message: list, limit: int) -> None:
                                   limit).format(limit=limit))
 
 
+def _maybe_apply_limit(text: str, limit: int) -> str:
+    text = text.strip()
+    return text[:limit] if limit else text
+
+
 async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: Message, user: User, prefix="") -> None:
     """Show the current status of the user"""
 
@@ -278,7 +283,7 @@ async def _received_occupation(update: Update, context: ContextTypes.DEFAULT_TYP
     """Store info provided by user and ask for the next category"""
 
     user_data = context.user_data
-    user_data["occupation"] = update.message.text
+    user_data["occupation"] = _maybe_apply_limit(update.message.text, settings.SERVICES_OCCUPATION_MAX_LENGTH)
 
     trans = i18n.trans(update.message.from_user)
 
@@ -300,7 +305,7 @@ async def _received_description(update: Update, context: ContextTypes.DEFAULT_TY
     """Store info provided by user and ask for the next category"""
 
     user_data = context.user_data
-    user_data["description"] = update.message.text
+    user_data["description"] = _maybe_apply_limit(update.message.text, settings.SERVICES_DESCRIPTION_MAX_LENGTH)
 
     trans = i18n.trans(update.message.from_user)
 
@@ -321,7 +326,7 @@ async def _received_location(update: Update, context: ContextTypes.DEFAULT_TYPE)
     """Store info provided by user and ask for the legality"""
 
     user_data = context.user_data
-    user_data["location"] = update.message.text
+    user_data["location"] = _maybe_apply_limit(update.message.text, settings.SERVICES_LOCATION_MAX_LENGTH)
 
     await update.message.reply_text(i18n.trans(update.message.from_user).gettext("SERVICES_DM_ENROLL_CONFIRM_LEGALITY"),
                                     reply_markup=keyboards.yes_no(update.message.from_user))
