@@ -120,7 +120,7 @@ async def handle_command_help(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 async def handle_command_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Welcome the user and show them the selection of options"""
+    """Welcome the user and show them the selection of options, or pass the message to handle a deep link"""
 
     message = update.effective_message
     user = message.from_user
@@ -144,6 +144,11 @@ async def handle_command_start(update: Update, context: ContextTypes.DEFAULT_TYP
         return
 
     if not await is_member_of_main_chat(user, context):
+        return
+
+    if len(update.effective_message.text.split(" ")) == 2:
+        # When some other feature implements deep linking, this will need to be rewritten.
+        await services.handle_extended_start_command(update, context)
         return
 
     await services.show_main_status(context, message, user)

@@ -82,9 +82,8 @@ async def _moderate_new_data(update: Update, context: ContextTypes.DEFAULT_TYPE,
 def _who_people_to_message(people: list) -> list:
     result = []
     for p in people:
-        result.append(
-            "@{username} ({location}): {occupation}".format(username=p["tg_username"], occupation=p["occupation"],
-                                                            location=p["location"]))
+        link = f"t.me/PeopleRegistryBot?start=service_info_{p["category_id"]}_{p["tg_username"]}"
+        result.append(f"- @{p["tg_username"]} ({p["location"]}): <a href=\"{link}\">{p["occupation"]}</a>")
     return result
 
 
@@ -258,7 +257,7 @@ async def _received_category(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     lines = []
     if "mode" in context.user_data and context.user_data["mode"] == "update":
-        records = [r for r in state.people_record(query.from_user.id, int(query.data))]
+        records = [r for r in state.people_record(int(query.data), tg_id=query.from_user.id)]
         user_data["category_title"] = records[0]["title"]
         user_data["location"] = records[0]["location"]
         user_data["occupation"] = records[0]["occupation"]
@@ -463,6 +462,22 @@ async def _abort_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE
                            i18n.trans(user).gettext("SERVICES_DM_CONVERSATION_CANCELLED"))
 
     return ConversationHandler.END
+
+
+async def handle_extended_start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    param = update.effective_message.text.split(" ")[1]
+    if not param.startswith(const.COMMAND_INFO + "_"):
+        return
+
+    category_id, tg_username = param[len(const.COMMAND_INFO + "_"):].split("_")
+    category_id = int(category_id)
+    trans = i18n.trans(update.effective_message.from_user)
+    for record in state.people_record(category_id, tg_username=tg_username):
+        category_title = record["title"] if category_id != 0 else trans.gettext("SERVICES_DM_WHO_CATEGORY_DEFAULT")
+        await update.effective_message.reply_text(trans.gettext(
+            "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}").format(
+                category_title=category_title, description=record["description"], location=record["location"],
+                occupation=record["occupation"], username=tg_username))
 
 
 def init(application: Application, group: int):

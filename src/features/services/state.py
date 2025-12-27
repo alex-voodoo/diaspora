@@ -43,16 +43,26 @@ def people_records(td_ig: int) -> Iterator:
             yield {key: value for (key, value) in zip(("title", "id", "occupation", "description", "location"), record)}
 
 
-def people_record(td_ig: int, category_id: int) -> Iterator:
-    """Return a record of a user identified by `tg_id` and `category_id`"""
+def people_record(category_id: int, tg_id: int=0, tg_username: str="") -> Iterator:
+    """Return a record of a user identified by `category_id` and either `tg_id` or `tg_username` """
 
-    with LogTime("SELECT FROM people WHERE tg_id=? AND category_id=?"):
-        c = db.cursor()
+    if tg_id != 0:
+        with LogTime("SELECT FROM people WHERE tg_id=? AND category_id=?"):
+            c = db.cursor()
 
-        for record in c.execute("SELECT pc.title, pc.id, p.occupation, p.description, p.location "
-                                "FROM people p LEFT JOIN people_category pc ON p.category_id = pc.id "
-                                "WHERE p.tg_id=? AND pc.id=?", (td_ig, category_id)):
-            yield {key: value for (key, value) in zip(("title", "id", "occupation", "description", "location"), record)}
+            for record in c.execute("SELECT pc.title, pc.id, p.occupation, p.description, p.location "
+                                    "FROM people p LEFT JOIN people_category pc ON p.category_id = pc.id "
+                                    "WHERE p.tg_id=? AND p.category_id=?", (tg_id, category_id)):
+                yield {key: value for (key, value) in zip(("title", "id", "occupation", "description", "location"), record)}
+    elif tg_username != "":
+        with LogTime("SELECT FROM people WHERE tg_username=? AND category_id=?"):
+            c = db.cursor()
+
+            for record in c.execute("SELECT pc.title, pc.id, p.occupation, p.description, p.location "
+                                    "FROM people p LEFT JOIN people_category pc ON p.category_id = pc.id "
+                                    "WHERE p.tg_username=? AND p.category_id=?", (tg_username, category_id)):
+                yield {key: value for (key, value) in
+                       zip(("title", "id", "occupation", "description", "location"), record)}
 
 
 def people_insert_or_update(tg_id: int, tg_username: str, occupation: str, description: str, location: str,
