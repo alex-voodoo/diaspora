@@ -156,7 +156,7 @@ async def _who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     user_list = [trans.gettext("SERVICES_DM_WHO_LIST_HEADING")]
 
     categorised_people = {
-        0: {"title": trans.gettext("SERVICES_DM_WHO_CATEGORY_DEFAULT"), "category_id": 0, "people": []}}
+        0: {"title": trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"), "category_id": 0, "people": []}}
 
     for category in state.people_category_select_all():
         categorised_people[category["id"]] = {"title": category["title"], "people": []}
@@ -255,7 +255,7 @@ async def _received_category(update: Update, context: ContextTypes.DEFAULT_TYPE)
     trans = i18n.trans(query.from_user)
 
     user_data = context.user_data
-    user_data["category_id"] = query.data
+    user_data["category_id"] = int(query.data)
 
     await query.answer()
     await query.edit_message_reply_markup(None)
@@ -263,7 +263,8 @@ async def _received_category(update: Update, context: ContextTypes.DEFAULT_TYPE)
     lines = []
     if "mode" in context.user_data and context.user_data["mode"] == "update":
         records = [r for r in state.people_record(int(query.data), tg_id=query.from_user.id)]
-        user_data["category_title"] = records[0]["title"]
+        user_data["category_title"] = records[0]["title"] if user_data["category_id"] != 0 else trans.gettext(
+            "SERVICES_CATEGORY_OTHER_TITLE")
         user_data["location"] = records[0]["location"]
         user_data["occupation"] = records[0]["occupation"]
         user_data["description"] = records[0]["description"]
@@ -478,11 +479,11 @@ async def handle_extended_start_command(update: Update, context: ContextTypes.DE
     category_id = int(category_id)
     trans = i18n.trans(update.effective_message.from_user)
     for record in state.people_record(category_id, tg_username=tg_username):
-        category_title = record["title"] if category_id != 0 else trans.gettext("SERVICES_DM_WHO_CATEGORY_DEFAULT")
+        category_title = record["title"] if category_id != 0 else trans.gettext("SERVICES_CATEGORY_OTHER_TITLE")
         await update.effective_message.reply_text(trans.gettext(
             "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}").format(
-                category_title=category_title, description=record["description"], location=record["location"],
-                occupation=record["occupation"], username=tg_username))
+            category_title=category_title, description=record["description"], location=record["location"],
+            occupation=record["occupation"], username=tg_username))
 
 
 def init(application: Application, group: int):

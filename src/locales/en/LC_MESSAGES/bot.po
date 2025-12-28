@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2025-12-27 17:35+0100\n"
+"POT-Creation-Date: 2025-12-28 11:52+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -365,8 +365,9 @@ msgstr "This category is already empty."
 msgid "SERVICES_DM_WHO_LIST_HEADING"
 msgstr "Here is the directory:"
 
-#: features/services/core.py:159 features/services/core.py:481
-msgid "SERVICES_DM_WHO_CATEGORY_DEFAULT"
+#: features/services/core.py:159 features/services/core.py:266
+#: features/services/core.py:482
+msgid "SERVICES_CATEGORY_OTHER_TITLE"
 msgstr "Other"
 
 #: features/services/core.py:186
@@ -388,7 +389,7 @@ msgstr "Let us start!"
 msgid "SERVICES_DM_ENROLL_ASK_CATEGORY"
 msgstr "Please select a category that matches your service the best."
 
-#: features/services/core.py:228 features/services/core.py:275
+#: features/services/core.py:228 features/services/core.py:276
 msgid "SERVICES_DM_ENROLL_ASK_OCCUPATION"
 msgstr "What do you do?  Please give a short and simple answer, like \"Teach how to surf\" or \"Help with the immigrations\"."
 
@@ -396,79 +397,79 @@ msgstr "What do you do?  Please give a short and simple answer, like \"Teach how
 msgid "SERVICES_DM_SELECT_CATEGORY_FOR_UPDATE"
 msgstr "Select a category to update."
 
-#: features/services/core.py:272
+#: features/services/core.py:273
 msgid "SERVICES_DM_UPDATE_OCCUPATION {title} {occupation}"
 msgstr ""
 "Enter a new brief description for your service in the \"{title}\" group.  The current one is:\n"
 "<b>{occupation}</b>"
 
-#: features/services/core.py:293
+#: features/services/core.py:294
 msgid "SERVICES_DM_UPDATE_DESCRIPTION {title} {description}"
 msgstr ""
 "Enter a new detailed description for your service in the \"{title}\" group.  The current one is:\n"
 "<b>{description}</b>"
 
-#: features/services/core.py:297
+#: features/services/core.py:298
 msgid "SERVICES_DM_ENROLL_ASK_DESCRIPTION"
 msgstr "Provide a detailed description of your service."
 
-#: features/services/core.py:315
+#: features/services/core.py:316
 msgid "SERVICES_DM_UPDATE_LOCATION {title} {location}"
 msgstr ""
 "Enter a new location for your service in the \"{title}\" group.  The current one is:\n"
 "<b>{location}</b>"
 
-#: features/services/core.py:318
+#: features/services/core.py:319
 msgid "SERVICES_DM_ENROLL_ASK_LOCATION"
 msgstr ""
 "Where are you based?\n"
 "\n"
 "Just the name of the place is enough, like \"A Coruña\""
 
-#: features/services/core.py:331
+#: features/services/core.py:332
 msgid "SERVICES_DM_ENROLL_CONFIRM_LEGALITY"
 msgstr ""
 "Finally, please confirm that what you do is legal and does not violate any laws or local regulations.\n"
 "\n"
 "Is your service legal?"
 
-#: features/services/core.py:363
+#: features/services/core.py:364
 msgid "SERVICES_DM_ENROLL_COMPLETED"
 msgstr "We are done, you are now registered!"
 
-#: features/services/core.py:365
+#: features/services/core.py:366
 msgid "SERVICES_DM_ENROLL_COMPLETED_POST_MODERATION"
 msgstr "We are done, you are now registered!  Please note that moderators may hide your record if it violates rules of the group."
 
-#: features/services/core.py:367
+#: features/services/core.py:368
 msgid "SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION"
 msgstr "We are done!  I will add your record to the list after the moderators approve it."
 
-#: features/services/core.py:379
+#: features/services/core.py:380
 msgid "SERVICES_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"
 msgstr "I am sorry.  I cannot register services that do not comply with the laws and local regulations."
 
-#: features/services/core.py:408
+#: features/services/core.py:409
 msgid "SERVICES_ADMIN_USER_RECORD_APPROVED"
 msgstr "Approved."
 
-#: features/services/core.py:418
+#: features/services/core.py:419
 msgid "SERVICES_ADMIN_USER_RECORD_SUSPENDED"
 msgstr "The record is hidden."
 
-#: features/services/core.py:433
+#: features/services/core.py:434
 msgid "SERVICES_DM_SELECT_CATEGORY_FOR_RETIRE"
 msgstr "Select category to delete."
 
-#: features/services/core.py:451
+#: features/services/core.py:452
 msgid "SERVICES_DM_RETIRE"
 msgstr "The record is deleted."
 
-#: features/services/core.py:467
+#: features/services/core.py:468
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Let us start again."
 
-#: features/services/core.py:482
+#: features/services/core.py:483
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "<b>{category_title}: {occupation}</b>\n"
@@ -503,4 +504,3 @@ msgstr "Yes"
 #: features/services/keyboards.py:115 features/services/keyboards.py:126
 msgid "SERVICES_BUTTON_NO"
 msgstr "No"
-
