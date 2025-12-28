@@ -22,9 +22,37 @@ def _maybe_append_limit_warning(trans, message: list, limit: int) -> None:
                                   limit).format(limit=limit))
 
 
-def _maybe_apply_limit(text: str, limit: int) -> str:
-    text = text.strip()
-    return text[:limit] if limit else text
+async def _verify_limit_then_retry_or_proceed(update: Update, context: ContextTypes.DEFAULT_TYPE,
+                                              current_stage_id: int, current_limit: int, data_field_key: str,
+                                              next_stage_id: int, next_limit: int, next_data_field_key: str,
+                                              next_data_field_insert_text: str,
+                                              next_data_field_update_text: str) -> int:
+    message = update.message
+
+    trans = i18n.trans(message.from_user)
+
+    new_text = message.text.strip()
+    if 0 < current_limit < len(new_text):
+        new_text = f"<b>{new_text[:current_limit]}</b>{new_text[current_limit:current_limit + 10]}…"
+        await message.reply_text(trans.ngettext("SERVICES_DM_TEXT_TOO_LONG_S {limit} {text}",
+                                                "SERVICES_DM_TEXT_TOO_LONG_P {limit} {text}",
+                                                current_limit).format(limit=current_limit, text=new_text))
+        return current_stage_id
+
+    user_data = context.user_data
+    user_data[data_field_key] = new_text
+
+    lines = []
+    if "mode" in user_data and user_data["mode"] == "update":
+        lines.append(
+            next_data_field_update_text.format(title=user_data["category_title"],
+                                               description=user_data[next_data_field_key]))
+    else:
+        lines.append(next_data_field_insert_text)
+
+    _maybe_append_limit_warning(trans, lines, next_limit)
+    await message.reply_text("\n".join(lines))
+    return next_stage_id
 
 
 async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: Message, user: User, prefix="") -> None:
@@ -195,8 +223,8 @@ async def _who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 
 # noinspection PyUnusedLocal
-async def _enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Start the conversation about adding the first user record"""
+async def _handle_command_enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Start the conversation about adding a new user record"""
 
     query = update.callback_query
 
@@ -247,7 +275,7 @@ async def _handle_command_update(update: Update, context: ContextTypes.DEFAULT_T
     return const.SELECTING_CATEGORY
 
 
-async def _received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def _accept_category_and_request_occupation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation and ask user for input"""
 
     query = update.callback_query
@@ -280,54 +308,51 @@ async def _received_category(update: Update, context: ContextTypes.DEFAULT_TYPE)
     return const.TYPING_OCCUPATION
 
 
-async def _received_occupation(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Store info provided by user and ask for the next category"""
-
-    user_data = context.user_data
-    user_data["occupation"] = _maybe_apply_limit(update.message.text, settings.SERVICES_OCCUPATION_MAX_LENGTH)
+async def _verify_occupation_and_request_description(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Store occupation provided by user and ask for the next category"""
 
     trans = i18n.trans(update.message.from_user)
 
-    lines = []
-    if "mode" in context.user_data and context.user_data["mode"] == "update":
-        lines.append(
-            trans.gettext("SERVICES_DM_UPDATE_DESCRIPTION {title} {description}").format(
-                title=user_data["category_title"],
-                description=user_data["description"]))
-    else:
-        lines.append(trans.gettext("SERVICES_DM_ENROLL_ASK_DESCRIPTION"))
-
-    _maybe_append_limit_warning(trans, lines, settings.SERVICES_DESCRIPTION_MAX_LENGTH)
-    await update.message.reply_text("\n".join(lines))
-    return const.TYPING_DESCRIPTION
+    return await _verify_limit_then_retry_or_proceed(
+        update, context, const.TYPING_OCCUPATION, settings.SERVICES_OCCUPATION_MAX_LENGTH, "occupation",
+        const.TYPING_DESCRIPTION, settings.SERVICES_DESCRIPTION_MAX_LENGTH, "description",
+        trans.gettext("SERVICES_DM_ENROLL_ASK_DESCRIPTION"),
+        trans.gettext("SERVICES_DM_UPDATE_DESCRIPTION {title} {description}"))
 
 
-async def _received_description(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def _verify_description_and_request_location(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Store info provided by user and ask for the next category"""
-
-    user_data = context.user_data
-    user_data["description"] = _maybe_apply_limit(update.message.text, settings.SERVICES_DESCRIPTION_MAX_LENGTH)
 
     trans = i18n.trans(update.message.from_user)
 
-    lines = []
-    if "mode" in context.user_data and context.user_data["mode"] == "update":
-        lines.append(
-            trans.gettext("SERVICES_DM_UPDATE_LOCATION {title} {location}").format(title=user_data["category_title"],
-                                                                                   location=user_data["location"]))
-    else:
-        lines.append(trans.gettext("SERVICES_DM_ENROLL_ASK_LOCATION"))
-
-    _maybe_append_limit_warning(trans, lines, settings.SERVICES_LOCATION_MAX_LENGTH)
-    await update.message.reply_text("\n".join(lines))
-    return const.TYPING_LOCATION
+    return await _verify_limit_then_retry_or_proceed(
+        update, context, const.TYPING_DESCRIPTION, settings.SERVICES_DESCRIPTION_MAX_LENGTH, "description",
+        const.TYPING_LOCATION, settings.SERVICES_LOCATION_MAX_LENGTH, "location",
+        trans.gettext("SERVICES_DM_ENROLL_ASK_LOCATION"),
+        trans.gettext("SERVICES_DM_UPDATE_LOCATION {title} {location}"))
 
 
-async def _received_location(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Store info provided by user and ask for the legality"""
+async def _verify_location_and_request_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Store location info provided by user and ask for the legality"""
+
+    current_limit = settings.SERVICES_LOCATION_MAX_LENGTH
+    current_stage_id = const.TYPING_LOCATION
+    data_field_key = "location"
+
+    message = update.message
+
+    trans = i18n.trans(message.from_user)
+
+    new_text = message.text.strip()
+    if 0 < current_limit < len(new_text):
+        new_text = f"<b>{new_text[:current_limit]}</b>{new_text[current_limit:current_limit + 10]}…"
+        await message.reply_text(trans.ngettext("SERVICES_DM_TEXT_TOO_LONG_S {limit} {text}",
+                                                "SERVICES_DM_TEXT_TOO_LONG_P {limit} {text}",
+                                                current_limit).format(limit=current_limit, text=new_text))
+        return current_stage_id
 
     user_data = context.user_data
-    user_data["location"] = _maybe_apply_limit(update.message.text, settings.SERVICES_LOCATION_MAX_LENGTH)
+    user_data[data_field_key] = new_text
 
     await update.message.reply_text(i18n.trans(update.message.from_user).gettext("SERVICES_DM_ENROLL_CONFIRM_LEGALITY"),
                                     reply_markup=keyboards.yes_no(update.message.from_user))
@@ -335,7 +360,7 @@ async def _received_location(update: Update, context: ContextTypes.DEFAULT_TYPE)
     return const.CONFIRMING_LEGALITY
 
 
-async def _confirm_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def _verify_legality_and_finalise_data_collection(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Complete the enrollment"""
 
     query = update.callback_query
@@ -491,13 +516,16 @@ def init(application: Application, group: int):
 
     # Enrolling
     application.add_handler(ConversationHandler(
-        entry_points=[CallbackQueryHandler(_enroll, pattern=const.COMMAND_ENROLL),
+        entry_points=[CallbackQueryHandler(_handle_command_enroll, pattern=const.COMMAND_ENROLL),
                       CallbackQueryHandler(_handle_command_update, pattern=const.COMMAND_UPDATE)],
-        states={const.SELECTING_CATEGORY: [CallbackQueryHandler(_received_category)],
-                const.TYPING_OCCUPATION: [MessageHandler(filters.TEXT & (~ filters.COMMAND), _received_occupation)],
-                const.TYPING_DESCRIPTION: [MessageHandler(filters.TEXT & (~ filters.COMMAND), _received_description)],
-                const.TYPING_LOCATION: [MessageHandler(filters.TEXT & (~ filters.COMMAND), _received_location)],
-                const.CONFIRMING_LEGALITY: [CallbackQueryHandler(_confirm_legality)]},
+        states={const.SELECTING_CATEGORY: [CallbackQueryHandler(_accept_category_and_request_occupation)],
+                const.TYPING_OCCUPATION: [
+                    MessageHandler(filters.TEXT & (~ filters.COMMAND), _verify_occupation_and_request_description)],
+                const.TYPING_DESCRIPTION: [
+                    MessageHandler(filters.TEXT & (~ filters.COMMAND), _verify_description_and_request_location)],
+                const.TYPING_LOCATION: [
+                    MessageHandler(filters.TEXT & (~ filters.COMMAND), _verify_location_and_request_legality)],
+                const.CONFIRMING_LEGALITY: [CallbackQueryHandler(_verify_legality_and_finalise_data_collection)]},
         fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]))
 
     application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(_who, pattern=const.COMMAND_WHO)],
