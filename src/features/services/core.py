@@ -3,8 +3,10 @@ Registry of services
 """
 
 import copy
+import gettext
 import logging
 import re
+from collections.abc import Awaitable, Callable
 
 from telegram import Message, Update, User
 from telegram.ext import Application, CallbackQueryHandler, ContextTypes, ConversationHandler, filters, MessageHandler
@@ -14,7 +16,12 @@ from common.settings import settings
 from . import const, keyboards, state
 
 
-def _maybe_append_limit_warning(trans, message: list, limit: int) -> None:
+def _maybe_append_limit_warning(trans: gettext.GNUTranslations, message: list, limit: int) -> None:
+    """Perform one repeating part of conversation logic where a value is checked against length limit
+
+    If `limit` is non-zero, appends a line that says that there is a limit.
+    """
+
     if limit == 0:
         return
 
@@ -26,7 +33,18 @@ async def _verify_limit_then_retry_or_proceed(update: Update, context: ContextTy
                                               current_stage_id: int, current_limit: int, data_field_key: str,
                                               next_stage_id: int, next_limit: int, next_data_field_key: str,
                                               next_data_field_insert_text: str,
-                                              next_data_field_update_text: str) -> int:
+                                              next_data_field_update_text: str,
+                                              request_next_data_field: Callable[
+                                                  [Update, ContextTypes.DEFAULT_TYPE, int, str, str, str], Awaitable[
+                                                      None]]) -> int:
+    """Perform one repeating part of conversation logic where a value is checked against length limit
+
+    If the value that comes in the `update.message` is longer than `current_limit`, the function displays a warning and
+    returns `current_stage_id`, effectively asking the user for a corrected value and not advancing them to the next
+    step. Otherwise, `request_next_data_field` is called, and then `next_stage_id` is returned, thus stepping the
+    conversation forward.
+    """
+
     message = update.message
 
     trans = i18n.trans(message.from_user)
@@ -42,17 +60,36 @@ async def _verify_limit_then_retry_or_proceed(update: Update, context: ContextTy
     user_data = context.user_data
     user_data[data_field_key] = new_text
 
+    await request_next_data_field(update, context, next_limit, next_data_field_key, next_data_field_insert_text,
+                                  next_data_field_update_text)
+
+    return next_stage_id
+
+
+async def _request_next_data_field(update: Update, context: ContextTypes.DEFAULT_TYPE,
+                                   next_limit: int, next_data_field_key: str,
+                                   next_data_field_insert_text: str,
+                                   next_data_field_update_text: str) -> None:
+    """Perform one repeating part of conversation logic where a value is checked against length limit
+
+    Sends a message that asks the user to enter the next data field.
+    """
+
+    message = update.message
+
+    trans = i18n.trans(message.from_user)
+    user_data = context.user_data
+
     lines = []
     if "mode" in user_data and user_data["mode"] == "update":
         lines.append(
             next_data_field_update_text.format(title=user_data["category_title"],
-                                               description=user_data[next_data_field_key]))
+                                               current_value=user_data[next_data_field_key]))
     else:
         lines.append(next_data_field_insert_text)
 
     _maybe_append_limit_warning(trans, lines, next_limit)
     await message.reply_text("\n".join(lines))
-    return next_stage_id
 
 
 async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: Message, user: User, prefix="") -> None:
@@ -298,8 +335,8 @@ async def _accept_category_and_request_occupation(update: Update, context: Conte
         user_data["description"] = records[0]["description"]
 
         lines.append(
-            trans.gettext("SERVICES_DM_UPDATE_OCCUPATION {title} {occupation}").format(
-                title=user_data["category_title"], occupation=user_data["occupation"]))
+            trans.gettext("SERVICES_DM_UPDATE_OCCUPATION {title} {current_value}").format(
+                title=user_data["category_title"], current_value=user_data["occupation"]))
     else:
         lines.append(trans.gettext("SERVICES_DM_ENROLL_ASK_OCCUPATION"))
 
@@ -317,7 +354,7 @@ async def _verify_occupation_and_request_description(update: Update, context: Co
         update, context, const.TYPING_OCCUPATION, settings.SERVICES_OCCUPATION_MAX_LENGTH, "occupation",
         const.TYPING_DESCRIPTION, settings.SERVICES_DESCRIPTION_MAX_LENGTH, "description",
         trans.gettext("SERVICES_DM_ENROLL_ASK_DESCRIPTION"),
-        trans.gettext("SERVICES_DM_UPDATE_DESCRIPTION {title} {description}"))
+        trans.gettext("SERVICES_DM_UPDATE_DESCRIPTION {title} {current_value}"), _request_next_data_field)
 
 
 async def _verify_description_and_request_location(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -329,39 +366,30 @@ async def _verify_description_and_request_location(update: Update, context: Cont
         update, context, const.TYPING_DESCRIPTION, settings.SERVICES_DESCRIPTION_MAX_LENGTH, "description",
         const.TYPING_LOCATION, settings.SERVICES_LOCATION_MAX_LENGTH, "location",
         trans.gettext("SERVICES_DM_ENROLL_ASK_LOCATION"),
-        trans.gettext("SERVICES_DM_UPDATE_LOCATION {title} {location}"))
+        trans.gettext("SERVICES_DM_UPDATE_LOCATION {title} {current_value}"), _request_next_data_field)
 
 
 async def _verify_location_and_request_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Store location info provided by user and ask for the legality"""
 
-    current_limit = settings.SERVICES_LOCATION_MAX_LENGTH
-    current_stage_id = const.TYPING_LOCATION
-    data_field_key = "location"
+    trans = i18n.trans(update.message.from_user)
 
-    message = update.message
+    async def request_legality(*args) -> None:
+        await update.message.reply_text(
+            i18n.trans(update.message.from_user).gettext("SERVICES_DM_ENROLL_CONFIRM_LEGALITY"),
+            reply_markup=keyboards.yes_no(update.message.from_user))
 
-    trans = i18n.trans(message.from_user)
-
-    new_text = message.text.strip()
-    if 0 < current_limit < len(new_text):
-        new_text = f"<b>{new_text[:current_limit]}</b>{new_text[current_limit:current_limit + 10]}…"
-        await message.reply_text(trans.ngettext("SERVICES_DM_TEXT_TOO_LONG_S {limit} {text}",
-                                                "SERVICES_DM_TEXT_TOO_LONG_P {limit} {text}",
-                                                current_limit).format(limit=current_limit, text=new_text))
-        return current_stage_id
-
-    user_data = context.user_data
-    user_data[data_field_key] = new_text
-
-    await update.message.reply_text(i18n.trans(update.message.from_user).gettext("SERVICES_DM_ENROLL_CONFIRM_LEGALITY"),
-                                    reply_markup=keyboards.yes_no(update.message.from_user))
-
-    return const.CONFIRMING_LEGALITY
+    return await _verify_limit_then_retry_or_proceed(
+        update, context, const.TYPING_LOCATION, settings.SERVICES_LOCATION_MAX_LENGTH, "location",
+        const.CONFIRMING_LEGALITY, 0, "", "", "", request_legality)
 
 
 async def _verify_legality_and_finalise_data_collection(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Complete the enrollment"""
+    """Complete the conversation where information about user's service was gathered
+
+    Checks if the user confirmed that their service does not violate the law, and if yes, saves the new data, optionally
+    asking the moderators to verify it, then ends the conversation.
+    """
 
     query = update.callback_query
     from_user = query.from_user
