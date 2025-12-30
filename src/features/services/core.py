@@ -16,6 +16,10 @@ from common.settings import settings
 from . import const, keyboards, state
 
 
+def _format_hint(text: str, limit: int) -> str:
+    return  f"<b>{text[:limit]}</b>{text[limit:limit + 10]}…"
+
+
 def _maybe_append_limit_warning(trans: gettext.GNUTranslations, message: list, limit: int) -> None:
     """Perform one repeating part of conversation logic where a value is checked against length limit
 
@@ -30,7 +34,7 @@ def _maybe_append_limit_warning(trans: gettext.GNUTranslations, message: list, l
 
 
 async def _verify_limit_then_retry_or_proceed(update: Update, context: ContextTypes.DEFAULT_TYPE,
-                                              current_stage_id: int, current_limit: int, data_field_key: str,
+                                              current_stage_id: int, current_limit: int, current_data_field_key: str,
                                               next_stage_id: int, next_limit: int, next_data_field_key: str,
                                               next_data_field_insert_text: str,
                                               next_data_field_update_text: str,
@@ -51,14 +55,14 @@ async def _verify_limit_then_retry_or_proceed(update: Update, context: ContextTy
 
     new_text = message.text.strip()
     if 0 < current_limit < len(new_text):
-        new_text = f"<b>{new_text[:current_limit]}</b>{new_text[current_limit:current_limit + 10]}…"
+        new_text = _format_hint(new_text, current_limit)
         await message.reply_text(trans.ngettext("SERVICES_DM_TEXT_TOO_LONG_S {limit} {text}",
                                                 "SERVICES_DM_TEXT_TOO_LONG_P {limit} {text}",
                                                 current_limit).format(limit=current_limit, text=new_text))
         return current_stage_id
 
     user_data = context.user_data
-    user_data[data_field_key] = new_text
+    user_data[current_data_field_key] = new_text
 
     await request_next_data_field(update, context, next_limit, next_data_field_key, next_data_field_insert_text,
                                   next_data_field_update_text)
