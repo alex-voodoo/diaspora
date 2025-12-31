@@ -92,7 +92,9 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                                                               text=core._format_hint(new_current_text_long,
                                                                                      current_limit)))
         request_next_data_field.assert_not_called()
+
         request_next_data_field.reset_mock()
+        self._sent_message = ""
 
         new_current_text_short = "world"
         message = Message(message_id=2, date=datetime.datetime.now(), chat=Chat(id=1, type=Chat.PRIVATE),
@@ -114,7 +116,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         request_next_data_field.assert_called_once_with(update, context, next_limit, next_data_field_key,
                                                         next_data_field_insert_text,
                                                         next_data_field_update_text)
-        request_next_data_field.reset_mock()
+        self.assertEqual(self._sent_message, "")
 
     # async def _request_next_data_field
     # async def show_main_status
