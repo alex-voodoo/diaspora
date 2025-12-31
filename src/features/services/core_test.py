@@ -24,16 +24,24 @@ class MockBot(Bot):
     def __init__(self, token: str):
         super().__init__(token)
 
-        self._sent_message = ""
+        self._sent_message_text = ""
 
     async def send_message(self, *args, **kwargs):
-        self._sent_message = kwargs["text"]
+        self._sent_message_text = kwargs["text"]
 
 
 class TestCore(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.application = Application.builder().token(settings.BOT_TOKEN).build()
         self.application.bot = MockBot(token=settings.BOT_TOKEN)
+
+    @property
+    def sent_message_text(self) -> str:
+        return self.application.bot._sent_message_text
+
+    @sent_message_text.setter
+    def sent_message_text(self, value):
+        self.application.bot._sent_message_text = value
 
     # def test__format_hint
 
@@ -71,8 +79,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         message = Message(message_id=1, date=datetime.datetime.now(), chat=Chat(id=1, type=Chat.PRIVATE),
                           text=new_current_text_long)
         message.set_bot(self.application.bot)
-        update = Update(update_id=1,
-                        message=message)
+        update = Update(update_id=1, message=message)
         context = CallbackContext(application=self.application, chat_id=1, user_id=1)
         context.user_data["current"] = current_text
 
@@ -85,7 +92,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                                                                 next_data_field_update_text,
                                                                 request_next_data_field)
         self.assertEqual(result, current_stage_id)
-        self.assertEqual(self.application.bot._sent_message,
+        self.assertEqual(self.sent_message_text,
                          trans.ngettext("SERVICES_DM_TEXT_TOO_LONG_S {limit} {text}",
                                         "SERVICES_DM_TEXT_TOO_LONG_P {limit} {text}",
                                         current_limit).format(limit=current_limit,
@@ -94,7 +101,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         request_next_data_field.assert_not_called()
 
         request_next_data_field.reset_mock()
-        self._sent_message = ""
+        self.sent_message_text = ""
 
         new_current_text_short = "world"
         message = Message(message_id=2, date=datetime.datetime.now(), chat=Chat(id=1, type=Chat.PRIVATE),
@@ -114,11 +121,29 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result, next_stage_id)
 
         request_next_data_field.assert_called_once_with(update, context, next_limit, next_data_field_key,
-                                                        next_data_field_insert_text,
-                                                        next_data_field_update_text)
-        self.assertEqual(self._sent_message, "")
+                                                        next_data_field_insert_text, next_data_field_update_text)
+        self.assertEqual(self.sent_message_text, "")
 
-    # async def _request_next_data_field
+    async def test__request_next_data_field(self):
+        trans = i18n.default()
+
+        next_limit = 20
+        next_data_field_key = "next"
+
+        next_data_field_insert_text = trans.gettext("SERVICES_DM_ENROLL_ASK_DESCRIPTION")
+        next_data_field_update_text = trans.gettext("SERVICES_DM_UPDATE_DESCRIPTION {title} {current_value}")
+
+        message = Message(message_id=1, date=datetime.datetime.now(), chat=Chat(id=1, type=Chat.PRIVATE),
+                          text="nothing")
+        message.set_bot(self.application.bot)
+        update = Update(update_id=1, message=message)
+        context = CallbackContext(application=self.application, chat_id=1, user_id=1)
+        context.user_data["next"] = "current_next_text"
+
+        await core._request_next_data_field(update, context, next_limit, next_data_field_key,
+                                            next_data_field_insert_text, next_data_field_update_text)
+        self.assertNotEqual(self.sent_message_text, "")
+
     # async def show_main_status
     # noinspection PyUnusedLocal
     # async def _moderate_new_data
