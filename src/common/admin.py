@@ -1,6 +1,7 @@
 """
 Admin utilities
 """
+
 import io
 import logging
 import os.path
@@ -12,7 +13,6 @@ from telegram import InlineKeyboardMarkup, Update
 
 from . import i18n
 from .checks import is_admin
-from .settings import settings
 
 buttons = None
 
@@ -37,7 +37,7 @@ def get_main_keyboard() -> InlineKeyboardMarkup:
 
     global buttons
 
-    return InlineKeyboardMarkup(buttons)
+    return InlineKeyboardMarkup(buttons if buttons else [])
 
 
 async def save_file_with_backup(update: Update, path: Path, expected_mime_type: str = None,
