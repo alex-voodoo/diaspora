@@ -129,6 +129,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
         next_limit = 20
         next_data_field_key = "next"
+        category_title = "Category Title"
+        current_next_text = "Current next text"
 
         next_data_field_insert_text = trans.gettext("SERVICES_DM_ENROLL_ASK_DESCRIPTION")
         next_data_field_update_text = trans.gettext("SERVICES_DM_UPDATE_DESCRIPTION {title} {current_value}")
@@ -138,11 +140,25 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         message.set_bot(self.application.bot)
         update = Update(update_id=1, message=message)
         context = CallbackContext(application=self.application, chat_id=1, user_id=1)
-        context.user_data["next"] = "current_next_text"
+        context.user_data["next"] = current_next_text
 
         await core._request_next_data_field(update, context, next_limit, next_data_field_key,
                                             next_data_field_insert_text, next_data_field_update_text)
-        self.assertNotEqual(self.sent_message_text, "")
+
+        expected_sent_message_text = [next_data_field_insert_text, ]
+        core._maybe_append_limit_warning(trans, expected_sent_message_text, next_limit)
+        self.assertEqual(self.sent_message_text, "\n".join(expected_sent_message_text))
+
+        context.user_data["mode"] = "update"
+        context.user_data["category_title"] = category_title
+
+        await core._request_next_data_field(update, context, next_limit, next_data_field_key,
+                                            next_data_field_insert_text, next_data_field_update_text)
+
+        expected_sent_message_text = [
+            next_data_field_update_text.format(title=category_title, current_value=current_next_text), ]
+        core._maybe_append_limit_warning(trans, expected_sent_message_text, next_limit)
+        self.assertEqual(self.sent_message_text, "\n".join(expected_sent_message_text))
 
     # async def show_main_status
     # noinspection PyUnusedLocal

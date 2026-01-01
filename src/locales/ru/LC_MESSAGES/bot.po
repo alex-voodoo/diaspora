@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2025-12-31 10:30+0100\n"
+"POT-Creation-Date: 2026-01-01 22:42+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -422,12 +422,12 @@ msgstr ""
 "<b>{current_value}</b>"
 
 #: features/services/core.py:360 features/services/core_test.py:73
-#: features/services/core_test.py:133
+#: features/services/core_test.py:135
 msgid "SERVICES_DM_ENROLL_ASK_DESCRIPTION"
 msgstr "Опишите вашу услугу подробно."
 
 #: features/services/core.py:361 features/services/core_test.py:74
-#: features/services/core_test.py:134
+#: features/services/core_test.py:136
 msgid "SERVICES_DM_UPDATE_DESCRIPTION {title} {current_value}"
 msgstr ""
 "Введите новое подробное описание вашей услуги в категории «{title}». Сейчас оно выглядит так:\n"
