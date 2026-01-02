@@ -100,6 +100,19 @@ def people_suspend(tg_id: int, category_id: int) -> None:
         db.commit()
 
 
+def people_select_all_active() -> Iterator:
+    """Query all non-suspended records from the `people` table"""
+
+    with LogTime("SELECT * FROM people WHERE is_suspended=0"):
+        c = db.cursor()
+
+        # noinspection SpellCheckingInspection
+        for row in c.execute("SELECT tg_id, tg_username, occupation, location, category_id FROM people "
+                             "WHERE is_suspended=0 "
+                             "ORDER BY tg_username COLLATE NOCASE"):
+            yield {key: value for (key, value) in zip((i[0] for i in c.description), row)}
+
+
 def people_select_all() -> Iterator:
     """Query all non-suspended records from the `people` table"""
 
@@ -107,8 +120,7 @@ def people_select_all() -> Iterator:
         c = db.cursor()
 
         # noinspection SpellCheckingInspection
-        for row in c.execute("SELECT tg_id, tg_username, occupation, location, category_id FROM people "
-                             "WHERE is_suspended=0 "
+        for row in c.execute("SELECT * FROM people "
                              "ORDER BY tg_username COLLATE NOCASE"):
             yield {key: value for (key, value) in zip((i[0] for i in c.description), row)}
 

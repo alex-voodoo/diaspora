@@ -4,20 +4,27 @@ Registry of services
 
 import copy
 import gettext
+import io
+import json
 import logging
 import re
 from collections.abc import Awaitable, Callable
 
-from telegram import Message, Update, User
+from telegram import InlineKeyboardButton, Message, Update, User
 from telegram.ext import Application, CallbackQueryHandler, ContextTypes, ConversationHandler, filters, MessageHandler
 
 from common import i18n
+from common.admin import register_buttons
+from common.checks import is_admin
 from common.settings import settings
 from . import const, keyboards, state
 
+_ADMIN_EXPORT_DB, _ADMIN_IMPORT_DB = "services-admin-export-db", "services-admin-import-db"
+_ADMIN_UPLOADING_DB = 1
+
 
 def _format_hint(text: str, limit: int) -> str:
-    return  f"<b>{text[:limit]}</b>{text[limit:limit + 10]}…"
+    return f"<b>{text[:limit]}</b>{text[limit:limit + 10]}…"
 
 
 def _maybe_append_limit_warning(trans: gettext.GNUTranslations, message: list, limit: int) -> None:
@@ -230,7 +237,7 @@ async def _who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     for category in state.people_category_select_all():
         categorised_people[category["id"]] = {"title": category["title"], "people": []}
 
-    for person in state.people_select_all():
+    for person in state.people_select_all_active():
         if "category_id" not in person or person["category_id"] not in categorised_people:
             person["category_id"] = 0
         categorised_people[person["category_id"]]["people"].append(person)
@@ -543,6 +550,49 @@ async def handle_extended_start_command(update: Update, context: ContextTypes.DE
             occupation=record["occupation"], username=tg_username))
 
 
+async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None | int:
+    query = update.callback_query
+    user = query.from_user
+
+    if not is_admin(user):
+        logging.error("User {username} is not listed as administrator!".format(username=user.username))
+        return
+
+    await query.answer()
+
+    trans = i18n.trans(user)
+
+    if query.data == _ADMIN_EXPORT_DB:
+        services = {"categories": [category for category in state.people_category_select_all()],
+                    "people": [person for person in state.people_select_all()]}
+        await user.send_document(json.dumps(services, ensure_ascii=False, indent=2).encode("utf-8"),
+                                 filename="services.json", reply_markup=None)
+    elif query.data == _ADMIN_IMPORT_DB:
+        await query.message.reply_text(trans.gettext("SERVICES_MESSAGE_DM_ADMIN_REQUEST_DB"))
+
+        return _ADMIN_UPLOADING_DB
+
+
+async def handle_received_db(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    user = update.effective_user
+    if not is_admin(user):
+        logging.error("User {username} is not listed as administrator!".format(username=user.username))
+        return ConversationHandler.END
+
+    document = update.message.effective_attachment
+
+    db_file = await document.get_file()
+    data = io.BytesIO()
+    await db_file.download_to_memory(data)
+
+    # TODO: Parse the file and import the DB
+    trans = i18n.trans(user)
+    await update.effective_message.reply_text(trans.gettext("ANTISPAM_MESSAGE_DM_ADMIN_OPENAI_UPDATED"),
+                                              reply_markup=None)
+
+    return ConversationHandler.END
+
+
 def init(application: Application, group: int):
     """Prepare the feature as defined in the configuration"""
 
@@ -569,6 +619,18 @@ def init(application: Application, group: int):
         ConversationHandler(entry_points=[CallbackQueryHandler(_handle_command_retire, pattern=const.COMMAND_RETIRE)],
                             states={const.SELECTING_CATEGORY: [CallbackQueryHandler(_retire_received_category)]},
                             fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]))
+
+    application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=_ADMIN_EXPORT_DB))
+    application.add_handler(
+        ConversationHandler(entry_points=[CallbackQueryHandler(handle_query_admin, pattern=_ADMIN_IMPORT_DB)],
+                            states={_ADMIN_UPLOADING_DB: [
+                                MessageHandler(filters.ATTACHMENT, handle_received_db)]}, fallbacks=[]))
+
+    trans = i18n.default()
+    register_buttons(((InlineKeyboardButton(trans.gettext("SERVICES_ADMIN_BUTTON_EXPORT_DB"),
+                                            callback_data=_ADMIN_EXPORT_DB),
+                       InlineKeyboardButton(trans.gettext("SERVICES_ADMIN_BUTTON_IMPORT_DB"),
+                                            callback_data=_ADMIN_IMPORT_DB)),))
 
     if settings.SERVICES_MODERATION_ENABLED:
         application.add_handler(CallbackQueryHandler(_confirm_user_data, pattern=re.compile(
