@@ -558,17 +558,20 @@ def init(application: Application, group: int):
                 const.TYPING_LOCATION: [
                     MessageHandler(filters.TEXT & (~ filters.COMMAND), _verify_location_and_request_legality)],
                 const.CONFIRMING_LEGALITY: [CallbackQueryHandler(_verify_legality_and_finalise_data_collection)]},
-        fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]))
+        fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]),
+        group=group)
 
     application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(_who, pattern=const.COMMAND_WHO)],
                                                 states={const.SELECTING_CATEGORY: [
                                                     CallbackQueryHandler(_who_received_category)]},
-                                                fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]))
+                                                fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]),
+                            group=group)
 
     application.add_handler(
         ConversationHandler(entry_points=[CallbackQueryHandler(_handle_command_retire, pattern=const.COMMAND_RETIRE)],
                             states={const.SELECTING_CATEGORY: [CallbackQueryHandler(_retire_received_category)]},
-                            fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]))
+                            fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]),
+        group=group)
 
     admin.register_handlers(application, group)
 

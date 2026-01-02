@@ -18,7 +18,7 @@ _ADMIN_EXPORT_DB, _ADMIN_IMPORT_DB = "services-admin-export-db", "services-admin
 _ADMIN_UPLOADING_DB = 1
 
 
-async def _handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None | int:
+async def _handle_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None | int:
     query = update.callback_query
     user = query.from_user
 
@@ -61,11 +61,12 @@ async def _handle_received_db(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 def register_handlers(application: Application, group: int):
-    application.add_handler(CallbackQueryHandler(_handle_query_admin, pattern=_ADMIN_EXPORT_DB))
+    application.add_handler(CallbackQueryHandler(_handle_query, pattern=_ADMIN_EXPORT_DB), group=group)
     application.add_handler(
-        ConversationHandler(entry_points=[CallbackQueryHandler(_handle_query_admin, pattern=_ADMIN_IMPORT_DB)],
+        ConversationHandler(entry_points=[CallbackQueryHandler(_handle_query, pattern=_ADMIN_IMPORT_DB)],
                             states={_ADMIN_UPLOADING_DB: [
-                                MessageHandler(filters.ATTACHMENT, _handle_received_db)]}, fallbacks=[]))
+                                MessageHandler(filters.ATTACHMENT, _handle_received_db)]}, fallbacks=[]),
+        group=group)
 
     trans = i18n.default()
     register_buttons(((InlineKeyboardButton(trans.gettext("SERVICES_ADMIN_BUTTON_EXPORT_DB"),
