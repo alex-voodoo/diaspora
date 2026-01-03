@@ -40,16 +40,12 @@ def get_main_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(buttons if buttons else [])
 
 
-async def save_file_with_backup(update: Update, path: Path, expected_mime_type: str = None,
-                                validate: Callable[[io.BytesIO], (bool, str)] = None) -> bool:
-    """Saves a file uploaded by an administrator, backing up the current version
+async def has_attachment_of_type(update: Update, mime_type: str) -> bool:
+    """Check if `update` has an attachment, optionally if that attachment has the specified MIME type
 
-    Returns whether a new version was saved.
-
-    `validate` must be a callable that accepts file data as `io.BytesIO` and returns a tuple of a boolean and a string.
-    If provided, should ensure that the new data could be accepted as new contents for the file without actually
-    changing any files or run-time state of the bot.  The boolean indicates success, and the string contains an error
-    message for the case when the validation failed.
+    Helper function for admin functions that want to process files of certain types.  Returns True only if the current
+    user is administrator, and the update has an attachment.  Optionally (if `mime_type` is not empty) ensures that the
+    attachment has that MIME type.
     """
 
     if not is_admin(update.effective_user):
@@ -66,10 +62,10 @@ async def save_file_with_backup(update: Update, path: Path, expected_mime_type: 
     try:
         document = update.effective_message.document
 
-        if expected_mime_type and document.mime_type != expected_mime_type:
+        if mime_type and document.mime_type != mime_type:
             await update.effective_message.reply_text(
                 trans.gettext("ADMIN_MESSAGE_DM_UNEXPECTED_FILE_TYPE {expected} {actual}").format(
-                    actual=document.mime_type, expected=expected_mime_type), reply_markup=get_main_keyboard())
+                    actual=document.mime_type, expected=mime_type), reply_markup=get_main_keyboard())
             return False
     except Exception as e:
         logging.error(e)
@@ -77,10 +73,30 @@ async def save_file_with_backup(update: Update, path: Path, expected_mime_type: 
             reply_markup=get_main_keyboard())
         return False
 
-    file = await document.get_file()
+    return True
+
+
+async def save_file_with_backup(update: Update, path: Path, expected_mime_type: str = None,
+                                validate: Callable[[io.BytesIO], (bool, str)] = None) -> bool:
+    """Save a file uploaded by an administrator, backing up the current version
+
+    Returns whether a new version was saved.
+
+    `validate` must be a callable that accepts file data as `io.BytesIO` and returns a tuple of a boolean and a string.
+    If provided, should ensure that the new data could be accepted as new contents for the file without actually
+    changing any files or run-time state of the bot.  The boolean indicates success, and the string contains an error
+    message for the case when the validation failed.
+    """
+
+    if not await has_attachment_of_type(update, expected_mime_type):
+        return False
+
+    file = await update.effective_message.document.get_file()
     data = io.BytesIO()
     await file.download_to_memory(data)
     data.seek(0)
+
+    trans = i18n.trans(update.effective_user)
 
     if validate:
         success, message = validate(data)

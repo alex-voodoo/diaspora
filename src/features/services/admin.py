@@ -10,7 +10,7 @@ from telegram import InlineKeyboardButton, Update
 from telegram.ext import Application, CallbackQueryHandler, ContextTypes, ConversationHandler, filters, MessageHandler
 
 from common import i18n
-from common.admin import register_buttons
+from common.admin import get_main_keyboard, register_buttons, has_attachment_of_type
 from common.checks import is_admin
 from . import state
 
@@ -42,20 +42,31 @@ async def _handle_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 async def _handle_received_db(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    user = update.effective_user
-    if not is_admin(user):
-        logging.error("User {username} is not listed as administrator!".format(username=user.username))
+    if not await has_attachment_of_type(update, "application/json"):
         return ConversationHandler.END
 
-    document = update.message.effective_attachment
-
-    db_file = await document.get_file()
+    db_file = await update.effective_message.document.get_file()
     data = io.BytesIO()
     await db_file.download_to_memory(data)
+    data.seek(0)
 
-    # TODO: Parse the file and import the DB
-    trans = i18n.trans(user)
-    await update.effective_message.reply_text(trans.gettext("SERVICES_MESSAGE_DM_ADMIN_DB_IMPORTED"), reply_markup=None)
+    trans = i18n.trans(update.effective_user)
+
+    try:
+        data = json.load(data)
+
+        categories = [{k: c[k] for k in ("id", "title")} for c in data["categories"]]
+        people = [{k: p[k] for k in
+                   ("tg_id", "tg_username", "category_id", "is_suspended", "last_modified", "occupation", "description",
+                    "location")}
+                  for p in data["people"]]
+
+        # TODO: Safely delete old data and write new items.
+
+        await update.effective_message.reply_text(trans.gettext("SERVICES_MESSAGE_DM_ADMIN_DB_IMPORTED"),
+                                                  reply_markup=None)
+    except:
+        pass
 
     return ConversationHandler.END
 
