@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-01-03 23:16+0100\n"
+"POT-Creation-Date: 2026-01-03 23:33+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -123,7 +123,7 @@ msgstr "Пожалуйста, пришлите обычный файл."
 msgid "ADMIN_MESSAGE_DM_UNEXPECTED_FILE_TYPE {expected} {actual}"
 msgstr "Не тот вид файла! Нужен <code>{expected}</code>, а вы прислали <code>{actual}</code>."
 
-#: common/admin.py:72
+#: common/admin.py:72 features/services/admin.py:72
 msgid "ADMIN_MESSAGE_DM_INTERNAL_ERROR"
 msgstr "Произошла внутренняя ошибка. Подробности должны быть в журнале."
 
@@ -318,15 +318,15 @@ msgstr "Обращение принято. Я пока что ничего не 
 msgid "SERVICES_MESSAGE_DM_ADMIN_REQUEST_DB"
 msgstr "Ожидаю JSON-файл."
 
-#: features/services/admin.py:66
+#: features/services/admin.py:69
 msgid "SERVICES_MESSAGE_DM_ADMIN_DB_IMPORTED"
 msgstr "Принято."
 
-#: features/services/admin.py:83
+#: features/services/admin.py:86
 msgid "SERVICES_ADMIN_BUTTON_EXPORT_DB"
 msgstr "Экспорт книги услуг"
 
-#: features/services/admin.py:85
+#: features/services/admin.py:88
 msgid "SERVICES_ADMIN_BUTTON_IMPORT_DB"
 msgstr "Импорт книги услуг"
 
