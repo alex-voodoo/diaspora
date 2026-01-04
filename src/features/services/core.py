@@ -141,7 +141,7 @@ async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: Message,
 
 # noinspection PyUnusedLocal
 async def _moderate_new_data(update: Update, context: ContextTypes.DEFAULT_TYPE, data) -> None:
-    moderator_ids = [admin["id"] for admin in settings.ADMINISTRATORS] if settings.ADMINISTRATORS else (
+    moderator_ids = [a["id"] for a in settings.ADMINISTRATORS] if settings.ADMINISTRATORS else (
         settings.DEVELOPER_CHAT_ID,)
 
     for moderator_id in moderator_ids:

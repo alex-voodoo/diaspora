@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-01-04 11:01+0100\n"
+"POT-Creation-Date: 2026-01-04 11:18+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -115,21 +115,21 @@ msgstr "Меню администратора"
 msgid "MESSAGE_ADMIN_HELLO_ON_STARTUP"
 msgstr "Я на связи."
 
-#: common/admin.py:56
+#: common/admin.py:55
 msgid "ADMIN_MESSAGE_DM_EXPECTED_REGULAR_FILE"
 msgstr "Пожалуйста, пришлите обычный файл."
 
-#: common/admin.py:61
+#: common/admin.py:60
 msgid "ADMIN_MESSAGE_DM_UNEXPECTED_FILE_TYPE {expected} {actual}"
 msgstr "Не тот вид файла! Нужен <code>{expected}</code>, а вы прислали <code>{actual}</code>."
 
-#: common/admin.py:95
+#: common/admin.py:94
 msgid "ADMIN_MESSAGE_DM_VALIDATION_FAILED {message}"
 msgstr ""
 "Этот файл не подходит.\n"
 "{message}"
 
-#: common/admin.py:118
+#: common/admin.py:117
 msgid "ADMIN_MESSAGE_DM_OS_ERROR_WHILE_SAVING {error}"
 msgstr ""
 "Случилось страшное:\n"

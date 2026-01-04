@@ -3,7 +3,6 @@ Admin utilities
 """
 
 import io
-import logging
 import os.path
 import shutil
 from collections.abc import Callable

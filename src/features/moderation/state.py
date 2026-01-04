@@ -3,7 +3,6 @@ Persistent state of the moderation feature
 """
 
 import datetime
-import pathlib
 import pickle
 
 from telegram import Message
