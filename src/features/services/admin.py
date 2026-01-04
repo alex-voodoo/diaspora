@@ -59,13 +59,14 @@ async def _handle_received_db(update: Update, context: ContextTypes.DEFAULT_TYPE
         data = json.load(data)
 
         # TODO: Validate the input file with jsonschema.
-        categories = [{k: c[k] for k in ("id", "title")} for c in data["categories"]]
-        people = [{k: p[k] for k in
-                   ("tg_id", "tg_username", "category_id", "is_suspended", "last_modified", "occupation", "description",
-                    "location")}
-                  for p in data["people"]]
+        new_data = {
+            "categories": [{k: c[k] for k in ("id", "title")} for c in data["categories"]],
+            "people": [{k: p[k] for k in
+                        ("tg_id", "tg_username", "category_id", "is_suspended", "last_modified", "occupation",
+                         "description", "location")}
+                       for p in data["people"]]}
 
-        # TODO: Safely delete old data and write new items.
+        state.import_db(new_data)
 
         await message.reply_text(trans.gettext("SERVICES_MESSAGE_DM_ADMIN_DB_IMPORTED"), reply_markup=None)
     except Exception as e:

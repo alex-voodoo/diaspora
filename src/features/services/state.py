@@ -43,7 +43,7 @@ def people_records(td_ig: int) -> Iterator:
             yield {key: value for (key, value) in zip(("title", "id", "occupation", "description", "location"), record)}
 
 
-def people_record(category_id: int, tg_id: int=0, tg_username: str="") -> Iterator:
+def people_record(category_id: int, tg_id: int = 0, tg_username: str = "") -> Iterator:
     """Return a record of a user identified by `category_id` and either `tg_id` or `tg_username` """
 
     if tg_id != 0:
@@ -53,7 +53,8 @@ def people_record(category_id: int, tg_id: int=0, tg_username: str="") -> Iterat
             for record in c.execute("SELECT pc.title, pc.id, p.occupation, p.description, p.location "
                                     "FROM people p LEFT JOIN people_category pc ON p.category_id = pc.id "
                                     "WHERE p.tg_id=? AND p.category_id=?", (tg_id, category_id)):
-                yield {key: value for (key, value) in zip(("title", "id", "occupation", "description", "location"), record)}
+                yield {key: value for (key, value) in
+                       zip(("title", "id", "occupation", "description", "location"), record)}
     elif tg_username != "":
         with LogTime("SELECT FROM people WHERE tg_username=? AND category_id=?"):
             c = db.cursor()
@@ -133,3 +134,31 @@ def people_category_select_all() -> Iterator:
 
         for row in c.execute("SELECT id, title FROM people_category"):
             yield {key: value for (key, value) in zip((i[0] for i in c.description), row)}
+
+
+def import_db(new_data) -> None:
+    cursor = db.cursor()
+
+    cursor.execute("CREATE TABLE old_people_category AS SELECT * FROM people_category")
+    cursor.execute("CREATE TABLE old_people AS SELECT * FROM people")
+
+    cursor.execute("DELETE FROM people_category")
+    for c in new_data["categories"]:
+        cursor.execute("INSERT INTO people_category (id, title) "
+                  "VALUES(?, ?)",
+                  (c["id"], c["title"]))
+
+    cursor.execute("DELETE FROM people")
+    for p in new_data["people"]:
+        cursor.execute(
+            "INSERT INTO people (tg_id, tg_username, category_id, is_suspended, last_modified, occupation, description, location) "
+            "VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
+            (p["tg_id"], p["tg_username"], p["category_id"], p["is_suspended"], p["last_modified"], p["occupation"],
+             p["description"], p["location"]))
+
+    db.commit()
+
+    cursor.execute("DROP TABLE old_people_category")
+    cursor.execute("DROP TABLE old_people")
+
+    db.commit()
