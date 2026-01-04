@@ -10,7 +10,7 @@ from telegram import InlineKeyboardButton, Update
 from telegram.ext import Application, CallbackQueryHandler, ContextTypes, ConversationHandler, filters, MessageHandler
 
 from common import i18n
-from common.admin import get_main_keyboard, register_buttons, has_attachment_of_type
+from common.admin import get_main_keyboard, register_buttons, has_attachment
 from common.checks import is_admin
 from . import state
 
@@ -42,11 +42,13 @@ async def _handle_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 async def _handle_received_db(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    if not await has_attachment_of_type(update, "application/json"):
-        return ConversationHandler.END
-
     message = update.effective_message
     trans = i18n.trans(update.effective_user)
+
+    success, error_message = has_attachment(update, "application/json")
+    if not success:
+        await message.reply_text(error_message, reply_markup=get_main_keyboard())
+        return ConversationHandler.END
 
     db_file = await message.document.get_file()
     data = io.BytesIO()
@@ -57,7 +59,6 @@ async def _handle_received_db(update: Update, context: ContextTypes.DEFAULT_TYPE
         data = json.load(data)
 
         # TODO: Validate the input file with jsonschema.
-        # TODO: Move validation to a callable and pass it to has_attachment() above.
         categories = [{k: c[k] for k in ("id", "title")} for c in data["categories"]]
         people = [{k: p[k] for k in
                    ("tg_id", "tg_username", "category_id", "is_suspended", "last_modified", "occupation", "description",

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-01-03 23:33+0100\n"
+"POT-Creation-Date: 2026-01-04 11:01+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -115,25 +115,21 @@ msgstr "Меню администратора"
 msgid "MESSAGE_ADMIN_HELLO_ON_STARTUP"
 msgstr "Я на связи."
 
-#: common/admin.py:58
+#: common/admin.py:56
 msgid "ADMIN_MESSAGE_DM_EXPECTED_REGULAR_FILE"
 msgstr "Пожалуйста, пришлите обычный файл."
 
-#: common/admin.py:67
+#: common/admin.py:61
 msgid "ADMIN_MESSAGE_DM_UNEXPECTED_FILE_TYPE {expected} {actual}"
 msgstr "Не тот вид файла! Нужен <code>{expected}</code>, а вы прислали <code>{actual}</code>."
 
-#: common/admin.py:72 features/services/admin.py:72
-msgid "ADMIN_MESSAGE_DM_INTERNAL_ERROR"
-msgstr "Произошла внутренняя ошибка. Подробности должны быть в журнале."
-
-#: common/admin.py:105
+#: common/admin.py:95
 msgid "ADMIN_MESSAGE_DM_VALIDATION_FAILED {message}"
 msgstr ""
 "Этот файл не подходит.\n"
 "{message}"
 
-#: common/admin.py:128
+#: common/admin.py:118
 msgid "ADMIN_MESSAGE_DM_OS_ERROR_WHILE_SAVING {error}"
 msgstr ""
 "Случилось страшное:\n"
@@ -318,15 +314,19 @@ msgstr "Обращение принято. Я пока что ничего не 
 msgid "SERVICES_MESSAGE_DM_ADMIN_REQUEST_DB"
 msgstr "Ожидаю JSON-файл."
 
-#: features/services/admin.py:69
+#: features/services/admin.py:70
 msgid "SERVICES_MESSAGE_DM_ADMIN_DB_IMPORTED"
 msgstr "Принято."
 
-#: features/services/admin.py:86
+#: features/services/admin.py:73
+msgid "ADMIN_MESSAGE_DM_INTERNAL_ERROR"
+msgstr "Произошла внутренняя ошибка. Подробности должны быть в журнале."
+
+#: features/services/admin.py:87
 msgid "SERVICES_ADMIN_BUTTON_EXPORT_DB"
 msgstr "Экспорт книги услуг"
 
-#: features/services/admin.py:88
+#: features/services/admin.py:89
 msgid "SERVICES_ADMIN_BUTTON_IMPORT_DB"
 msgstr "Импорт книги услуг"
 

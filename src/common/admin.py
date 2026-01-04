@@ -40,40 +40,28 @@ def get_main_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(buttons if buttons else [])
 
 
-async def has_attachment_of_type(update: Update, mime_type: str) -> bool:
+def has_attachment(update: Update, mime_type: str) -> (bool, str):
     """Check if `update` has an attachment, optionally if that attachment has the specified MIME type
 
     Helper function for admin functions that want to process files of certain types.  Returns True only if the current
     user is administrator, and the update has an attachment.  Optionally (if `mime_type` is not empty) ensures that the
-    attachment has that MIME type.
+    attachment has that MIME type.  Otherwise, returns False and a message that explains the problem.
     """
 
-    if not is_admin(update.effective_user):
-        logging.error("common.admin.save_file_with_backup() is called for a non-administrator user!")
-        return False
+    assert is_admin(update.effective_user), "common.admin.has_attachment() is called for a non-administrator user!"
 
     trans = i18n.trans(update.effective_user)
 
     if not hasattr(update.effective_message, "document") or not update.effective_message.document:
-        await update.effective_message.reply_text(trans.gettext("ADMIN_MESSAGE_DM_EXPECTED_REGULAR_FILE"),
-            reply_markup=get_main_keyboard())
-        return False
+        return False, trans.gettext("ADMIN_MESSAGE_DM_EXPECTED_REGULAR_FILE")
 
-    try:
-        document = update.effective_message.document
+    document = update.effective_message.document
 
-        if mime_type and document.mime_type != mime_type:
-            await update.effective_message.reply_text(
-                trans.gettext("ADMIN_MESSAGE_DM_UNEXPECTED_FILE_TYPE {expected} {actual}").format(
-                    actual=document.mime_type, expected=mime_type), reply_markup=get_main_keyboard())
-            return False
-    except Exception as e:
-        logging.error(e)
-        await update.effective_message.reply_text(trans.gettext("ADMIN_MESSAGE_DM_INTERNAL_ERROR"),
-            reply_markup=get_main_keyboard())
-        return False
+    if mime_type and document.mime_type != mime_type:
+        return False, trans.gettext("ADMIN_MESSAGE_DM_UNEXPECTED_FILE_TYPE {expected} {actual}").format(
+            actual=document.mime_type, expected=mime_type)
 
-    return True
+    return True, ""
 
 
 async def save_file_with_backup(update: Update, path: Path, expected_mime_type: str = None,
@@ -88,15 +76,17 @@ async def save_file_with_backup(update: Update, path: Path, expected_mime_type: 
     message for the case when the validation failed.
     """
 
-    if not await has_attachment_of_type(update, expected_mime_type):
+    trans = i18n.trans(update.effective_user)
+
+    success, error_message = has_attachment(update, expected_mime_type)
+    if not success:
+        await update.effective_message.reply_text(error_message, reply_markup=get_main_keyboard())
         return False
 
     file = await update.effective_message.document.get_file()
     data = io.BytesIO()
     await file.download_to_memory(data)
     data.seek(0)
-
-    trans = i18n.trans(update.effective_user)
 
     if validate:
         success, message = validate(data)
