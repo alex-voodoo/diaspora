@@ -1,6 +1,8 @@
 """
 Persistent state of the services feature
 """
+import datetime
+import logging
 from collections.abc import Iterator
 
 from common import db
@@ -139,8 +141,18 @@ def people_category_select_all() -> Iterator:
 def import_db(new_data) -> None:
     cursor = db.cursor()
 
-    cursor.execute("CREATE TABLE old_people_category AS SELECT * FROM people_category")
-    cursor.execute("CREATE TABLE old_people AS SELECT * FROM people")
+    import_timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S%Z")
+    categories_backup = f"people_category_{import_timestamp}"
+    people_backup = f"people_{import_timestamp}"
+
+    for query in (f"CREATE TABLE {categories_backup} AS SELECT * FROM people_category",
+                  f"CREATE TABLE {people_backup} AS SELECT * FROM people"):
+        with LogTime(query):
+            cursor.execute(query)
+
+    db.commit()
+
+    logging.info(f"Saved current data into {categories_backup} and {people_backup}")
 
     cursor.execute("DELETE FROM people_category")
     for c in new_data["categories"]:
@@ -158,7 +170,11 @@ def import_db(new_data) -> None:
 
     db.commit()
 
-    cursor.execute("DROP TABLE old_people_category")
-    cursor.execute("DROP TABLE old_people")
+    logging.info("Loaded new data")
+
+    cursor.execute(f"DROP TABLE {categories_backup}")
+    cursor.execute(f"DROP TABLE {people_backup}")
 
     db.commit()
+
+    logging.info("Dropped data snapshots")
