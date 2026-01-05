@@ -247,7 +247,7 @@ class Settings:
                 logging.warning(f"Unknown setting \"{k}\"")
 
         # TODO: Move this out of settings to some better place?
-        self._start_timestamp = datetime.datetime.now()
+        self._start_timestamp = datetime.datetime.now().replace(microsecond=0)
 
     @property
     def data_dir(self) -> pathlib.Path:
@@ -267,7 +267,7 @@ class Settings:
 
     @property
     def uptime(self) -> datetime.timedelta:
-        return datetime.datetime.now() - self._start_timestamp
+        return datetime.datetime.now().replace(microsecond=0) - self._start_timestamp
 
 
 settings = Settings()
