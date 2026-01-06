@@ -161,7 +161,6 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.sent_message_text, "\n".join(expected_sent_message_text))
 
     # async def show_main_status
-    # noinspection PyUnusedLocal
     # async def _moderate_new_data
     # def _who_people_to_message
     # async def _who_request_category

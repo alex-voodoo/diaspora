@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-01-05 17:23+0100\n"
+"POT-Creation-Date: 2026-01-06 23:24+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -310,23 +310,27 @@ msgstr "Обращение отклонено."
 msgid "MODERATION_RESULT_ACCEPTED"
 msgstr "Обращение принято. Я пока что ничего не умею делать, пожалуйста, примите меры согласно правилам группы."
 
-#: features/services/admin.py:39
+#: features/services/admin.py:41
 msgid "SERVICES_MESSAGE_DM_ADMIN_REQUEST_DB"
 msgstr "Ожидаю JSON-файл."
 
-#: features/services/admin.py:71
+#: features/services/admin.py:69
 msgid "SERVICES_MESSAGE_DM_ADMIN_DB_IMPORTED"
 msgstr "Принято."
 
-#: features/services/admin.py:74
+#: features/services/admin.py:71
+msgid "SERVICES_MESSAGE_DM_ADMIN_INVALID_JSON"
+msgstr "Неверный формат файла."
+
+#: features/services/admin.py:75
 msgid "ADMIN_MESSAGE_DM_INTERNAL_ERROR"
 msgstr "Произошла внутренняя ошибка. Подробности должны быть в журнале."
 
-#: features/services/admin.py:88
+#: features/services/admin.py:89
 msgid "SERVICES_ADMIN_BUTTON_EXPORT_DB"
 msgstr "Экспорт книги услуг"
 
-#: features/services/admin.py:90
+#: features/services/admin.py:91
 msgid "SERVICES_ADMIN_BUTTON_IMPORT_DB"
 msgstr "Импорт книги услуг"
 

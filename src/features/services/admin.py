@@ -5,7 +5,9 @@ Admin functions of the Services feature
 import io
 import json
 import logging
+import pathlib
 
+import jsonschema
 from telegram import InlineKeyboardButton, Update
 from telegram.ext import Application, CallbackQueryHandler, ContextTypes, ConversationHandler, filters, MessageHandler
 
@@ -57,18 +59,17 @@ async def _handle_received_db(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     try:
         data = json.load(data)
+        schema = json.load(open(pathlib.Path(__file__).parent / "schema.json"))
 
-        # TODO: Validate the input file with jsonschema.
-        new_data = {
-            "categories": [{k: c[k] for k in ("id", "title")} for c in data["categories"]],
-            "people": [{k: p[k] for k in
-                        ("tg_id", "tg_username", "category_id", "is_suspended", "last_modified", "occupation",
-                         "description", "location")}
-                       for p in data["people"]]}
+        jsonschema.validate(data, schema)
+        # TODO: Validate data integrity.
 
-        state.import_db(new_data)
+        state.import_db(data)
 
         await message.reply_text(trans.gettext("SERVICES_MESSAGE_DM_ADMIN_DB_IMPORTED"), reply_markup=None)
+    except jsonschema.ValidationError as e:
+        await message.reply_text(trans.gettext("SERVICES_MESSAGE_DM_ADMIN_INVALID_JSON"),
+                                 reply_markup=get_main_keyboard())
     except Exception as e:
         logging.error(e)
         await message.reply_text(trans.gettext("ADMIN_MESSAGE_DM_INTERNAL_ERROR"), reply_markup=get_main_keyboard())
