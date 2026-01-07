@@ -2,11 +2,36 @@
   "type": "object",
   "properties": {
     "categories": {
-      "type": "array"
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number"},
+          "title": {"type": "string"}
+        },
+        "additionalProperties": false,
+        "required": ["id", "title"]
+      }
     },
     "people": {
-      "type": "array"
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tg_id": { "type": "number"},
+          "tg_username": {"type": "string"},
+          "category_id": { "type": "number"},
+          "is_suspended": { "type": "number"},
+          "last_modified": {"type": "string"},
+          "occupation": {"type": "string"},
+          "description": {"type": "string"},
+          "location": {"type": "string"}
+        },
+        "additionalProperties": false,
+        "required": ["tg_id", "tg_username", "category_id", "is_suspended", "last_modified", "occupation", "description", "location"]
+      }
     }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "required": ["categories", "people"]
 }

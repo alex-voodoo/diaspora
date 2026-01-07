@@ -68,6 +68,7 @@ async def _handle_received_db(update: Update, context: ContextTypes.DEFAULT_TYPE
 
         await message.reply_text(trans.gettext("SERVICES_MESSAGE_DM_ADMIN_DB_IMPORTED"), reply_markup=None)
     except jsonschema.ValidationError as e:
+        logging.error(e)
         await message.reply_text(trans.gettext("SERVICES_MESSAGE_DM_ADMIN_INVALID_JSON"),
                                  reply_markup=get_main_keyboard())
     except Exception as e:
