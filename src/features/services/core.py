@@ -153,10 +153,10 @@ async def _moderate_new_data(update: Update, context: ContextTypes.DEFAULT_TYPE,
                                        reply_markup=keyboards.approve_service_change(data))
 
 
-def _who_people_to_message(people: list) -> list:
+def _who_people_to_message(people: list, context: ContextTypes.DEFAULT_TYPE) -> list:
     result = []
     for p in people:
-        link = f"t.me/PeopleRegistryBot?start=service_info_{p["category_id"]}_{p["tg_username"]}"
+        link = f"t.me/{context.bot.username}?start=service_info_{p["category_id"]}_{p["tg_username"]}"
         result.append(f"- @{p["tg_username"]} ({p["location"]}): <a href=\"{link}\">{p["occupation"]}</a>")
     return result
 
@@ -204,7 +204,7 @@ async def _who_received_category(update: Update, context: ContextTypes.DEFAULT_T
                                        reply_markup=keyboards.standard(query.from_user))
         return ConversationHandler.END
 
-    user_list = ["<b>{t}</b>".format(t=category["title"])] + _who_people_to_message(category["people"])
+    user_list = ["<b>{t}</b>".format(t=category["title"])] + _who_people_to_message(category["people"], context)
 
     await query.message.reply_text(text="\n".join(user_list), reply_markup=keyboards.standard(query.from_user))
 
@@ -244,12 +244,12 @@ async def _who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         return await _who_request_category(update, context, filtered_people)
     else:
         if len(filtered_people) == 1:
-            user_list += _who_people_to_message(filtered_people[0]["people"])
+            user_list += _who_people_to_message(filtered_people[0]["people"], context)
         else:
             for category in filtered_people:
                 user_list.append("")
                 user_list.append("<b>{t}</b>".format(t=category["title"]))
-                user_list += _who_people_to_message(category["people"])
+                user_list += _who_people_to_message(category["people"], context)
 
         if len(user_list) == 1:
             user_list = [trans.gettext("SERVICES_DM_WHO_EMPTY")]
