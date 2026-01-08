@@ -325,11 +325,11 @@ msgstr "An internal error occurred.  See details in the log."
 
 #: features/services/admin.py:90
 msgid "SERVICES_ADMIN_BUTTON_EXPORT_DB"
-msgstr "Export services DB"
+msgstr "Download services"
 
 #: features/services/admin.py:92
 msgid "SERVICES_ADMIN_BUTTON_IMPORT_DB"
-msgstr "Import services DB"
+msgstr "Upload services"
 
 #: features/services/core.py:32 features/services/core_test.py:59
 msgid "SERVICES_DM_DATA_FIELD_LIMIT_S {limit}"

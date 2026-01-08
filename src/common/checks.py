@@ -23,9 +23,7 @@ async def is_member_of_main_chat(user: User, context: ContextTypes.DEFAULT_TYPE)
 
     reason = should_be_blocked(await context.bot.get_chat_member(settings.MAIN_CHAT_ID, user.id))
     if reason:
-        logger.info("User {username} (chat ID {chat_id}) is not allowed: {reason}".format(username=user.username,
-                                                                                          chat_id=user.id,
-                                                                                          reason=reason))
+        logger.info(f"User {user.username} (Telegram ID {user.id}) is not allowed: {reason}")
         return False
 
     return True

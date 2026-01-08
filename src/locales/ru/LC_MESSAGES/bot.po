@@ -328,11 +328,11 @@ msgstr "Произошла внутренняя ошибка. Подробнос
 
 #: features/services/admin.py:90
 msgid "SERVICES_ADMIN_BUTTON_EXPORT_DB"
-msgstr "Экспорт книги услуг"
+msgstr "Выгрузить книгу услуг"
 
 #: features/services/admin.py:92
 msgid "SERVICES_ADMIN_BUTTON_IMPORT_DB"
-msgstr "Импорт книги услуг"
+msgstr "Загрузить книгу услуг"
 
 #: features/services/core.py:32 features/services/core_test.py:59
 msgid "SERVICES_DM_DATA_FIELD_LIMIT_S {limit}"
