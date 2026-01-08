@@ -532,7 +532,7 @@ async def handle_extended_start_command(update: Update, context: ContextTypes.DE
     if not param.startswith(const.COMMAND_INFO + "_"):
         return
 
-    category_id, tg_username = param[len(const.COMMAND_INFO + "_"):].split("_")
+    category_id, tg_username = param[len(const.COMMAND_INFO + "_"):].split("_", 1)
     category_id = int(category_id)
     trans = i18n.trans(update.effective_message.from_user)
     for record in state.people_record(category_id, tg_username=tg_username):
