@@ -28,6 +28,7 @@ install:
 	echo "Installing library files..."
 	cd src; find . -name '*.mo' | cpio -pdm $(lib_dir)
 	cd src; find . -name '*.py' | cpio -pdm $(lib_dir)
+	cd src; find . -name '*.txt' | cpio -pdm $(lib_dir)
 
 	chown root:root $(lib_dir)/*
 	chmod 644 $(lib_dir)
