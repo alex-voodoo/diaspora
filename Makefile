@@ -26,6 +26,7 @@ install:
 	chmod 644 $(service_dir)/diaspora.service
 
 	echo "Installing library files..."
+	cd src; find . -name '*.json' | cpio -pdm $(lib_dir)
 	cd src; find . -name '*.mo' | cpio -pdm $(lib_dir)
 	cd src; find . -name '*.py' | cpio -pdm $(lib_dir)
 	cd src; find . -name '*.txt' | cpio -pdm $(lib_dir)
