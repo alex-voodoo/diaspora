@@ -151,7 +151,7 @@ async def handle_command_start(update: Update, context: ContextTypes.DEFAULT_TYP
         await services.handle_extended_start_command(update, context)
         return
 
-    await services.show_main_status(context, message, user)
+    await services.show_main_status(update, context)
 
 
 async def handle_command_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

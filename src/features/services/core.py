@@ -8,10 +8,11 @@ import logging
 import re
 from collections.abc import Awaitable, Callable
 
-from telegram import Message, Update, User
+from telegram import Update
 from telegram.ext import Application, CallbackQueryHandler, ContextTypes, ConversationHandler, filters, MessageHandler
 
 from common import i18n
+from common.messaging_helpers import reply, send
 from common.settings import settings
 from . import admin, const, keyboards, state
 
@@ -33,11 +34,10 @@ def _maybe_append_limit_warning(trans: gettext.GNUTranslations, message: list, l
                                   limit).format(limit=limit))
 
 
-async def _verify_limit_then_retry_or_proceed(update: Update, context: ContextTypes.DEFAULT_TYPE,
-                                              current_stage_id: int, current_limit: int, current_data_field_key: str,
-                                              next_stage_id: int, next_limit: int, next_data_field_key: str,
-                                              next_data_field_insert_text: str,
-                                              next_data_field_update_text: str,
+async def _verify_limit_then_retry_or_proceed(update: Update, context: ContextTypes.DEFAULT_TYPE, current_stage_id: int,
+                                              current_limit: int, current_data_field_key: str, next_stage_id: int,
+                                              next_limit: int, next_data_field_key: str,
+                                              next_data_field_insert_text: str, next_data_field_update_text: str,
                                               request_next_data_field: Callable[
                                                   [Update, ContextTypes.DEFAULT_TYPE, int, str, str, str], Awaitable[
                                                       None]]) -> int:
@@ -56,9 +56,9 @@ async def _verify_limit_then_retry_or_proceed(update: Update, context: ContextTy
     new_text = message.text.strip()
     if 0 < current_limit < len(new_text):
         new_text = _format_hint(new_text, current_limit)
-        await message.reply_text(trans.ngettext("SERVICES_DM_TEXT_TOO_LONG_S {limit} {text}",
-                                                "SERVICES_DM_TEXT_TOO_LONG_P {limit} {text}",
-                                                current_limit).format(limit=current_limit, text=new_text))
+        await reply(update, trans.ngettext("SERVICES_DM_TEXT_TOO_LONG_S {limit} {text}",
+                                           "SERVICES_DM_TEXT_TOO_LONG_P {limit} {text}", current_limit).format(
+            limit=current_limit, text=new_text))
         return current_stage_id
 
     user_data = context.user_data
@@ -70,9 +70,8 @@ async def _verify_limit_then_retry_or_proceed(update: Update, context: ContextTy
     return next_stage_id
 
 
-async def _request_next_data_field(update: Update, context: ContextTypes.DEFAULT_TYPE,
-                                   next_limit: int, next_data_field_key: str,
-                                   next_data_field_insert_text: str,
+async def _request_next_data_field(update: Update, context: ContextTypes.DEFAULT_TYPE, next_limit: int,
+                                   next_data_field_key: str, next_data_field_insert_text: str,
                                    next_data_field_update_text: str) -> None:
     """Perform one repeating part of conversation logic where a value is checked against length limit
 
@@ -86,18 +85,25 @@ async def _request_next_data_field(update: Update, context: ContextTypes.DEFAULT
 
     lines = []
     if "mode" in user_data and user_data["mode"] == "update":
-        lines.append(
-            next_data_field_update_text.format(title=user_data["category_title"],
-                                               current_value=user_data[next_data_field_key]))
+        lines.append(next_data_field_update_text.format(title=user_data["category_title"],
+                                                        current_value=user_data[next_data_field_key]))
     else:
         lines.append(next_data_field_insert_text)
 
     _maybe_append_limit_warning(trans, lines, next_limit)
-    await message.reply_text("\n".join(lines))
+    await reply(update, "\n".join(lines))
 
 
-async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: Message, user: User, prefix="") -> None:
+def _main_status_record_description(trans: gettext.GNUTranslations, record: dict) -> str:
+    return "<b>{c}:</b> {o} ({l})".format(
+        c=record["title"] if record["title"] else trans.gettext("SERVICES_BUTTON_ENROLL_CATEGORY_DEFAULT"),
+        o=record["occupation"], l=record["location"])
+
+
+async def show_main_status(update: Update, context: ContextTypes.DEFAULT_TYPE, prefix="") -> None:
     """Show the current status of the user"""
+
+    user = update.effective_user
 
     records = [r for r in state.people_records(user.id)]
 
@@ -106,25 +112,21 @@ async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: Message,
     if records:
         logging.info("This is {username} that has records already".format(username=user.username))
 
-        def get_header():
-            if len(records) == 1:
-                return trans.gettext("SERVICES_DM_HELLO_AGAIN {user_first_name}").format(
-                    user_first_name=user.first_name)
-            return trans.ngettext("SERVICES_DM_HELLO_AGAIN_S {user_first_name} {record_count}",
-                                  "SERVICES_DM_HELLO_AGAIN_P {user_first_name} {record_count}", len(records)).format(
-                user_first_name=user.first_name, record_count=len(records))
-
         text = []
         if prefix:
             text.append(prefix)
-        text.append(get_header())
+        if len(records) == 1:
+            text.append(
+                trans.gettext("SERVICES_DM_HELLO_AGAIN {user_first_name}").format(user_first_name=user.first_name))
+        else:
+            text.append(trans.ngettext("SERVICES_DM_HELLO_AGAIN_S {user_first_name} {record_count}",
+                                       "SERVICES_DM_HELLO_AGAIN_P {user_first_name} {record_count}",
+                                       len(records)).format(user_first_name=user.first_name, record_count=len(records)))
 
         for record in records:
-            text.append("<b>{c}:</b> {o} ({l})".format(
-                c=record["title"] if record["title"] else trans.gettext("SERVICES_BUTTON_ENROLL_CATEGORY_DEFAULT"),
-                o=record["occupation"], l=record["location"]))
+            text.append(_main_status_record_description(trans, record))
 
-        await message.reply_text("\n".join(text), reply_markup=keyboards.standard(user))
+        await reply(update, "\n".join(text), keyboards.standard(user))
     else:
         logging.info("Welcoming user {username} (chat ID {chat_id})".format(username=user.username, chat_id=user.id))
 
@@ -136,7 +138,7 @@ async def show_main_status(context: ContextTypes.DEFAULT_TYPE, message: Message,
             text = trans.gettext("SERVICES_DM_HELLO {bot_first_name} {main_chat_name}").format(
                 bot_first_name=context.bot.first_name, main_chat_name=main_chat.title)
 
-        await message.reply_text(text, reply_markup=keyboards.standard(user))
+        await reply(update, text, keyboards.standard(user))
 
 
 # noinspection PyUnusedLocal
@@ -146,11 +148,9 @@ async def _moderate_new_data(update: Update, context: ContextTypes.DEFAULT_TYPE,
 
     for moderator_id in moderator_ids:
         logging.info("Sending moderation request to moderator ID {id}".format(id=moderator_id))
-        await context.bot.send_message(chat_id=moderator_id, text=i18n.default().gettext(
-            "SERVICES_ADMIN_APPROVE_USER_DATA {username}").format(username=data["tg_username"],
-                                                                  occupation=data["occupation"],
-                                                                  location=data["location"]),
-                                       reply_markup=keyboards.approve_service_change(data))
+        await send(context, moderator_id, i18n.default().gettext("SERVICES_ADMIN_APPROVE_USER_DATA {username}").format(
+            username=data["tg_username"], occupation=data["occupation"], location=data["location"]),
+                   keyboards.approve_service_change(data))
 
 
 def _who_people_to_message(people: list, context: ContextTypes.DEFAULT_TYPE) -> list:
@@ -175,9 +175,9 @@ async def _who_request_category(update: Update, context: ContextTypes.DEFAULT_TY
         category_list.append(
             {"id": c["category_id"], "title": c["title"], "text": "{t}: {c}".format(t=c["title"], c=len(c["people"]))})
 
-    await query.message.reply_text(i18n.trans(query.from_user).gettext("SERVICES_DM_WHO_CATEGORY_LIST").format(
+    await reply(update, i18n.trans(query.from_user).gettext("SERVICES_DM_WHO_CATEGORY_LIST").format(
         categories="\n".join([c["text"] for c in category_list])),
-        reply_markup=keyboards.select_category(query.from_user, category_list))
+                keyboards.select_category(query.from_user, category_list))
 
     context.user_data["who_request_category"] = filtered_people
 
@@ -200,13 +200,13 @@ async def _who_received_category(update: Update, context: ContextTypes.DEFAULT_T
             category = c
             break
     if not category:
-        await query.message.reply_text(text=i18n.trans(query.from_user).gettext("SERVICES_DM_WHO_CATEGORY_EMPTY"),
-                                       reply_markup=keyboards.standard(query.from_user))
+        await reply(update, i18n.trans(query.from_user).gettext("SERVICES_DM_WHO_CATEGORY_EMPTY"),
+                    keyboards.standard(query.from_user))
         return ConversationHandler.END
 
     user_list = ["<b>{t}</b>".format(t=category["title"])] + _who_people_to_message(category["people"], context)
 
-    await query.message.reply_text(text="\n".join(user_list), reply_markup=keyboards.standard(query.from_user))
+    await reply(update, "\n".join(user_list), keyboards.standard(query.from_user))
 
     del context.user_data["who_request_category"]
     return ConversationHandler.END
@@ -224,8 +224,7 @@ async def _who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     user_list = [trans.gettext("SERVICES_DM_WHO_LIST_HEADING")]
 
-    categorised_people = {
-        0: {"title": trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"), "category_id": 0, "people": []}}
+    categorised_people = {0: {"title": trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"), "category_id": 0, "people": []}}
 
     for category in state.people_category_select_all():
         categorised_people[category["id"]] = {"title": category["title"], "people": []}
@@ -257,7 +256,7 @@ async def _who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         united_message = "\n".join(user_list)
         if len(united_message) < settings.MAX_MESSAGE_LENGTH:
             await query.edit_message_reply_markup(None)
-            await query.message.reply_text(text=united_message, reply_markup=keyboards.standard(query.from_user))
+            await reply(update, united_message, keyboards.standard(query.from_user))
             return ConversationHandler.END
         else:
             return await _who_request_category(update, context, filtered_people)
@@ -275,11 +274,10 @@ async def _handle_command_enroll(update: Update, context: ContextTypes.DEFAULT_T
     await query.edit_message_reply_markup(None)
 
     if not query.from_user.username:
-        await query.message.reply_text(trans.gettext("SERVICES_DM_ENROLL_USERNAME_REQUIRED"),
-                                       reply_markup=keyboards.standard(query.from_user))
+        await reply(update, trans.gettext("SERVICES_DM_ENROLL_USERNAME_REQUIRED"), keyboards.standard(query.from_user))
         return ConversationHandler.END
 
-    await query.message.reply_text(trans.gettext("SERVICES_DM_ENROLL_START"))
+    await reply(update, trans.gettext("SERVICES_DM_ENROLL_START"))
 
     existing_category_ids = [r["id"] for r in state.people_records(query.from_user.id)]
     categories = [c for c in state.people_category_select_all() if c["id"] not in existing_category_ids]
@@ -287,14 +285,14 @@ async def _handle_command_enroll(update: Update, context: ContextTypes.DEFAULT_T
     category_buttons = keyboards.select_category(query.from_user, categories, 0 not in existing_category_ids)
 
     if category_buttons:
-        await query.message.reply_text(trans.gettext("SERVICES_DM_ENROLL_ASK_CATEGORY"), reply_markup=category_buttons)
+        await reply(update, trans.gettext("SERVICES_DM_ENROLL_ASK_CATEGORY"), category_buttons)
 
         return const.SELECTING_CATEGORY
     else:
         user_data = context.user_data
         user_data["category_id"] = 0
 
-        await query.message.reply_text(trans.gettext("SERVICES_DM_ENROLL_ASK_OCCUPATION"))
+        await reply(update, trans.gettext("SERVICES_DM_ENROLL_ASK_OCCUPATION"))
 
         return const.TYPING_OCCUPATION
 
@@ -307,9 +305,8 @@ async def _handle_command_update(update: Update, context: ContextTypes.DEFAULT_T
 
     await query.answer()
     await query.edit_message_reply_markup(None)
-    await query.message.reply_text(i18n.trans(query.from_user).gettext("SERVICES_DM_SELECT_CATEGORY_FOR_UPDATE"),
-                                   reply_markup=keyboards.select_category(query.from_user,
-                                                                          state.people_records(query.from_user.id)))
+    await reply(update, i18n.trans(query.from_user).gettext("SERVICES_DM_SELECT_CATEGORY_FOR_UPDATE"),
+                keyboards.select_category(query.from_user, state.people_records(query.from_user.id)))
 
     context.user_data["mode"] = "update"
 
@@ -338,14 +335,13 @@ async def _accept_category_and_request_occupation(update: Update, context: Conte
         user_data["occupation"] = records[0]["occupation"]
         user_data["description"] = records[0]["description"]
 
-        lines.append(
-            trans.gettext("SERVICES_DM_UPDATE_OCCUPATION {title} {current_value}").format(
-                title=user_data["category_title"], current_value=user_data["occupation"]))
+        lines.append(trans.gettext("SERVICES_DM_UPDATE_OCCUPATION {title} {current_value}").format(
+            title=user_data["category_title"], current_value=user_data["occupation"]))
     else:
         lines.append(trans.gettext("SERVICES_DM_ENROLL_ASK_OCCUPATION"))
 
     _maybe_append_limit_warning(trans, lines, settings.SERVICES_OCCUPATION_MAX_LENGTH)
-    await query.message.reply_text("\n".join(lines))
+    await reply(update, "\n".join(lines))
     return const.TYPING_OCCUPATION
 
 
@@ -354,11 +350,13 @@ async def _verify_occupation_and_request_description(update: Update, context: Co
 
     trans = i18n.trans(update.message.from_user)
 
-    return await _verify_limit_then_retry_or_proceed(
-        update, context, const.TYPING_OCCUPATION, settings.SERVICES_OCCUPATION_MAX_LENGTH, "occupation",
-        const.TYPING_DESCRIPTION, settings.SERVICES_DESCRIPTION_MAX_LENGTH, "description",
-        trans.gettext("SERVICES_DM_ENROLL_ASK_DESCRIPTION"),
-        trans.gettext("SERVICES_DM_UPDATE_DESCRIPTION {title} {current_value}"), _request_next_data_field)
+    return await _verify_limit_then_retry_or_proceed(update, context, const.TYPING_OCCUPATION,
+                                                     settings.SERVICES_OCCUPATION_MAX_LENGTH, "occupation",
+                                                     const.TYPING_DESCRIPTION, settings.SERVICES_DESCRIPTION_MAX_LENGTH,
+                                                     "description", trans.gettext("SERVICES_DM_ENROLL_ASK_DESCRIPTION"),
+                                                     trans.gettext(
+                                                         "SERVICES_DM_UPDATE_DESCRIPTION {title} {current_value}"),
+                                                     _request_next_data_field)
 
 
 async def _verify_description_and_request_location(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -366,26 +364,27 @@ async def _verify_description_and_request_location(update: Update, context: Cont
 
     trans = i18n.trans(update.message.from_user)
 
-    return await _verify_limit_then_retry_or_proceed(
-        update, context, const.TYPING_DESCRIPTION, settings.SERVICES_DESCRIPTION_MAX_LENGTH, "description",
-        const.TYPING_LOCATION, settings.SERVICES_LOCATION_MAX_LENGTH, "location",
-        trans.gettext("SERVICES_DM_ENROLL_ASK_LOCATION"),
-        trans.gettext("SERVICES_DM_UPDATE_LOCATION {title} {current_value}"), _request_next_data_field)
+    return await _verify_limit_then_retry_or_proceed(update, context, const.TYPING_DESCRIPTION,
+                                                     settings.SERVICES_DESCRIPTION_MAX_LENGTH, "description",
+                                                     const.TYPING_LOCATION, settings.SERVICES_LOCATION_MAX_LENGTH,
+                                                     "location", trans.gettext("SERVICES_DM_ENROLL_ASK_LOCATION"),
+                                                     trans.gettext(
+                                                         "SERVICES_DM_UPDATE_LOCATION {title} {current_value}"),
+                                                     _request_next_data_field)
 
 
 async def _verify_location_and_request_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Store location info provided by user and ask for the legality"""
 
-    trans = i18n.trans(update.message.from_user)
+    user = update.effective_user
 
+    # noinspection PyUnusedLocal
     async def request_legality(*args) -> None:
-        await update.message.reply_text(
-            i18n.trans(update.message.from_user).gettext("SERVICES_DM_ENROLL_CONFIRM_LEGALITY"),
-            reply_markup=keyboards.yes_no(update.message.from_user))
+        await reply(update, i18n.trans(user).gettext("SERVICES_DM_ENROLL_CONFIRM_LEGALITY"), keyboards.yes_no(user))
 
-    return await _verify_limit_then_retry_or_proceed(
-        update, context, const.TYPING_LOCATION, settings.SERVICES_LOCATION_MAX_LENGTH, "location",
-        const.CONFIRMING_LEGALITY, 0, "", "", "", request_legality)
+    return await _verify_limit_then_retry_or_proceed(update, context, const.TYPING_LOCATION,
+                                                     settings.SERVICES_LOCATION_MAX_LENGTH, "location",
+                                                     const.CONFIRMING_LEGALITY, 0, "", "", "", request_legality)
 
 
 async def _verify_legality_and_finalise_data_collection(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -424,7 +423,7 @@ async def _verify_legality_and_finalise_data_collection(update: Update, context:
         else:
             message = trans.gettext("SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION")
 
-        await query.message.reply_text(message, reply_markup=keyboards.standard(from_user))
+        await reply(update, message, keyboards.standard(from_user))
 
         if settings.SERVICES_MODERATION_ENABLED:
             await _moderate_new_data(update, context, saved_user_data)
@@ -434,8 +433,7 @@ async def _verify_legality_and_finalise_data_collection(update: Update, context:
         user_data.clear()
 
         await query.edit_message_reply_markup(None)
-        await query.message.reply_text(trans.gettext("SERVICES_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"),
-                                       reply_markup=keyboards.standard(from_user))
+        await reply(update, trans.gettext("SERVICES_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"), keyboards.standard(from_user))
 
     return ConversationHandler.END
 
@@ -463,7 +461,7 @@ async def _confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE)
             state.people_approve(tg_id, category_id)
 
         await query.edit_message_reply_markup(None)
-        await query.message.reply_text(trans.gettext("SERVICES_ADMIN_USER_RECORD_APPROVED"))
+        await reply(update, trans.gettext("SERVICES_ADMIN_USER_RECORD_APPROVED"))
     elif command == const.MODERATOR_DECLINE:
         logging.info(
             "Moderator ID {moderator_id} declines new data from user ID {user_id} in category {category_id}".format(
@@ -473,7 +471,7 @@ async def _confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE)
             state.people_suspend(tg_id, category_id)
 
         await query.edit_message_reply_markup(None)
-        await query.message.reply_text(trans.gettext("SERVICES_ADMIN_USER_RECORD_SUSPENDED"))
+        await reply(update, trans.gettext("SERVICES_ADMIN_USER_RECORD_SUSPENDED"))
     else:
         logging.error("Unexpected query data: '{}'".format(query.data))
 
@@ -488,9 +486,8 @@ async def _handle_command_retire(update: Update, context: ContextTypes.DEFAULT_T
 
     await query.answer()
     await query.edit_message_reply_markup(None)
-    await query.message.reply_text(i18n.trans(query.from_user).gettext("SERVICES_DM_SELECT_CATEGORY_FOR_RETIRE"),
-                                   reply_markup=keyboards.select_category(query.from_user,
-                                                                          state.people_records(query.from_user.id)))
+    await reply(update, i18n.trans(query.from_user).gettext("SERVICES_DM_SELECT_CATEGORY_FOR_RETIRE"),
+                keyboards.select_category(query.from_user, state.people_records(query.from_user.id)))
 
     return const.SELECTING_CATEGORY
 
@@ -505,8 +502,7 @@ async def _retire_received_category(update: Update, context: ContextTypes.DEFAUL
 
     state.people_delete(query.from_user.id, int(query.data))
 
-    await show_main_status(context, query.message, query.from_user,
-                           i18n.trans(query.from_user).gettext("SERVICES_DM_RETIRE"))
+    await show_main_status(update, context, i18n.trans(query.from_user).gettext("SERVICES_DM_RETIRE"))
 
     return ConversationHandler.END
 
@@ -519,15 +515,13 @@ async def _abort_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     context.user_data.clear()
 
-    user = update.effective_message.from_user
-
-    await show_main_status(context, update.effective_message, user,
-                           i18n.trans(user).gettext("SERVICES_DM_CONVERSATION_CANCELLED"))
+    await show_main_status(update, context,
+                           i18n.trans(update.effective_user).gettext("SERVICES_DM_CONVERSATION_CANCELLED"))
 
     return ConversationHandler.END
 
 
-async def handle_extended_start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def handle_extended_start_command(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> None:
     param = update.effective_message.text.split(" ")[1]
     if not param.startswith(const.COMMAND_INFO + "_"):
         return
@@ -537,7 +531,7 @@ async def handle_extended_start_command(update: Update, context: ContextTypes.DE
     trans = i18n.trans(update.effective_message.from_user)
     for record in state.people_record(category_id, tg_username=tg_username):
         category_title = record["title"] if category_id != 0 else trans.gettext("SERVICES_CATEGORY_OTHER_TITLE")
-        await update.effective_message.reply_text(trans.gettext(
+        await reply(update, trans.gettext(
             "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}").format(
             category_title=category_title, description=record["description"], location=record["location"],
             occupation=record["occupation"], username=tg_username))
@@ -558,8 +552,7 @@ def init(application: Application, group: int):
                 const.TYPING_LOCATION: [
                     MessageHandler(filters.TEXT & (~ filters.COMMAND), _verify_location_and_request_legality)],
                 const.CONFIRMING_LEGALITY: [CallbackQueryHandler(_verify_legality_and_finalise_data_collection)]},
-        fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]),
-        group=group)
+        fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]), group=group)
 
     application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(_who, pattern=const.COMMAND_WHO)],
                                                 states={const.SELECTING_CATEGORY: [
@@ -570,8 +563,7 @@ def init(application: Application, group: int):
     application.add_handler(
         ConversationHandler(entry_points=[CallbackQueryHandler(_handle_command_retire, pattern=const.COMMAND_RETIRE)],
                             states={const.SELECTING_CATEGORY: [CallbackQueryHandler(_retire_received_category)]},
-                            fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]),
-        group=group)
+                            fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]), group=group)
 
     admin.register_handlers(application, group)
 

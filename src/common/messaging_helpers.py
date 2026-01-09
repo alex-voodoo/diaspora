@@ -5,7 +5,7 @@ Messaging helpers
 import logging
 
 import telegram
-from telegram import Update, Message
+from telegram import Update, Message, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 
 logger = logging.getLogger(__name__)
@@ -82,3 +82,15 @@ async def self_destructing_reaction(update: Update, context: ContextTypes.DEFAUL
 
     if timeout > 0:
         context.job_queue.run_once(delete_reaction, timeout, data=update.effective_message)
+
+
+async def reply(update: Update, text: str, reply_markup: InlineKeyboardMarkup = None) -> None:
+    """Wraps replying to a message"""
+
+    await update.effective_message.reply_text(text=text, reply_markup=reply_markup)
+
+
+async def send(context: ContextTypes.DEFAULT_TYPE, chat_id: int, text: str, reply_markup: InlineKeyboardMarkup = None) -> None:
+    """Wraps sending a message to a specific user"""
+
+    await context.bot.send_message(chat_id=chat_id, text=text, reply_markup=reply_markup)
