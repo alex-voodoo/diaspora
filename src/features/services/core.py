@@ -148,9 +148,10 @@ async def _moderate_new_data(update: Update, context: ContextTypes.DEFAULT_TYPE,
 
     for moderator_id in moderator_ids:
         logging.info("Sending moderation request to moderator ID {id}".format(id=moderator_id))
-        await send(context, moderator_id, i18n.default().gettext("SERVICES_ADMIN_APPROVE_USER_DATA {username}").format(
-            username=data["tg_username"], occupation=data["occupation"], location=data["location"]),
-                   keyboards.approve_service_change(data))
+        await send(context, moderator_id, i18n.default().gettext(
+            "SERVICES_ADMIN_APPROVE_USER_DATA {category} {description} {location} {occupation} {username}").format(
+            category=data["category_title"], description=data["description"], location=data["location"],
+            occupation=data["occupation"], username=data["tg_username"]), keyboards.approve_service_change(data))
 
 
 def _who_people_to_message(people: list, context: ContextTypes.DEFAULT_TYPE) -> list:
