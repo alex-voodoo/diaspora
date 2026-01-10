@@ -141,14 +141,12 @@ async def show_main_status(update: Update, context: ContextTypes.DEFAULT_TYPE, p
         await reply(update, text, keyboards.standard(user))
 
 
-# noinspection PyUnusedLocal
-async def _moderate_new_data(update: Update, context: ContextTypes.DEFAULT_TYPE, data) -> None:
+async def _moderate_new_data(context: ContextTypes.DEFAULT_TYPE, data) -> None:
     moderator_ids = [a["id"] for a in settings.ADMINISTRATORS] if settings.ADMINISTRATORS else (
         settings.DEVELOPER_CHAT_ID,)
 
     for moderator_id in moderator_ids:
         logging.info("Sending moderation request to moderator ID {id}".format(id=moderator_id))
-        print(data)
         await send(context, moderator_id, i18n.default().gettext(
             "SERVICES_ADMIN_APPROVE_USER_DATA {category} {description} {location} {occupation} {username}").format(
             category=data["category_title"], description=data["description"], location=data["location"],
@@ -217,7 +215,6 @@ async def _who_received_category(update: Update, context: ContextTypes.DEFAULT_T
     return ConversationHandler.END
 
 
-# noinspection PyUnusedLocal
 async def _who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Show the current registry"""
 
@@ -269,7 +266,6 @@ async def _who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             return await _who_request_category(update, context, filtered_people)
 
 
-# noinspection PyUnusedLocal
 async def _handle_command_enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation about adding a new user record"""
 
@@ -304,7 +300,6 @@ async def _handle_command_enroll(update: Update, context: ContextTypes.DEFAULT_T
         return const.TYPING_OCCUPATION
 
 
-# noinspection PyUnusedLocal
 async def _handle_command_update(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation about updating an existing user record"""
 
@@ -405,8 +400,7 @@ async def _verify_location_and_request_legality(update: Update, context: Context
 
     trans = i18n.trans(update.message.from_user)
 
-    # noinspection PyUnusedLocal
-    async def request_legality(*args) -> None:
+    async def request_legality(*_args) -> None:
         await reply(update, trans.gettext("SERVICES_DM_ENROLL_CONFIRM_LEGALITY"), keyboards.yes_no(trans))
 
     return await _verify_limit_then_retry_or_proceed(update, context, const.TYPING_LOCATION,
@@ -453,7 +447,7 @@ async def _verify_legality_and_finalise_data_collection(update: Update, context:
         await reply(update, message, keyboards.standard(from_user))
 
         if settings.SERVICES_MODERATION_ENABLED:
-            await _moderate_new_data(update, context, saved_user_data)
+            await _moderate_new_data(context, saved_user_data)
 
     elif query.data == const.RESPONSE_NO:
         state.people_delete(from_user.id, int(user_data["category_id"]))
@@ -465,8 +459,7 @@ async def _verify_legality_and_finalise_data_collection(update: Update, context:
     return ConversationHandler.END
 
 
-# noinspection PyUnusedLocal
-async def _confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def _confirm_user_data(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> int:
     """Approve or decline changes to user data"""
 
     query = update.callback_query
@@ -505,8 +498,7 @@ async def _confirm_user_data(update: Update, context: ContextTypes.DEFAULT_TYPE)
     return ConversationHandler.END
 
 
-# noinspection PyUnusedLocal
-async def _handle_command_retire(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def _handle_command_retire(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> int:
     """Start the conversation about removing an existing user record"""
 
     query = update.callback_query
