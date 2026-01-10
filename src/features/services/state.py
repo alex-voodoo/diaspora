@@ -128,6 +128,16 @@ def people_select_all() -> Iterator:
             yield {key: value for (key, value) in zip((i[0] for i in c.description), row)}
 
 
+def people_category(category_id: int) -> Iterator:
+    """Query one category with the given ID"""
+
+    with LogTime("SELECT * FROM people_category WHERE id=?"):
+        c = db.cursor()
+
+        for row in c.execute("SELECT id, title FROM people_category WHERE id=?", (category_id, )):
+            yield {key: value for (key, value) in zip((i[0] for i in c.description), row)}
+
+
 def people_category_select_all() -> Iterator:
     """Query all non-suspended records from the `people` table"""
 

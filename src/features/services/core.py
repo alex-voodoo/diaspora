@@ -148,6 +148,7 @@ async def _moderate_new_data(update: Update, context: ContextTypes.DEFAULT_TYPE,
 
     for moderator_id in moderator_ids:
         logging.info("Sending moderation request to moderator ID {id}".format(id=moderator_id))
+        print(data)
         await send(context, moderator_id, i18n.default().gettext(
             "SERVICES_ADMIN_APPROVE_USER_DATA {category} {description} {location} {occupation} {username}").format(
             category=data["category_title"], description=data["description"], location=data["location"],
@@ -325,18 +326,21 @@ async def _accept_category_and_request_occupation(update: Update, context: Conte
     """Start the conversation and ask user for input"""
 
     query = update.callback_query
+    user = query.from_user
 
-    trans = i18n.trans(query.from_user)
+    trans = i18n.trans(user)
 
     user_data = context.user_data
-    user_data["category_id"] = int(query.data)
+    category_id = int(query.data)
+
+    user_data["category_id"] = category_id
 
     await query.answer()
     await query.edit_message_reply_markup(None)
 
     lines = []
     if "mode" in context.user_data and context.user_data["mode"] == "update":
-        records = [r for r in state.people_record(int(query.data), tg_id=query.from_user.id)]
+        records = [r for r in state.people_record(category_id, tg_id=user.id)]
         user_data["category_title"] = records[0]["title"] if user_data["category_id"] != 0 else trans.gettext(
             "SERVICES_CATEGORY_OTHER_TITLE")
         user_data["location"] = records[0]["location"]
@@ -346,6 +350,9 @@ async def _accept_category_and_request_occupation(update: Update, context: Conte
         lines.append(trans.gettext("SERVICES_DM_UPDATE_OCCUPATION {title} {current_value}").format(
             title=user_data["category_title"], current_value=user_data["occupation"]))
     else:
+        user_data["category_title"] = [c for c in state.people_category(category_id)][0][
+            "title"] if category_id != 0 else trans.gettext("SERVICES_CATEGORY_OTHER_TITLE")
+
         lines.append(trans.gettext("SERVICES_DM_ENROLL_ASK_OCCUPATION"))
 
     _maybe_append_limit_warning(trans, lines, settings.SERVICES_OCCUPATION_MAX_LENGTH)
