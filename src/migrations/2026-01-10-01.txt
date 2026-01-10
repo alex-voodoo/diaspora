@@ -1,0 +1,12 @@
+CREATE TABLE "people_category_views" (
+	"viewer_tg_id"	INTEGER,
+	"category_id"	INTEGER,
+	"timestamp"	    DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE "people_views" (
+	"viewer_tg_id"	INTEGER,
+	"tg_id"	        INTEGER,
+	"category_id"	INTEGER,
+	"timestamp"	    DATETIME DEFAULT CURRENT_TIMESTAMP
+);

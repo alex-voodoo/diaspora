@@ -52,20 +52,20 @@ def people_record(category_id: int, tg_id: int = 0, tg_username: str = "") -> It
         with LogTime("SELECT FROM people WHERE tg_id=? AND category_id=?"):
             c = db.cursor()
 
-            for record in c.execute("SELECT pc.title, pc.id, p.occupation, p.description, p.location "
+            for record in c.execute("SELECT pc.title, pc.id, p.tg_id, p.occupation, p.description, p.location "
                                     "FROM people p LEFT JOIN people_category pc ON p.category_id = pc.id "
                                     "WHERE p.tg_id=? AND p.category_id=?", (tg_id, category_id)):
                 yield {key: value for (key, value) in
-                       zip(("title", "id", "occupation", "description", "location"), record)}
+                       zip(("title", "id", "tg_id", "occupation", "description", "location"), record)}
     elif tg_username != "":
         with LogTime("SELECT FROM people WHERE tg_username=? AND category_id=?"):
             c = db.cursor()
 
-            for record in c.execute("SELECT pc.title, pc.id, p.occupation, p.description, p.location "
+            for record in c.execute("SELECT pc.title, pc.id, p.tg_id, p.occupation, p.description, p.location "
                                     "FROM people p LEFT JOIN people_category pc ON p.category_id = pc.id "
                                     "WHERE p.tg_username=? AND p.category_id=?", (tg_username, category_id)):
                 yield {key: value for (key, value) in
-                       zip(("title", "id", "occupation", "description", "location"), record)}
+                       zip(("title", "id", "tg_id", "occupation", "description", "location"), record)}
 
 
 def people_insert_or_update(tg_id: int, tg_username: str, occupation: str, description: str, location: str,
@@ -136,6 +136,33 @@ def people_category_select_all() -> Iterator:
 
         for row in c.execute("SELECT id, title FROM people_category"):
             yield {key: value for (key, value) in zip((i[0] for i in c.description), row)}
+
+
+def people_category_views_register(viewer_tg_id: int, category_id: int) -> None:
+    """Register a single event of a user browsing a category
+
+    @param viewer_tg_id: Telegram ID of a user that requests the information.
+    @param category_id: ID of a category being viewed, -1 for the general view (no specific category was requested).
+    """
+
+    with LogTime("INSERT INTO people_category_views"):
+        db.cursor().execute("INSERT INTO people_category_views (viewer_tg_id, category_id) VALUES(?, ?)",
+                            (viewer_tg_id, category_id))
+        db.commit()
+
+
+def people_views_register(viewer_tg_id: int, tg_id: int, category_id: int) -> None:
+    """Register a single event of a user viewing a service description
+
+    @param viewer_tg_id: Telegram ID of a user that requests the information.
+    @param tg_id: Telegram ID of a user whose service is being viewed.
+    @param category_id: ID of a category of the service that is being viewed.
+    """
+
+    with LogTime("INSERT INTO people_views"):
+        db.cursor().execute("INSERT INTO people_views (viewer_tg_id, tg_id, category_id) VALUES(?, ?, ?)",
+                            (viewer_tg_id, tg_id, category_id))
+        db.commit()
 
 
 def import_db(new_data) -> None:

@@ -194,10 +194,13 @@ async def _who_received_category(update: Update, context: ContextTypes.DEFAULT_T
     await query.edit_message_reply_markup(None)
 
     filtered_people = context.user_data["who_request_category"]
+    category_id = int(query.data)
+
+    state.people_category_views_register(query.from_user.id, category_id)
 
     category = None
     for c in filtered_people:
-        if c["category_id"] == int(query.data):
+        if c["category_id"] == category_id:
             category = c
             break
     if not category:
@@ -239,6 +242,8 @@ async def _who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                        categorised_people.items() if i != 0 and c["people"]]
     if categorised_people[0]["people"]:
         filtered_people.append(categorised_people[0])
+
+    state.people_category_views_register(query.from_user.id, -1)
 
     if settings.SHOW_CATEGORIES_ALWAYS and len(filtered_people) > 1:
         return await _who_request_category(update, context, filtered_people)
@@ -545,8 +550,12 @@ async def handle_extended_start_command(update: Update, _context: ContextTypes.D
 
     category_id, tg_username = param[len(const.COMMAND_INFO + "_"):].split("_", 1)
     category_id = int(category_id)
-    trans = i18n.trans(update.effective_message.from_user)
+
+    user = update.effective_message.from_user
+
+    trans = i18n.trans(user)
     for record in state.people_record(category_id, tg_username=tg_username):
+        state.people_views_register(user.id, record["tg_id"], category_id)
         category_title = record["title"] if category_id != 0 else trans.gettext("SERVICES_CATEGORY_OTHER_TITLE")
         await reply(update, trans.gettext(
             "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}").format(
