@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-01-09 22:30+0100\n"
+"POT-Creation-Date: 2026-01-10 17:33+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -398,7 +398,7 @@ msgid "SERVICES_DM_WHO_LIST_HEADING"
 msgstr "Here is the directory:"
 
 #: features/services/core.py:228 features/services/core.py:333
-#: features/services/core.py:534
+#: features/services/core.py:546
 msgid "SERVICES_CATEGORY_OTHER_TITLE"
 msgstr "Other"
 
@@ -435,75 +435,75 @@ msgstr ""
 "Enter a new brief description for your service in the \"{title}\" group.  The current one is:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:357 features/services/core_test.py:79
+#: features/services/core.py:361 features/services/core_test.py:79
 #: features/services/core_test.py:136
 msgid "SERVICES_DM_ENROLL_ASK_DESCRIPTION"
 msgstr "Provide a detailed description of your service."
 
-#: features/services/core.py:358 features/services/core_test.py:80
+#: features/services/core.py:362 features/services/core_test.py:80
 #: features/services/core_test.py:137
 msgid "SERVICES_DM_UPDATE_DESCRIPTION {title} {current_value}"
 msgstr ""
 "Enter a new detailed description for your service in the \"{title}\" group.  The current one is:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:371
+#: features/services/core.py:379
 msgid "SERVICES_DM_ENROLL_ASK_LOCATION"
 msgstr ""
 "Where are you based?\n"
 "\n"
 "Just the name of the place is enough, like \"A Coruña\""
 
-#: features/services/core.py:372
+#: features/services/core.py:380
 msgid "SERVICES_DM_UPDATE_LOCATION {title} {current_value}"
 msgstr ""
 "Enter a new location for your service in the \"{title}\" group.  The current one is:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:384
+#: features/services/core.py:396
 msgid "SERVICES_DM_ENROLL_CONFIRM_LEGALITY"
 msgstr ""
 "Finally, please confirm that what you do is legal and does not violate any laws or local regulations.\n"
 "\n"
 "Is your service legal?"
 
-#: features/services/core.py:421
+#: features/services/core.py:433
 msgid "SERVICES_DM_ENROLL_COMPLETED"
 msgstr "We are done, you are now registered!"
 
-#: features/services/core.py:423
+#: features/services/core.py:435
 msgid "SERVICES_DM_ENROLL_COMPLETED_POST_MODERATION"
 msgstr "We are done, you are now registered!  Please note that moderators may hide your record if it violates rules of the group."
 
-#: features/services/core.py:425
+#: features/services/core.py:437
 msgid "SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION"
 msgstr "We are done!  I will add your record to the list after the moderators approve it."
 
-#: features/services/core.py:437
+#: features/services/core.py:449
 msgid "SERVICES_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"
 msgstr "I am sorry.  I cannot register services that do not comply with the laws and local regulations."
 
-#: features/services/core.py:465
+#: features/services/core.py:477
 msgid "SERVICES_ADMIN_USER_RECORD_APPROVED"
 msgstr "Approved."
 
-#: features/services/core.py:475
+#: features/services/core.py:487
 msgid "SERVICES_ADMIN_USER_RECORD_SUSPENDED"
 msgstr "The record is hidden."
 
-#: features/services/core.py:490
+#: features/services/core.py:502
 msgid "SERVICES_DM_SELECT_CATEGORY_FOR_RETIRE"
 msgstr "Select category to delete."
 
-#: features/services/core.py:506
+#: features/services/core.py:518
 msgid "SERVICES_DM_RETIRE"
 msgstr "The record is deleted."
 
-#: features/services/core.py:520
+#: features/services/core.py:532
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Let us start again."
 
-#: features/services/core.py:535
+#: features/services/core.py:547
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "<b>{category_title}: {occupation}</b>\n"
@@ -538,3 +538,4 @@ msgstr "Yes"
 #: features/services/keyboards.py:115 features/services/keyboards.py:126
 msgid "SERVICES_BUTTON_NO"
 msgstr "No"
+

@@ -349,6 +349,10 @@ async def _accept_category_and_request_occupation(update: Update, context: Conte
 async def _verify_occupation_and_request_description(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Store occupation provided by user and ask for the next category"""
 
+    if not update.message:
+        logging.warning("Ignoring an update that does not have a message.")
+        return const.TYPING_OCCUPATION
+
     trans = i18n.trans(update.message.from_user)
 
     return await _verify_limit_then_retry_or_proceed(update, context, const.TYPING_OCCUPATION,
@@ -363,6 +367,10 @@ async def _verify_occupation_and_request_description(update: Update, context: Co
 async def _verify_description_and_request_location(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Store info provided by user and ask for the next category"""
 
+    if not update.message:
+        logging.warning("Ignoring an update that does not have a message.")
+        return const.TYPING_DESCRIPTION
+
     trans = i18n.trans(update.message.from_user)
 
     return await _verify_limit_then_retry_or_proceed(update, context, const.TYPING_DESCRIPTION,
@@ -376,6 +384,10 @@ async def _verify_description_and_request_location(update: Update, context: Cont
 
 async def _verify_location_and_request_legality(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Store location info provided by user and ask for the legality"""
+
+    if not update.message:
+        logging.warning("Ignoring an update that does not have a message.")
+        return const.TYPING_LOCATION
 
     user = update.effective_user
 

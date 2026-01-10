@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-01-09 22:30+0100\n"
+"POT-Creation-Date: 2026-01-10 17:33+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -406,7 +406,7 @@ msgid "SERVICES_DM_WHO_LIST_HEADING"
 msgstr "Вот кого я знаю:"
 
 #: features/services/core.py:228 features/services/core.py:333
-#: features/services/core.py:534
+#: features/services/core.py:546
 msgid "SERVICES_CATEGORY_OTHER_TITLE"
 msgstr "Другое"
 
@@ -443,75 +443,75 @@ msgstr ""
 "Введите новое краткое описание вашей услуги в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:357 features/services/core_test.py:79
+#: features/services/core.py:361 features/services/core_test.py:79
 #: features/services/core_test.py:136
 msgid "SERVICES_DM_ENROLL_ASK_DESCRIPTION"
 msgstr "Опишите вашу услугу подробно."
 
-#: features/services/core.py:358 features/services/core_test.py:80
+#: features/services/core.py:362 features/services/core_test.py:80
 #: features/services/core_test.py:137
 msgid "SERVICES_DM_UPDATE_DESCRIPTION {title} {current_value}"
 msgstr ""
 "Введите новое подробное описание вашей услуги в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:371
+#: features/services/core.py:379
 msgid "SERVICES_DM_ENROLL_ASK_LOCATION"
 msgstr ""
 "Где вы оказываете услуги?\n"
 "\n"
 "Укажите город по-русски: Сантьяго, Корунья, Виго и др. Если городов несколько, пишите «Галисия»."
 
-#: features/services/core.py:372
+#: features/services/core.py:380
 msgid "SERVICES_DM_UPDATE_LOCATION {title} {current_value}"
 msgstr ""
 "Введите новое описание места, где вы оказываете услугу в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:384
+#: features/services/core.py:396
 msgid "SERVICES_DM_ENROLL_CONFIRM_LEGALITY"
 msgstr ""
 "И последнее: подтвердите, что не нарушаете местные законы и правила.\n"
 "\n"
 "Ваша услуга легальна?"
 
-#: features/services/core.py:421
+#: features/services/core.py:433
 msgid "SERVICES_DM_ENROLL_COMPLETED"
 msgstr "Готово, вы добавлены в список!"
 
-#: features/services/core.py:423
+#: features/services/core.py:435
 msgid "SERVICES_DM_ENROLL_COMPLETED_POST_MODERATION"
 msgstr "Готово, вы добавлены в список! Обратите внимание, модераторы могут скрыть вашу запись, если она нарушает правила группы."
 
-#: features/services/core.py:425
+#: features/services/core.py:437
 msgid "SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION"
 msgstr "Готово! Я добавлю вас в список после проверки модераторами."
 
-#: features/services/core.py:437
+#: features/services/core.py:449
 msgid "SERVICES_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"
 msgstr "Извините, я не могу добавлять нелегальные услуги."
 
-#: features/services/core.py:465
+#: features/services/core.py:477
 msgid "SERVICES_ADMIN_USER_RECORD_APPROVED"
 msgstr "Одобрено."
 
-#: features/services/core.py:475
+#: features/services/core.py:487
 msgid "SERVICES_ADMIN_USER_RECORD_SUSPENDED"
 msgstr "Запись скрыта."
 
-#: features/services/core.py:490
+#: features/services/core.py:502
 msgid "SERVICES_DM_SELECT_CATEGORY_FOR_RETIRE"
 msgstr "Выберите категорию для удаления."
 
-#: features/services/core.py:506
+#: features/services/core.py:518
 msgid "SERVICES_DM_RETIRE"
 msgstr "Запись удалена."
 
-#: features/services/core.py:520
+#: features/services/core.py:532
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Начнём сначала."
 
-#: features/services/core.py:535
+#: features/services/core.py:547
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "<b>{category_title}: {occupation}</b>\n"
@@ -546,3 +546,4 @@ msgstr "Да"
 #: features/services/keyboards.py:115 features/services/keyboards.py:126
 msgid "SERVICES_BUTTON_NO"
 msgstr "Нет"
+
