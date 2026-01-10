@@ -176,9 +176,9 @@ async def _who_request_category(update: Update, context: ContextTypes.DEFAULT_TY
         category_list.append(
             {"id": c["category_id"], "title": c["title"], "text": "{t}: {c}".format(t=c["title"], c=len(c["people"]))})
 
-    await reply(update, i18n.trans(query.from_user).gettext("SERVICES_DM_WHO_CATEGORY_LIST").format(
-        categories="\n".join([c["text"] for c in category_list])),
-                keyboards.select_category(query.from_user, category_list))
+    trans = i18n.trans(query.from_user)
+    await reply(update, trans.gettext("SERVICES_DM_WHO_CATEGORY_LIST").format(
+        categories="\n".join([c["text"] for c in category_list])), keyboards.select_category(trans, category_list))
 
     context.user_data["who_request_category"] = filtered_people
 
@@ -283,7 +283,7 @@ async def _handle_command_enroll(update: Update, context: ContextTypes.DEFAULT_T
     existing_category_ids = [r["id"] for r in state.people_records(query.from_user.id)]
     categories = [c for c in state.people_category_select_all() if c["id"] not in existing_category_ids]
 
-    category_buttons = keyboards.select_category(query.from_user, categories, 0 not in existing_category_ids)
+    category_buttons = keyboards.select_category(trans, categories, 0 not in existing_category_ids)
 
     if category_buttons:
         await reply(update, trans.gettext("SERVICES_DM_ENROLL_ASK_CATEGORY"), category_buttons)
@@ -306,8 +306,10 @@ async def _handle_command_update(update: Update, context: ContextTypes.DEFAULT_T
 
     await query.answer()
     await query.edit_message_reply_markup(None)
-    await reply(update, i18n.trans(query.from_user).gettext("SERVICES_DM_SELECT_CATEGORY_FOR_UPDATE"),
-                keyboards.select_category(query.from_user, state.people_records(query.from_user.id)))
+
+    trans = i18n.trans(query.from_user)
+    await reply(update, trans.gettext("SERVICES_DM_SELECT_CATEGORY_FOR_UPDATE"),
+                keyboards.select_category(trans, state.people_records(query.from_user.id)))
 
     context.user_data["mode"] = "update"
 
@@ -389,11 +391,11 @@ async def _verify_location_and_request_legality(update: Update, context: Context
         logging.warning("Ignoring an update that does not have a message.")
         return const.TYPING_LOCATION
 
-    user = update.effective_user
+    trans = i18n.trans(update.message.from_user)
 
     # noinspection PyUnusedLocal
     async def request_legality(*args) -> None:
-        await reply(update, i18n.trans(user).gettext("SERVICES_DM_ENROLL_CONFIRM_LEGALITY"), keyboards.yes_no(user))
+        await reply(update, trans.gettext("SERVICES_DM_ENROLL_CONFIRM_LEGALITY"), keyboards.yes_no(trans))
 
     return await _verify_limit_then_retry_or_proceed(update, context, const.TYPING_LOCATION,
                                                      settings.SERVICES_LOCATION_MAX_LENGTH, "location",
@@ -499,8 +501,10 @@ async def _handle_command_retire(update: Update, context: ContextTypes.DEFAULT_T
 
     await query.answer()
     await query.edit_message_reply_markup(None)
-    await reply(update, i18n.trans(query.from_user).gettext("SERVICES_DM_SELECT_CATEGORY_FOR_RETIRE"),
-                keyboards.select_category(query.from_user, state.people_records(query.from_user.id)))
+
+    trans = i18n.trans(query.from_user)
+    await reply(update, trans.gettext("SERVICES_DM_SELECT_CATEGORY_FOR_RETIRE"),
+                keyboards.select_category(trans, state.people_records(query.from_user.id)))
 
     return const.SELECTING_CATEGORY
 

@@ -1,6 +1,7 @@
 """
 Keyboards used in the Services feature
 """
+import gettext
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, User
 
@@ -54,7 +55,7 @@ def standard(user: User):
     return InlineKeyboardMarkup(buttons)
 
 
-def select_category(user: User, categories, show_other=False):
+def select_category(trans: gettext.GNUTranslations, categories, show_other=False):
     """Builds the keyboard for selecting a category
 
     Categories can be provided via the optional `categories` parameter and should be an iterable of dict-like items,
@@ -81,8 +82,6 @@ def select_category(user: User, categories, show_other=False):
     If no categories are defined in the DB and show_other is False, this function returns None.
     """
 
-    trans = i18n.trans(user)
-
     buttons = []
     added_other = False
     for category in categories if categories else state.people_category_select_all():
@@ -99,7 +98,7 @@ def select_category(user: User, categories, show_other=False):
     return InlineKeyboardMarkup(buttons)
 
 
-def yes_no(user: User) -> InlineKeyboardMarkup:
+def yes_no(trans: gettext.GNUTranslations) -> InlineKeyboardMarkup:
     """Builds the YES/NO keyboard used in the step where the user confirms legality of their service
 
     +-----+----+
@@ -108,8 +107,6 @@ def yes_no(user: User) -> InlineKeyboardMarkup:
 
     Returns an instance of InlineKeyboardMarkup.
     """
-
-    trans = i18n.trans(user)
 
     response_buttons = {trans.gettext("SERVICES_BUTTON_YES"): const.RESPONSE_YES,
                         trans.gettext("SERVICES_BUTTON_NO"): const.RESPONSE_NO}
