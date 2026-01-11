@@ -27,17 +27,17 @@ class TestServiceCategory(unittest.TestCase):
     def test_get(self):
         trans = i18n.default()
 
-        self.assertEqual(state.ServiceCategory.get(0, trans).title, trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"))
+        self.assertEqual(state.ServiceCategory.get(0).title, trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"))
 
         with self.assertRaises(KeyError):
-            _category = state.ServiceCategory.get(TestServiceCategory.CATEGORY_1_ID, trans)
+            _category = state.ServiceCategory.get(TestServiceCategory.CATEGORY_1_ID)
 
 
         with patch('features.services.state.people_category_select_all', self._return_single_category):
             state.ServiceCategory.load()
 
-            self.assertEqual(state.ServiceCategory.get(0, trans).title, trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"))
-            self.assertEqual(state.ServiceCategory.get(TestServiceCategory.CATEGORY_1_ID, trans).title, TestServiceCategory.CATEGORY_1_TITLE)
+            self.assertEqual(state.ServiceCategory.get(0).title, trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"))
+            self.assertEqual(state.ServiceCategory.get(TestServiceCategory.CATEGORY_1_ID).title, TestServiceCategory.CATEGORY_1_TITLE)
 
     def test_load(self):
         with patch('features.services.state.people_category_select_all', self._return_no_categories):

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-01-11 12:41+0100\n"
+"POT-Creation-Date: 2026-01-11 13:04+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -354,8 +354,8 @@ msgstr[2] ""
 "Слишком длинно! В этом поле я могу сохранить не более {limit} символов. Жирным выделено то, что входит:\n"
 "{text}"
 
-#: features/services/core.py:99 features/services/keyboards.py:89
-#: features/services/keyboards.py:95
+#: features/services/core.py:99 features/services/keyboards.py:88
+#: features/services/keyboards.py:94
 msgid "SERVICES_BUTTON_ENROLL_CATEGORY_DEFAULT"
 msgstr "Другое"
 
@@ -407,7 +407,7 @@ msgstr "Вот кого я знаю:"
 
 #: features/services/core.py:229 features/services/core.py:339
 #: features/services/core.py:349 features/services/core.py:558
-#: features/services/state.py:46 features/services/state_test.py:30
+#: features/services/state.py:45 features/services/state_test.py:30
 #: features/services/state_test.py:39
 msgid "SERVICES_CATEGORY_OTHER_TITLE"
 msgstr "Другое"
@@ -521,31 +521,31 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/keyboards.py:34
+#: features/services/keyboards.py:33
 msgid "SERVICES_BUTTON_WHO"
 msgstr "Показать список"
 
-#: features/services/keyboards.py:35
+#: features/services/keyboards.py:34
 msgid "SERVICES_BUTTON_ENROLL"
 msgstr "Добавить запись"
 
-#: features/services/keyboards.py:36
+#: features/services/keyboards.py:35
 msgid "SERVICES_BUTTON_ENROLL_MORE"
 msgstr "Добавить ещё одну запись"
 
-#: features/services/keyboards.py:37
+#: features/services/keyboards.py:36
 msgid "SERVICES_BUTTON_UPDATE"
 msgstr "Править запись"
 
-#: features/services/keyboards.py:38
+#: features/services/keyboards.py:37
 msgid "SERVICES_BUTTON_RETIRE"
 msgstr "Удалить запись"
 
-#: features/services/keyboards.py:111 features/services/keyboards.py:122
+#: features/services/keyboards.py:110 features/services/keyboards.py:121
 msgid "SERVICES_BUTTON_YES"
 msgstr "Да"
 
-#: features/services/keyboards.py:112 features/services/keyboards.py:123
+#: features/services/keyboards.py:111 features/services/keyboards.py:122
 msgid "SERVICES_BUTTON_NO"
 msgstr "Нет"
 

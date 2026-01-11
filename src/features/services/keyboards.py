@@ -1,6 +1,7 @@
 """
 Keyboards used in the Services feature
 """
+
 import gettext
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, User
@@ -9,8 +10,8 @@ from common import i18n
 from . import const, state
 
 
-def standard(user: User):
-    """Builds the standard keyboard for the `user`
+def standard(user: User) -> InlineKeyboardMarkup:
+    """Build the standard keyboard for the `user`
 
     The standard keyboard is displayed at the start of the conversation (handling the /start command) or in the end of
     any conversation, and looks like this:
@@ -23,10 +24,8 @@ def standard(user: User):
     | UPDATE | RETIRE |
     +--------+--------+
 
-    Depending on the context, certain commands can be omitted.  The enroll button is only shown when it is possible to
+    Depending on the context, certain buttons can be hidden.  The enroll button is only shown when it is possible to
     add a new record.  The update and retire buttons are only shown when the user has at least one record.
-
-    Returns an instance of InlineKeyboardMarkup.
     """
 
     trans = i18n.trans(user)
@@ -55,8 +54,8 @@ def standard(user: User):
     return InlineKeyboardMarkup(buttons)
 
 
-def select_category(trans: gettext.GNUTranslations, categories, show_other=False):
-    """Builds the keyboard for selecting a category
+def select_category(trans: gettext.GNUTranslations, categories, show_other=False) -> InlineKeyboardMarkup | None:
+    """Build the keyboard for selecting a category
 
     Categories can be provided via the optional `categories` parameter and should be an iterable of dict-like items,
     where each item should have `id` and `title` keys, holding the ID and the title of the category.

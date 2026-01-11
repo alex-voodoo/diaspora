@@ -3,12 +3,11 @@ Persistent state of the services feature
 """
 
 import datetime
-import gettext
 import logging
 from collections.abc import Iterator
 from typing import Self
 
-from common import db
+from common import db, i18n
 from common.log import LogTime
 
 
@@ -35,7 +34,7 @@ class ServiceCategory:
         return self._title
 
     @classmethod
-    def get(cls, db_id: int, trans: gettext.GNUTranslations) -> Self:
+    def get(cls, db_id: int) -> Self:
         """Get a service category identified by `db_id`
 
         Raises `KeyError` if no object found for the given ID.
@@ -43,7 +42,7 @@ class ServiceCategory:
         """
 
         if db_id == 0:
-            return ServiceCategory(0, trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"))
+            return ServiceCategory(0, i18n.default().gettext("SERVICES_CATEGORY_OTHER_TITLE"))
         return cls._categories[db_id]
 
     @classmethod
