@@ -8,6 +8,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, User
 
 from common import i18n
 from . import const, state
+from .state import ServiceCategory
 
 
 def standard(user: User) -> InlineKeyboardMarkup:
@@ -41,11 +42,10 @@ def standard(user: User) -> InlineKeyboardMarkup:
     buttons = [[button_who]]
 
     records = [r for r in state.people_records(user.id)]
-    categories = [c for c in state.people_category_select_all()]
 
     if not records:
         buttons.append([button_enroll] if not records else [button_enroll_more])
-    elif len(records) <= len(categories):
+    elif len(records) <= ServiceCategory.count():
         buttons.append([button_enroll_more])
 
     if len(records) > 0:
@@ -83,7 +83,7 @@ def select_category(trans: gettext.GNUTranslations, categories, show_other=False
 
     buttons = []
     added_other = False
-    for category in categories if categories else state.people_category_select_all():
+    for category in categories if categories else [{"id": c.id, "title": c.title} for c in ServiceCategory.all()]:
         buttons.append((InlineKeyboardButton(
             category["title"] if category["title"] else trans.gettext("SERVICES_BUTTON_ENROLL_CATEGORY_DEFAULT"),
             callback_data=category["id"] if category["id"] else 0),))

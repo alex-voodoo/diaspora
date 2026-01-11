@@ -15,6 +15,7 @@ from common import i18n
 from common.messaging_helpers import reply, send
 from common.settings import settings
 from . import admin, const, keyboards, state
+from .state import ServiceCategory
 
 
 def _format_hint(text: str, limit: int) -> str:
@@ -228,8 +229,8 @@ async def _who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     categorised_people = {0: {"title": trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"), "category_id": 0, "people": []}}
 
-    for category in state.people_category_select_all():
-        categorised_people[category["id"]] = {"title": category["title"], "people": []}
+    for category in ServiceCategory.all():
+        categorised_people[category.id] = {"title": category.title, "people": []}
 
     for person in state.people_select_all_active():
         if "category_id" not in person or person["category_id"] not in categorised_people:
@@ -283,7 +284,7 @@ async def _handle_command_enroll(update: Update, context: ContextTypes.DEFAULT_T
     await reply(update, trans.gettext("SERVICES_DM_ENROLL_START"))
 
     existing_category_ids = [r["id"] for r in state.people_records(query.from_user.id)]
-    categories = [c for c in state.people_category_select_all() if c["id"] not in existing_category_ids]
+    categories = [{"id": c.id, "title": c.title} for c in ServiceCategory.all() if c.id not in existing_category_ids]
 
     category_buttons = keyboards.select_category(trans, categories, 0 not in existing_category_ids)
 
@@ -596,3 +597,5 @@ def init(application: Application, group: int):
         application.add_handler(CallbackQueryHandler(_confirm_user_data, pattern=re.compile(
             "^({approve}|{decline}):[0-9]+:[0-9]+$".format(approve=const.MODERATOR_APPROVE,
                                                            decline=const.MODERATOR_DECLINE))), group=2)
+
+    ServiceCategory.load()

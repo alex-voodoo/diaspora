@@ -37,8 +37,8 @@ class ServiceCategory:
     def get(cls, db_id: int) -> Self:
         """Get a service category identified by `db_id`
 
+        Returns a "default category" object iff `db_id` is equal to 0.
         Raises `KeyError` if no object found for the given ID.
-        Returns a "default category" object for an ID equal to 0.
         """
 
         if db_id == 0:
@@ -46,13 +46,26 @@ class ServiceCategory:
         return cls._categories[db_id]
 
     @classmethod
-    def load(cls):
+    def load(cls) -> None:
         """Load all service category records from the DB and store them in a class attribute"""
 
         cls._categories = {}
 
         for category in people_category_select_all():
             cls._categories[category["id"]] = ServiceCategory(category["id"], category["title"])
+
+    @classmethod
+    def count(cls) -> int:
+        """Return number of categories"""
+
+        return len(cls._categories)
+
+    @classmethod
+    def all(cls) -> Iterator[Self]:
+        """Return all service categories"""
+
+        for category in cls._categories.values():
+            yield category
 
 
 def people_delete(tg_id: int, category_id: int) -> None:
@@ -261,3 +274,5 @@ def import_db(new_data) -> None:
     db.commit()
 
     logging.info("Dropped data snapshots")
+
+    ServiceCategory.load()
