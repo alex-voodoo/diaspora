@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-01-10 21:32+0100\n"
+"POT-Creation-Date: 2026-01-11 12:41+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -399,6 +399,8 @@ msgstr "Here is the directory:"
 
 #: features/services/core.py:229 features/services/core.py:339
 #: features/services/core.py:349 features/services/core.py:558
+#: features/services/state.py:46 features/services/state_test.py:30
+#: features/services/state_test.py:39
 msgid "SERVICES_CATEGORY_OTHER_TITLE"
 msgstr "Other"
 

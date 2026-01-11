@@ -1,12 +1,59 @@
 """
 Persistent state of the services feature
 """
+
 import datetime
+import gettext
 import logging
 from collections.abc import Iterator
+from typing import Self
 
 from common import db
 from common.log import LogTime
+
+
+class ServiceCategory:
+    """Wraps a service category database record
+
+    The class caches the entire `people_category` table and provides a `get()` method for accessing individual items.
+
+    The storage must be initialised by calling the `load()` class method.
+    """
+
+    _categories = {}
+
+    def __init__(self, db_id: int, title: str):
+        self._id = db_id
+        self._title = title
+
+    @property
+    def id(self) -> int:
+        return self._id
+
+    @property
+    def title(self) -> str:
+        return self._title
+
+    @classmethod
+    def get(cls, db_id: int, trans: gettext.GNUTranslations) -> Self:
+        """Get a service category identified by `db_id`
+
+        Raises `KeyError` if no object found for the given ID.
+        Returns a "default category" object for an ID equal to 0.
+        """
+
+        if db_id == 0:
+            return ServiceCategory(0, trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"))
+        return cls._categories[db_id]
+
+    @classmethod
+    def load(cls):
+        """Load all service category records from the DB and store them in a class attribute"""
+
+        cls._categories = {}
+
+        for category in people_category_select_all():
+            cls._categories[category["id"]] = ServiceCategory(category["id"], category["title"])
 
 
 def people_delete(tg_id: int, category_id: int) -> None:
@@ -134,7 +181,7 @@ def people_category(category_id: int) -> Iterator:
     with LogTime("SELECT * FROM people_category WHERE id=?"):
         c = db.cursor()
 
-        for row in c.execute("SELECT id, title FROM people_category WHERE id=?", (category_id, )):
+        for row in c.execute("SELECT id, title FROM people_category WHERE id=?", (category_id,)):
             yield {key: value for (key, value) in zip((i[0] for i in c.description), row)}
 
 
@@ -194,8 +241,8 @@ def import_db(new_data) -> None:
     cursor.execute("DELETE FROM people_category")
     for c in new_data["categories"]:
         cursor.execute("INSERT INTO people_category (id, title) "
-                  "VALUES(?, ?)",
-                  (c["id"], c["title"]))
+                       "VALUES(?, ?)",
+                       (c["id"], c["title"]))
 
     cursor.execute("DELETE FROM people")
     for p in new_data["people"]:
