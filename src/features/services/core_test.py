@@ -91,6 +91,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
         request_next_data_field = AsyncMock()
 
+        # noinspection PyTypeChecker
         result = await core._verify_limit_then_retry_or_proceed(update, context, current_stage_id, current_limit,
                                                                 current_data_field_key, next_stage_id, next_limit,
                                                                 next_data_field_key, next_data_field_insert_text,
@@ -115,6 +116,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         context = CallbackContext(application=self.application, chat_id=1, user_id=1)
         context.user_data["current"] = current_text
 
+        # noinspection PyTypeChecker
         result = await core._verify_limit_then_retry_or_proceed(update, context, current_stage_id, current_limit,
                                                                 current_data_field_key, next_stage_id, next_limit,
                                                                 next_data_field_key, next_data_field_insert_text,
@@ -162,11 +164,15 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.sent_message_text, "\n".join(expected_sent_message_text))
 
     async def test_show_main_status(self):
-        def return_no_records(_user_id):
+        def return_no_records(_user_id=0):
             return []
 
-        def return_single_record(_user_id):
+        def return_single_record(_user_id=0):
             return [{"title": "Other", "id": 0, "occupation": "O", "description": "D", "location": "L"}]
+
+        def return_multiple_records(_user_id=0):
+            return [{"title": "Other", "id": 0, "occupation": "O0", "description": "D0", "location": "L0"},
+                    {"title": "Category 1", "id": 1, "occupation": "O1", "description": "D1", "location": "L1"}]
 
         def return_no_categories():
             return []
@@ -180,32 +186,83 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         message.set_bot(self.application.bot)
         update = Update(update_id=1, message=message)
         context = CallbackContext(application=self.application, chat_id=1, user_id=1)
+        chat = await context.bot.get_chat(1)
+        chat_title = chat.title
 
         trans = i18n.default()
+        expected_text_no_categories = trans.gettext("SERVICES_DM_HELLO {bot_first_name} {main_chat_name}").format(
+            bot_first_name=context.bot.first_name, main_chat_name=chat_title)
+        expected_text_single_record = "\n".join([trans.gettext("SERVICES_DM_HELLO_AGAIN {user_first_name}").format(
+            user_first_name=user.first_name),
+            core._main_status_record_description(trans, return_single_record(1)[0])])
 
         with patch('features.services.core.reply') as mock_reply:
             with patch('features.services.state.people_records', return_no_records):
                 with patch('features.services.state.people_category_select_all', return_no_categories):
                     await core.show_main_status(update, context)
-                    chat_title = await context.bot.get_chat()
-                    expected_text = trans.gettext("SERVICES_DM_HELLO {bot_first_name} {main_chat_name}").format(
-                        bot_first_name=context.bot.first_name, main_chat_name=chat_title.title)
-                    mock_reply.assert_called_once_with(update, expected_text, keyboards.standard(user))
+                    mock_reply.assert_called_once_with(update, expected_text_no_categories, keyboards.standard(user))
+                    mock_reply.reset_mock()
+
+                with patch('features.services.state.people_category_select_all', return_single_category):
+                    await core.show_main_status(update, context)
+                    mock_reply.assert_called_once_with(update, expected_text_no_categories, keyboards.standard(user))
                     mock_reply.reset_mock()
 
             with patch('features.services.state.people_records', return_single_record):
                 with patch('features.services.state.people_category_select_all', return_no_categories):
                     await core.show_main_status(update, context)
-                    expected_text = [trans.gettext("SERVICES_DM_HELLO_AGAIN {user_first_name}").format(
-                        user_first_name=user.first_name),
-                        core._main_status_record_description(trans, return_single_record(1)[0])]
-                    mock_reply.assert_called_once_with(update, "\n".join(expected_text), keyboards.standard(user))
+                    mock_reply.assert_called_once_with(update, expected_text_single_record, keyboards.standard(user))
+                    mock_reply.reset_mock()
 
-    # async def _moderate_new_data  # def _who_people_to_message  # async def _who_request_category  # async
-    # def _who_received_category  # async def _who  # async def _handle_command_enroll  # async
-    # def _handle_command_update  # async def _accept_category_and_request_occupation  # async
-    # def _verify_occupation_and_request_description  # async def _verify_description_and_request_location  # async
-    # def _verify_location_and_request_legality  # async def _verify_legality_and_finalise_data_collection  # async
-    # def _confirm_user_data  # async def _handle_command_retire  # async def _retire_received_category  # async
-    # def _abort_conversation  # async def handle_extended_start_command  # def init(application: Application,
-    # group: int)
+                with patch('features.services.state.people_category_select_all', return_single_category):
+                    await core.show_main_status(update, context)
+                    mock_reply.assert_called_once_with(update, expected_text_single_record, keyboards.standard(user))
+                    mock_reply.reset_mock()
+
+            with patch('features.services.state.people_records', return_multiple_records):
+                with patch('features.services.state.people_category_select_all', return_single_category):
+                    await core.show_main_status(update, context)
+                    records = return_multiple_records()
+                    expected_text = [trans.ngettext("SERVICES_DM_HELLO_AGAIN_S {user_first_name} {record_count}",
+                                       "SERVICES_DM_HELLO_AGAIN_P {user_first_name} {record_count}",
+                                       len(records)).format(user_first_name=user.first_name, record_count=len(records))]
+                    for record in records:
+                        expected_text.append(core._main_status_record_description(trans, record))
+                    mock_reply.assert_called_once_with(update, "\n".join(expected_text), keyboards.standard(user))
+                    mock_reply.reset_mock()
+
+    # async def _moderate_new_data
+
+    # def _who_people_to_message
+
+    # async def _who_request_category
+
+    # async def _who_received_category
+
+    # async def _who
+
+    # async def _handle_command_enroll
+
+    # async def _handle_command_update
+
+    # async def _accept_category_and_request_occupation
+
+    # async def _verify_occupation_and_request_description
+
+    # async def _verify_description_and_request_location
+
+    # async def _verify_location_and_request_legality
+
+    # async def _verify_legality_and_finalise_data_collection
+
+    # async def _confirm_user_data
+
+    # async def _handle_command_retire
+
+    # async def _retire_received_category
+
+    # async def _abort_conversation
+
+    # async def handle_extended_start_command
+
+    # def init

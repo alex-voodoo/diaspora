@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-01-11 17:00+0100\n"
+"POT-Creation-Date: 2026-01-12 18:28+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -337,7 +337,7 @@ msgid_plural "SERVICES_DM_DATA_FIELD_LIMIT_P {limit}"
 msgstr[0] "(No more than {limit} character.)"
 msgstr[1] "(No more than {limit} characters.)"
 
-#: features/services/core.py:60 features/services/core_test.py:99
+#: features/services/core.py:60 features/services/core_test.py:100
 msgid "SERVICES_DM_TEXT_TOO_LONG_S {limit} {text}"
 msgid_plural "SERVICES_DM_TEXT_TOO_LONG_P {limit} {text}"
 msgstr[0] ""
@@ -352,11 +352,11 @@ msgstr[1] ""
 msgid "SERVICES_BUTTON_ENROLL_CATEGORY_DEFAULT"
 msgstr "Other"
 
-#: features/services/core.py:121 features/services/core_test.py:199
+#: features/services/core.py:121 features/services/core_test.py:195
 msgid "SERVICES_DM_HELLO_AGAIN {user_first_name}"
 msgstr "Hello {user_first_name}.  Here is your record.\n"
 
-#: features/services/core.py:125
+#: features/services/core.py:125 features/services/core_test.py:228
 msgid "SERVICES_DM_HELLO_AGAIN_S {user_first_name} {record_count}"
 msgid_plural "SERVICES_DM_HELLO_AGAIN_P {user_first_name} {record_count}"
 msgstr[0] "Hello {user_first_name}.  Here is your {record_count} record.\n"
@@ -366,7 +366,7 @@ msgstr[1] "Hello {user_first_name}.  Here are your {record_count} records."
 msgid "SERVICES_DM_NO_RECORDS"
 msgstr "You have no records."
 
-#: features/services/core.py:139 features/services/core_test.py:191
+#: features/services/core.py:139 features/services/core_test.py:193
 msgid "SERVICES_DM_HELLO {bot_first_name} {main_chat_name}"
 msgstr "Hello!  I am {bot_first_name}, the bookkeeper bot of the \"{main_chat_name}\" group."
 
@@ -438,12 +438,12 @@ msgstr ""
 "<b>{current_value}</b>"
 
 #: features/services/core.py:371 features/services/core_test.py:79
-#: features/services/core_test.py:136
+#: features/services/core_test.py:138
 msgid "SERVICES_DM_ENROLL_ASK_DESCRIPTION"
 msgstr "Provide a detailed description of your service."
 
 #: features/services/core.py:372 features/services/core_test.py:80
-#: features/services/core_test.py:137
+#: features/services/core_test.py:139
 msgid "SERVICES_DM_UPDATE_DESCRIPTION {title} {current_value}"
 msgstr ""
 "Enter a new detailed description for your service in the \"{title}\" group.  The current one is:\n"
