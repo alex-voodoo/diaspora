@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-01-12 21:33+0100\n"
+"POT-Creation-Date: 2026-01-12 21:44+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -334,14 +334,14 @@ msgstr "Выгрузить книгу услуг"
 msgid "SERVICES_ADMIN_BUTTON_IMPORT_DB"
 msgstr "Загрузить книгу услуг"
 
-#: features/services/core.py:38 features/services/core_test.py:69
+#: features/services/core.py:38 features/services/core_test.py:79
 msgid "SERVICES_DM_DATA_FIELD_LIMIT_S {limit}"
 msgid_plural "SERVICES_DM_DATA_FIELD_LIMIT_P {limit}"
 msgstr[0] "(Не более {limit} символа.)"
 msgstr[1] "(Не более {limit} символов.)"
 msgstr[2] "(Не более {limit} символов.)"
 
-#: features/services/core.py:64 features/services/core_test.py:104
+#: features/services/core.py:64 features/services/core_test.py:114
 msgid "SERVICES_DM_TEXT_TOO_LONG_S {limit} {text}"
 msgid_plural "SERVICES_DM_TEXT_TOO_LONG_P {limit} {text}"
 msgstr[0] ""
@@ -359,11 +359,11 @@ msgstr[2] ""
 msgid "SERVICES_BUTTON_ENROLL_CATEGORY_DEFAULT"
 msgstr "Другое"
 
-#: features/services/core.py:127 features/services/core_test.py:200
+#: features/services/core.py:127 features/services/core_test.py:210
 msgid "SERVICES_DM_HELLO_AGAIN {user_first_name}"
 msgstr "Здравствуйте, {user_first_name}. Вот ваша запись.\n"
 
-#: features/services/core.py:131 features/services/core_test.py:233
+#: features/services/core.py:131 features/services/core_test.py:243
 msgid "SERVICES_DM_HELLO_AGAIN_S {user_first_name} {record_count}"
 msgid_plural "SERVICES_DM_HELLO_AGAIN_P {user_first_name} {record_count}"
 msgstr[0] "Здравствуйте, {user_first_name}. Вот ваша {record_count} запись.\n"
@@ -374,7 +374,7 @@ msgstr[2] "Здравствуйте, {user_first_name}. Вот ваши {record_
 msgid "SERVICES_DM_NO_RECORDS"
 msgstr "У вас нет записей."
 
-#: features/services/core.py:145 features/services/core_test.py:197
+#: features/services/core.py:145 features/services/core_test.py:207
 msgid "SERVICES_DM_HELLO {bot_first_name} {main_chat_name}"
 msgstr "Здравствуйте, я бот {bot_first_name} — хранитель полезных контактов группы «{main_chat_name}». Подскажу, кто будет полезен вам, или помогу найти клиентов."
 
@@ -445,13 +445,13 @@ msgstr ""
 "Введите новое краткое описание вашей услуги в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:377 features/services/core_test.py:83
-#: features/services/core_test.py:142
+#: features/services/core.py:377 features/services/core_test.py:93
+#: features/services/core_test.py:152
 msgid "SERVICES_DM_ENROLL_ASK_DESCRIPTION"
 msgstr "Опишите вашу услугу подробно."
 
-#: features/services/core.py:378 features/services/core_test.py:84
-#: features/services/core_test.py:143
+#: features/services/core.py:378 features/services/core_test.py:94
+#: features/services/core_test.py:153
 msgid "SERVICES_DM_UPDATE_DESCRIPTION {title} {current_value}"
 msgstr ""
 "Введите новое подробное описание вашей услуги в категории «{title}». Сейчас оно выглядит так:\n"

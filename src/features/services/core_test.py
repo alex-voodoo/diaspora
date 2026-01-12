@@ -55,6 +55,16 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
     # def test__format_hint
 
+    def test__format_deep_link_to_service(self):
+        bot_username = "bot_username"
+        username = "username"
+        self.assertEqual(core._format_deep_link_to_service(bot_username, None, username),
+                         f"t.me/{bot_username}?start=service_info_0_{username}")
+        self.assertEqual(core._format_deep_link_to_service(bot_username, 0, username),
+                         f"t.me/{bot_username}?start=service_info_0_{username}")
+        self.assertEqual(core._format_deep_link_to_service(bot_username, 1, username),
+                         f"t.me/{bot_username}?start=service_info_1_{username}")
+
     def test__maybe_append_limit_warning(self):
         trans = i18n.default()
         initial_message = ["hello", "world"]

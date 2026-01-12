@@ -23,7 +23,7 @@ def _format_hint(text: str, limit: int) -> str:
 
 
 def _format_deep_link_to_service(bot_username: str, category_id: int, tg_username: str) -> str:
-    return f"t.me/{bot_username}?start=service_info_{category_id}_{tg_username}"
+    return f"t.me/{bot_username}?start=service_info_{category_id or 0}_{tg_username}"
 
 
 def _maybe_append_limit_warning(trans: gettext.GNUTranslations, message: list, limit: int) -> None:
