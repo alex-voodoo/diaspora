@@ -29,6 +29,10 @@ class MockBot(Bot):
         self._sent_message_text = kwargs["text"]
 
     @property
+    def username(self) -> str:
+        return "bot_username"
+
+    @property
     def first_name(self) -> str:
         return "Bot"
 
@@ -180,7 +184,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         def return_single_category():
             return [{"id": 1, "title": "Category 1"}]
 
-        user = User(id=1, first_name="Joe", is_bot=False)
+        user = User(id=1, first_name="Joe", is_bot=False, username="joe_username")
         message = Message(message_id=1, date=datetime.datetime.now(), chat=Chat(id=1, type=Chat.PRIVATE),
                           text="nothing", from_user=user)
         message.set_bot(self.application.bot)
@@ -192,9 +196,10 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         trans = i18n.default()
         expected_text_no_categories = trans.gettext("SERVICES_DM_HELLO {bot_first_name} {main_chat_name}").format(
             bot_first_name=context.bot.first_name, main_chat_name=chat_title)
-        expected_text_single_record = "\n".join([trans.gettext("SERVICES_DM_HELLO_AGAIN {user_first_name}").format(
-            user_first_name=user.first_name),
-            core._main_status_record_description(trans, return_single_record(1)[0])])
+        expected_text_single_record = "\n".join(
+            [trans.gettext("SERVICES_DM_HELLO_AGAIN {user_first_name}").format(user_first_name=user.first_name),
+                core._main_status_record_description(trans, context.bot.username, user.username,
+                                                     return_single_record(1)[0])])
 
         with patch('features.services.core.reply') as mock_reply:
             with patch('features.services.state.people_records', return_no_records):
@@ -224,10 +229,12 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                     await core.show_main_status(update, context)
                     records = return_multiple_records()
                     expected_text = [trans.ngettext("SERVICES_DM_HELLO_AGAIN_S {user_first_name} {record_count}",
-                                       "SERVICES_DM_HELLO_AGAIN_P {user_first_name} {record_count}",
-                                       len(records)).format(user_first_name=user.first_name, record_count=len(records))]
+                                                    "SERVICES_DM_HELLO_AGAIN_P {user_first_name} {record_count}",
+                                                    len(records)).format(user_first_name=user.first_name,
+                                                                         record_count=len(records))]
                     for record in records:
-                        expected_text.append(core._main_status_record_description(trans, record))
+                        expected_text.append(
+                            core._main_status_record_description(trans, context.bot.username, user.username, record))
                     mock_reply.assert_called_once_with(update, "\n".join(expected_text), keyboards.standard(user))
                     mock_reply.reset_mock()
 

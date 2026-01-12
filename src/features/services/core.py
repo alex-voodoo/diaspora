@@ -22,6 +22,10 @@ def _format_hint(text: str, limit: int) -> str:
     return f"<b>{text[:limit]}</b>{text[limit:limit + 10]}…"
 
 
+def _format_deep_link_to_service(bot_username: str, category_id: int, tg_username: str) -> str:
+    return f"t.me/{bot_username}?start=service_info_{category_id}_{tg_username}"
+
+
 def _maybe_append_limit_warning(trans: gettext.GNUTranslations, message: list, limit: int) -> None:
     """Perform one repeating part of conversation logic where a value is checked against length limit
 
@@ -95,10 +99,12 @@ async def _request_next_data_field(update: Update, context: ContextTypes.DEFAULT
     await reply(update, "\n".join(lines))
 
 
-def _main_status_record_description(trans: gettext.GNUTranslations, record: dict) -> str:
-    return "<b>{c}:</b> {o} ({l})".format(
+def _main_status_record_description(trans: gettext.GNUTranslations, bot_username: str, username: str,
+                                    record: dict) -> str:
+    return "<b>{c}:</b> <a href=\"{h}\">{o}</a> ({l})".format(
         c=record["title"] if record["title"] else trans.gettext("SERVICES_BUTTON_ENROLL_CATEGORY_DEFAULT"),
-        o=record["occupation"], l=record["location"])
+        h=_format_deep_link_to_service(bot_username, record["id"], username), o=record["occupation"],
+        l=record["location"])
 
 
 async def show_main_status(update: Update, context: ContextTypes.DEFAULT_TYPE, prefix="") -> None:
@@ -125,7 +131,7 @@ async def show_main_status(update: Update, context: ContextTypes.DEFAULT_TYPE, p
                                        len(records)).format(user_first_name=user.first_name, record_count=len(records)))
 
         for record in records:
-            text.append(_main_status_record_description(trans, record))
+            text.append(_main_status_record_description(trans, context.bot.username, user.username, record))
 
         await reply(update, "\n".join(text), keyboards.standard(user))
     else:
@@ -157,7 +163,7 @@ async def _moderate_new_data(context: ContextTypes.DEFAULT_TYPE, data) -> None:
 def _who_people_to_message(people: list, context: ContextTypes.DEFAULT_TYPE) -> list:
     result = []
     for p in people:
-        link = f"t.me/{context.bot.username}?start=service_info_{p["category_id"]}_{p["tg_username"]}"
+        link = _format_deep_link_to_service(context.bot.username, p["category_id"], p["tg_username"])
         result.append(f"- @{p["tg_username"]} ({p["location"]}): <a href=\"{link}\">{p["occupation"]}</a>")
     return result
 
