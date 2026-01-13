@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-01-13 18:33+0100\n"
+"POT-Creation-Date: 2026-01-13 23:01+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -398,9 +398,8 @@ msgid "SERVICES_DM_WHO_LIST_HEADING"
 msgstr "Here is the directory:"
 
 #: features/services/core.py:236 features/services/core.py:346
-#: features/services/core.py:356 features/services/core.py:565
-#: features/services/state.py:45 features/services/state_test.py:30
-#: features/services/state_test.py:39
+#: features/services/core.py:356 features/services/state.py:45
+#: features/services/state_test.py:35 features/services/state_test.py:43
 msgid "SERVICES_CATEGORY_OTHER_TITLE"
 msgstr "Other"
 
@@ -505,7 +504,7 @@ msgstr "The record is deleted."
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Let us start again."
 
-#: features/services/core.py:567
+#: features/services/core.py:569
 msgid "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}"
 msgstr ""
 "Your service in the category <b>{category_title}</b>\n"
@@ -515,7 +514,7 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/core.py:572
+#: features/services/core.py:574
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "Service by @{username} in the category <b>{category_title}</b>\n"

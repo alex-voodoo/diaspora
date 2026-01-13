@@ -68,14 +68,101 @@ class ServiceCategory:
             yield category
 
 
+class Service:
+    """Wraps a service database record"""
+
+    _bot_username: str
+
+    def __init__(self, tg_id: int, tg_username: str, category_id: int, occupation: str, description: str, location: str,
+                 is_suspended: bool, last_modified: datetime.datetime):
+        self._tg_id = tg_id
+        self._tg_username = tg_username
+        self._category_id = category_id
+        self._occupation = occupation
+        self._description = description
+        self._location = location
+        self._is_suspended = is_suspended
+        self._last_modified = last_modified
+
+    @property
+    def category(self) -> ServiceCategory:
+        return ServiceCategory.get(self._category_id)
+
+    @property
+    def tg_id(self) -> int:
+        return self._tg_id
+
+    @property
+    def tg_username(self) -> str:
+        return self._tg_username
+
+    @property
+    def occupation(self) -> str:
+        return self._occupation
+
+    @property
+    def description(self) -> str:
+        return self._description
+
+    @property
+    def location(self) -> str:
+        return self._location
+
+    @property
+    def is_suspended(self) -> bool:
+        return self._is_suspended
+
+    @property
+    def last_modified(self) -> datetime.datetime:
+        return self._last_modified
+
+    @property
+    def deep_link(self) -> str:
+        return f"t.me/{Service._bot_username}?start=service_info_{self._category_id or 0}_{self._tg_username}"
+
+    @classmethod
+    def get(cls, tg_id: int, category_id: int) -> Self:
+        for service in service_get(category_id, tg_id):
+            return Service(service["tg_id"], service["tg_username"], service["category_id"], service["occupation"], service["description"], service["location"], service["is_suspended"], service["last_modified"])
+
+    @classmethod
+    def get_by_username(cls, tg_username: str, category_id: int) -> Self:
+        for service in service_get(category_id, tg_username=tg_username):
+            return Service(service["tg_id"], service["tg_username"], service["category_id"], service["occupation"], service["description"], service["location"], service["is_suspended"], service["last_modified"])
+
+
+def service_get(category_id: int, tg_id: int = 0, tg_username: str = "") -> Iterator:
+    """Return a record of a user identified by `category_id` and either `tg_id` or `tg_username` """
+
+    fields = ("tg_id", "tg_username", "category_id", "occupation", "description", "location", "is_suspended", "last_modified")
+    if tg_id != 0:
+        log_query = "SELECT FROM people WHERE tg_id=? AND category_id=?"
+        where_clause = "tg_id=? AND category_id=?"
+        where_params = (tg_id, category_id)
+    elif tg_username != "":
+        log_query = "SELECT FROM people WHERE tg_username=? AND category_id=?"
+        where_clause = "tg_username=? AND category_id=?"
+        where_params = (tg_username, category_id)
+    else:
+        raise RuntimeError("Neither tg_id nor tg_username were defined")
+
+    with LogTime(log_query):
+        c = db.cursor()
+
+        for record in c.execute(f"SELECT {", ".join(fields)} FROM PEOPLE WHERE {where_clause}", where_params):
+            data = {key: value for (key, value) in zip(fields, record)}
+            data["last_modified"] = datetime.datetime.fromisoformat(data["last_modified"])
+            data["is_suspended"] = bool(data["is_suspended"])
+            yield data
+
+
 def people_delete(tg_id: int, category_id: int) -> None:
     """Delete the user record identified by `tg_id`"""
 
     with LogTime("DELETE FROM people WHERE tg_id=? AND category_id=?"):
         c = db.cursor()
 
-        c.execute("DELETE FROM people WHERE tg_id=? AND category_id=?",
-                  (tg_id, category_id))
+        c.execute("DELETE FROM people WHERE tg_id=? AND category_id=?", (tg_id, category_id))
 
         db.commit()
 
@@ -98,10 +185,11 @@ def people_records(td_ig: int) -> Iterator:
     with LogTime("SELECT FROM people WHERE tg_id=?"):
         c = db.cursor()
 
-        for record in c.execute("SELECT pc.title, pc.id, p.occupation, p.description, p.location "
+        for record in c.execute("SELECT pc.title, pc.id, p.occupation, p.description, p.location, p.tg_username "
                                 "FROM people p LEFT JOIN people_category pc ON p.category_id = pc.id "
                                 "WHERE p.tg_id=?", (td_ig,)):
-            yield {key: value for (key, value) in zip(("title", "id", "occupation", "description", "location"), record)}
+            yield {key: value for (key, value) in
+                   zip(("title", "id", "occupation", "description", "location", "tg_username"), record)}
 
 
 def people_record(category_id: int, tg_id: int = 0, tg_username: str = "") -> Iterator:
@@ -253,16 +341,15 @@ def import_db(new_data) -> None:
     cursor.execute("DELETE FROM people_category")
     for c in new_data["categories"]:
         cursor.execute("INSERT INTO people_category (id, title) "
-                       "VALUES(?, ?)",
-                       (c["id"], c["title"]))
+                       "VALUES(?, ?)", (c["id"], c["title"]))
 
     cursor.execute("DELETE FROM people")
     for p in new_data["people"]:
-        cursor.execute(
-            "INSERT INTO people (tg_id, tg_username, category_id, is_suspended, last_modified, occupation, description, location) "
-            "VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
-            (p["tg_id"], p["tg_username"], p["category_id"], p["is_suspended"], p["last_modified"], p["occupation"],
-             p["description"], p["location"]))
+        cursor.execute("INSERT INTO people (tg_id, tg_username, category_id, is_suspended, last_modified, occupation, "
+                       "description, location) "
+                       "VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (
+            p["tg_id"], p["tg_username"], p["category_id"], p["is_suspended"], p["last_modified"], p["occupation"],
+            p["description"], p["location"]))
 
     db.commit()
 

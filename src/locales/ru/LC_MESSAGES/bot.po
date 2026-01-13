@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-01-13 18:33+0100\n"
+"POT-Creation-Date: 2026-01-13 23:01+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -406,9 +406,8 @@ msgid "SERVICES_DM_WHO_LIST_HEADING"
 msgstr "Вот кого я знаю:"
 
 #: features/services/core.py:236 features/services/core.py:346
-#: features/services/core.py:356 features/services/core.py:565
-#: features/services/state.py:45 features/services/state_test.py:30
-#: features/services/state_test.py:39
+#: features/services/core.py:356 features/services/state.py:45
+#: features/services/state_test.py:35 features/services/state_test.py:43
 msgid "SERVICES_CATEGORY_OTHER_TITLE"
 msgstr "Другое"
 
@@ -513,7 +512,7 @@ msgstr "Запись удалена."
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Начнём сначала."
 
-#: features/services/core.py:567
+#: features/services/core.py:569
 msgid "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}"
 msgstr ""
 "Ваша услуга в категории <b>{category_title}</b>\n"
@@ -523,7 +522,7 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/core.py:572
+#: features/services/core.py:574
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "Услуга @{username} в категории <b>{category_title}</b>\n"
