@@ -563,10 +563,16 @@ async def handle_extended_start_command(update: Update, _context: ContextTypes.D
     for record in state.people_record(category_id, tg_username=tg_username):
         state.people_views_register(user.id, record["tg_id"], category_id)
         category_title = record["title"] if category_id != 0 else trans.gettext("SERVICES_CATEGORY_OTHER_TITLE")
-        await reply(update, trans.gettext(
-            "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}").format(
-            category_title=category_title, description=record["description"], location=record["location"],
-            occupation=record["occupation"], username=tg_username))
+        if user.id == record["tg_id"]:
+            await reply(update, trans.gettext(
+                "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}").format(
+                category_title=category_title, description=record["description"], location=record["location"],
+                occupation=record["occupation"]))
+        else:
+            await reply(update, trans.gettext(
+                "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}").format(
+                category_title=category_title, description=record["description"], location=record["location"],
+                occupation=record["occupation"], username=tg_username))
 
 
 def init(application: Application, group: int):
