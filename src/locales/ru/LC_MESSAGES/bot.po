@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-01-14 21:58+0100\n"
+"POT-Creation-Date: 2026-01-14 22:28+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -310,27 +310,27 @@ msgstr "Обращение отклонено."
 msgid "MODERATION_RESULT_ACCEPTED"
 msgstr "Обращение принято. Я пока что ничего не умею делать, пожалуйста, примите меры согласно правилам группы."
 
-#: features/services/admin.py:41
+#: features/services/admin.py:39
 msgid "SERVICES_MESSAGE_DM_ADMIN_REQUEST_DB"
 msgstr "Ожидаю JSON-файл."
 
-#: features/services/admin.py:69
+#: features/services/admin.py:67
 msgid "SERVICES_MESSAGE_DM_ADMIN_DB_IMPORTED"
 msgstr "Принято."
 
-#: features/services/admin.py:72
+#: features/services/admin.py:70
 msgid "SERVICES_MESSAGE_DM_ADMIN_INVALID_JSON"
 msgstr "Неверный формат файла."
 
-#: features/services/admin.py:76
+#: features/services/admin.py:74
 msgid "ADMIN_MESSAGE_DM_INTERNAL_ERROR"
 msgstr "Произошла внутренняя ошибка. Подробности должны быть в журнале."
 
-#: features/services/admin.py:90
+#: features/services/admin.py:88
 msgid "SERVICES_ADMIN_BUTTON_EXPORT_DB"
 msgstr "Выгрузить книгу услуг"
 
-#: features/services/admin.py:92
+#: features/services/admin.py:90
 msgid "SERVICES_ADMIN_BUTTON_IMPORT_DB"
 msgstr "Загрузить книгу услуг"
 
@@ -400,9 +400,8 @@ msgstr "Эта категория уже пуста."
 msgid "SERVICES_DM_WHO_LIST_HEADING"
 msgstr "Вот кого я знаю:"
 
-#: features/services/core.py:232 features/services/core.py:351
-#: features/services/state.py:45 features/services/state_test.py:22
-#: features/services/state_test.py:30
+#: features/services/core.py:232 features/services/state.py:45
+#: features/services/state_test.py:22 features/services/state_test.py:30
 msgid "SERVICES_CATEGORY_OTHER_TITLE"
 msgstr "Другое"
 
@@ -425,7 +424,7 @@ msgstr "Давайте знакомиться!"
 msgid "SERVICES_DM_ENROLL_ASK_CATEGORY"
 msgstr "Выберите категорию, к которой можно отнести вашу услугу."
 
-#: features/services/core.py:301 features/services/core.py:353
+#: features/services/core.py:301 features/services/core.py:352
 msgid "SERVICES_DM_ENROLL_ASK_OCCUPATION"
 msgstr "Сформулируйте коротко, кто вы или что вы делаете. Например, «Парикмахер», «Няня», «Учу сёрфингу», «Помогаю с уборкой»."
 
@@ -439,75 +438,75 @@ msgstr ""
 "Введите новое краткое описание вашей услуги в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:372 features/services/core_test.py:100
+#: features/services/core.py:371 features/services/core_test.py:100
 #: features/services/core_test.py:159
 msgid "SERVICES_DM_ENROLL_ASK_DESCRIPTION"
 msgstr "Опишите вашу услугу подробно."
 
-#: features/services/core.py:373 features/services/core_test.py:101
+#: features/services/core.py:372 features/services/core_test.py:101
 #: features/services/core_test.py:160
 msgid "SERVICES_DM_UPDATE_DESCRIPTION {title} {current_value}"
 msgstr ""
 "Введите новое подробное описание вашей услуги в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:390
+#: features/services/core.py:389
 msgid "SERVICES_DM_ENROLL_ASK_LOCATION"
 msgstr ""
 "Где вы оказываете услуги?\n"
 "\n"
 "Укажите город по-русски: Сантьяго, Корунья, Виго и др. Если городов несколько, пишите «Галисия»."
 
-#: features/services/core.py:391
+#: features/services/core.py:390
 msgid "SERVICES_DM_UPDATE_LOCATION {title} {current_value}"
 msgstr ""
 "Введите новое описание места, где вы оказываете услугу в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:406
+#: features/services/core.py:405
 msgid "SERVICES_DM_ENROLL_CONFIRM_LEGALITY"
 msgstr ""
 "И последнее: подтвердите, что не нарушаете местные законы и правила.\n"
 "\n"
 "Ваша услуга легальна?"
 
-#: features/services/core.py:443
+#: features/services/core.py:442
 msgid "SERVICES_DM_ENROLL_COMPLETED"
 msgstr "Готово, вы добавлены в список!"
 
-#: features/services/core.py:445
+#: features/services/core.py:444
 msgid "SERVICES_DM_ENROLL_COMPLETED_POST_MODERATION"
 msgstr "Готово, вы добавлены в список! Обратите внимание, модераторы могут скрыть вашу запись, если она нарушает правила группы."
 
-#: features/services/core.py:447
+#: features/services/core.py:446
 msgid "SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION"
 msgstr "Готово! Я добавлю вас в список после проверки модераторами."
 
-#: features/services/core.py:459
+#: features/services/core.py:458
 msgid "SERVICES_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"
 msgstr "Извините, я не могу добавлять нелегальные услуги."
 
-#: features/services/core.py:486
+#: features/services/core.py:485
 msgid "SERVICES_ADMIN_USER_RECORD_APPROVED"
 msgstr "Одобрено."
 
-#: features/services/core.py:496
+#: features/services/core.py:495
 msgid "SERVICES_ADMIN_USER_RECORD_SUSPENDED"
 msgstr "Запись скрыта."
 
-#: features/services/core.py:512
+#: features/services/core.py:511
 msgid "SERVICES_DM_SELECT_CATEGORY_FOR_RETIRE"
 msgstr "Выберите категорию для удаления."
 
-#: features/services/core.py:528
+#: features/services/core.py:527
 msgid "SERVICES_DM_RETIRE"
 msgstr "Запись удалена."
 
-#: features/services/core.py:542
+#: features/services/core.py:541
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Начнём сначала."
 
-#: features/services/core.py:564
+#: features/services/core.py:563
 msgid "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}"
 msgstr ""
 "Ваша услуга в категории <b>{category_title}</b>\n"
@@ -517,7 +516,7 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/core.py:569
+#: features/services/core.py:568
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "Услуга @{username} в категории <b>{category_title}</b>\n"

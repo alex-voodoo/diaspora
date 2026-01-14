@@ -45,11 +45,11 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         self.application = Application.builder().token(settings.BOT_TOKEN).build()
         self.application.bot = MockBot(token=settings.BOT_TOKEN)
 
-        with patch('features.services.state.people_category_select_all', return_two_categories):
+        with patch('features.services.state._service_category_select_all', return_two_categories):
             state.ServiceCategory.load()
 
     def tearDown(self):
-        with patch('features.services.state.people_category_select_all', return_no_categories):
+        with patch('features.services.state._service_category_select_all', return_no_categories):
             state.ServiceCategory.load()
 
     @property
@@ -218,29 +218,29 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
         with patch('features.services.core.reply') as mock_reply:
             with patch('features.services.state._service_select', return_no_records):
-                with patch('features.services.state.people_category_select_all', return_no_categories):
+                with patch('features.services.state._service_category_select_all', return_no_categories):
                     await core.show_main_status(update, context)
                     mock_reply.assert_called_once_with(update, expected_text_no_categories, keyboards.standard(user))
                     mock_reply.reset_mock()
 
-                with patch('features.services.state.people_category_select_all', return_single_category):
+                with patch('features.services.state._service_category_select_all', return_single_category):
                     await core.show_main_status(update, context)
                     mock_reply.assert_called_once_with(update, expected_text_no_categories, keyboards.standard(user))
                     mock_reply.reset_mock()
 
             with patch('features.services.state._service_select', return_single_record):
-                with patch('features.services.state.people_category_select_all', return_no_categories):
+                with patch('features.services.state._service_category_select_all', return_no_categories):
                     await core.show_main_status(update, context)
                     mock_reply.assert_called_once_with(update, expected_text_single_record, keyboards.standard(user))
                     mock_reply.reset_mock()
 
-                with patch('features.services.state.people_category_select_all', return_single_category):
+                with patch('features.services.state._service_category_select_all', return_single_category):
                     await core.show_main_status(update, context)
                     mock_reply.assert_called_once_with(update, expected_text_single_record, keyboards.standard(user))
                     mock_reply.reset_mock()
 
             with patch('features.services.state._service_select', return_multiple_records):
-                with patch('features.services.state.people_category_select_all', return_single_category):
+                with patch('features.services.state._service_category_select_all', return_single_category):
                     await core.show_main_status(update, context)
                     records = return_multiple_records()
                     expected_text = [trans.ngettext("SERVICES_DM_HELLO_AGAIN_S {user_first_name} {record_count}",

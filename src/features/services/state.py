@@ -51,7 +51,7 @@ class ServiceCategory:
 
         cls._categories = {}
 
-        for category in people_category_select_all():
+        for category in _service_category_select_all():
             cls._categories[category["id"]] = ServiceCategory(category["id"], category["title"])
 
     @classmethod
@@ -239,29 +239,7 @@ def people_select_all_active() -> Iterator:
             yield {key: value for (key, value) in zip((i[0] for i in c.description), row)}
 
 
-def people_select_all() -> Iterator:
-    """Query all non-suspended records from the `people` table"""
-
-    with LogTime("SELECT * FROM people"):
-        c = db.cursor()
-
-        # noinspection SpellCheckingInspection
-        for row in c.execute("SELECT * FROM people "
-                             "ORDER BY tg_username COLLATE NOCASE"):
-            yield {key: value for (key, value) in zip((i[0] for i in c.description), row)}
-
-
-def people_category(category_id: int) -> Iterator:
-    """Query one category with the given ID"""
-
-    with LogTime("SELECT * FROM people_category WHERE id=?"):
-        c = db.cursor()
-
-        for row in c.execute("SELECT id, title FROM people_category WHERE id=?", (category_id,)):
-            yield {key: value for (key, value) in zip((i[0] for i in c.description), row)}
-
-
-def people_category_select_all() -> Iterator:
+def _service_category_select_all() -> Iterator:
     """Query all non-suspended records from the `people` table"""
 
     with LogTime("SELECT * FROM people_category"):
@@ -296,6 +274,22 @@ def people_views_register(viewer_tg_id: int, tg_id: int, category_id: int) -> No
         db.cursor().execute("INSERT INTO people_views (viewer_tg_id, tg_id, category_id) VALUES(?, ?, ?)",
                             (viewer_tg_id, tg_id, category_id))
         db.commit()
+
+
+def export_db() -> dict:
+    def service_select_all() -> Iterator:
+        """Query all non-suspended records from the `people` table"""
+
+        with LogTime("SELECT * FROM people"):
+            c = db.cursor()
+
+            # noinspection SpellCheckingInspection
+            for row in c.execute("SELECT * FROM people "
+                                 "ORDER BY tg_username COLLATE NOCASE"):
+                yield {key: value for (key, value) in zip((i[0] for i in c.description), row)}
+
+    return {"categories": [category for category in _service_category_select_all()],
+                "people": [person for person in service_select_all()]}
 
 
 def import_db(new_data) -> None:

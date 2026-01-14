@@ -347,8 +347,7 @@ async def _accept_category_and_request_occupation(update: Update, context: Conte
         lines.append(trans.gettext("SERVICES_DM_UPDATE_OCCUPATION {title} {current_value}").format(
             title=user_data["category_title"], current_value=user_data["occupation"]))
     else:
-        user_data["category_title"] = [c for c in state.people_category(category_id)][0][
-            "title"] if category_id != 0 else trans.gettext("SERVICES_CATEGORY_OTHER_TITLE")
+        user_data["category_title"] = state.ServiceCategory.get(category_id).title
 
         lines.append(trans.gettext("SERVICES_DM_ENROLL_ASK_OCCUPATION"))
 

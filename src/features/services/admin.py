@@ -33,9 +33,7 @@ async def _handle_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     trans = i18n.trans(user)
 
     if query.data == _ADMIN_EXPORT_DB:
-        services = {"categories": [category for category in state.people_category_select_all()],
-                    "people": [person for person in state.people_select_all()]}
-        await user.send_document(json.dumps(services, ensure_ascii=False, indent=2).encode("utf-8"),
+        await user.send_document(json.dumps(state.export_db(), ensure_ascii=False, indent=2).encode("utf-8"),
                                  filename="services.json", reply_markup=None)
     elif query.data == _ADMIN_IMPORT_DB:
         await query.message.reply_text(trans.gettext("SERVICES_MESSAGE_DM_ADMIN_REQUEST_DB"))
