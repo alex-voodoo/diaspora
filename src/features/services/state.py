@@ -73,16 +73,15 @@ class Service:
 
     _bot_username: str
 
-    def __init__(self, tg_id: int, tg_username: str, category_id: int, occupation: str, description: str, location: str,
-                 is_suspended: bool, last_modified: datetime.datetime):
-        self._tg_id = tg_id
-        self._tg_username = tg_username
-        self._category_id = category_id
-        self._occupation = occupation
-        self._description = description
-        self._location = location
-        self._is_suspended = is_suspended
-        self._last_modified = last_modified
+    def __init__(self, **kwargs):
+        self._tg_id = kwargs["tg_id"]
+        self._tg_username = kwargs["tg_username"]
+        self._category_id = kwargs["category_id"]
+        self._occupation = kwargs["occupation"]
+        self._description = kwargs["description"]
+        self._location = kwargs["location"]
+        self._is_suspended = kwargs["is_suspended"]
+        self._last_modified = kwargs["last_modified"]
 
     @property
     def category(self) -> ServiceCategory:
@@ -121,32 +120,34 @@ class Service:
         return f"t.me/{Service._bot_username}?start=service_info_{self._category_id or 0}_{self._tg_username}"
 
     @classmethod
+    def set_bot_username(cls, bot_username: str) -> None:
+        Service._bot_username = bot_username
+
+    @classmethod
     def get(cls, tg_id: int, category_id: int) -> Self:
-        for service in service_get(category_id, tg_id):
-            return Service(service["tg_id"], service["tg_username"], service["category_id"], service["occupation"], service["description"], service["location"], service["is_suspended"], service["last_modified"])
+        for service in _service_get(category_id, tg_id):
+            return Service(**service)
 
     @classmethod
     def get_by_username(cls, tg_username: str, category_id: int) -> Self:
-        for service in service_get(category_id, tg_username=tg_username):
-            return Service(service["tg_id"], service["tg_username"], service["category_id"], service["occupation"], service["description"], service["location"], service["is_suspended"], service["last_modified"])
+        for service in _service_get(category_id, tg_username=tg_username):
+            return Service(**service)
+
+    @classmethod
+    def delete(cls, tg_id: int, category_id: int) -> None:
+        _service_delete(tg_id, category_id)
+
+    @classmethod
+    def get_all_by_user(cls, tg_id) -> Iterator[Self]:
+        for service in _service_get_all_by_user(tg_id):
+            yield Service(**service)
 
 
-def service_get(category_id: int, tg_id: int = 0, tg_username: str = "") -> Iterator:
-    """Return a record of a user identified by `category_id` and either `tg_id` or `tg_username` """
+def _service_select(where_clause: str, where_params: tuple) -> Iterator:
+    fields = (
+        "tg_id", "tg_username", "category_id", "occupation", "description", "location", "is_suspended", "last_modified")
 
-    fields = ("tg_id", "tg_username", "category_id", "occupation", "description", "location", "is_suspended", "last_modified")
-    if tg_id != 0:
-        log_query = "SELECT FROM people WHERE tg_id=? AND category_id=?"
-        where_clause = "tg_id=? AND category_id=?"
-        where_params = (tg_id, category_id)
-    elif tg_username != "":
-        log_query = "SELECT FROM people WHERE tg_username=? AND category_id=?"
-        where_clause = "tg_username=? AND category_id=?"
-        where_params = (tg_username, category_id)
-    else:
-        raise RuntimeError("Neither tg_id nor tg_username were defined")
-
-    with LogTime(log_query):
+    with LogTime(f"SELECT FROM people WHERE {where_clause}"):
         c = db.cursor()
 
         for record in c.execute(f"SELECT {", ".join(fields)} FROM PEOPLE WHERE {where_clause}", where_params):
@@ -156,7 +157,23 @@ def service_get(category_id: int, tg_id: int = 0, tg_username: str = "") -> Iter
             yield data
 
 
-def people_delete(tg_id: int, category_id: int) -> None:
+def _service_get(category_id: int, tg_id: int = 0, tg_username: str = "") -> Iterator:
+    """Return a record of a user identified by `category_id` and either `tg_id` or `tg_username` """
+
+    if tg_id != 0:
+        where_clause = "tg_id=? AND category_id=?"
+        where_params = (tg_id, category_id)
+    elif tg_username != "":
+        where_clause = "tg_username=? AND category_id=?"
+        where_params = (tg_username, category_id)
+    else:
+        raise RuntimeError("Neither tg_id nor tg_username were defined")
+
+    for record in _service_select(where_clause, where_params):
+        yield record
+
+
+def _service_delete(tg_id: int, category_id: int) -> None:
     """Delete the user record identified by `tg_id`"""
 
     with LogTime("DELETE FROM people WHERE tg_id=? AND category_id=?"):
@@ -167,52 +184,11 @@ def people_delete(tg_id: int, category_id: int) -> None:
         db.commit()
 
 
-def people_exists(td_ig: int) -> bool:
-    """Return whether there a user record identified by `tg_id` exists in the `people` table"""
-
-    with LogTime("SELECT FROM people WHERE tg_id=?"):
-        c = db.cursor()
-
-        for _ in c.execute("SELECT tg_username FROM people WHERE tg_id=?", (td_ig,)):
-            return True
-
-        return False
-
-
-def people_records(td_ig: int) -> Iterator:
+def _service_get_all_by_user(tg_id: int) -> Iterator:
     """Return all records of a user identified by `tg_id` existing in the `people` table"""
 
-    with LogTime("SELECT FROM people WHERE tg_id=?"):
-        c = db.cursor()
-
-        for record in c.execute("SELECT pc.title, pc.id, p.occupation, p.description, p.location, p.tg_username "
-                                "FROM people p LEFT JOIN people_category pc ON p.category_id = pc.id "
-                                "WHERE p.tg_id=?", (td_ig,)):
-            yield {key: value for (key, value) in
-                   zip(("title", "id", "occupation", "description", "location", "tg_username"), record)}
-
-
-def people_record(category_id: int, tg_id: int = 0, tg_username: str = "") -> Iterator:
-    """Return a record of a user identified by `category_id` and either `tg_id` or `tg_username` """
-
-    if tg_id != 0:
-        with LogTime("SELECT FROM people WHERE tg_id=? AND category_id=?"):
-            c = db.cursor()
-
-            for record in c.execute("SELECT pc.title, pc.id, p.tg_id, p.occupation, p.description, p.location "
-                                    "FROM people p LEFT JOIN people_category pc ON p.category_id = pc.id "
-                                    "WHERE p.tg_id=? AND p.category_id=?", (tg_id, category_id)):
-                yield {key: value for (key, value) in
-                       zip(("title", "id", "tg_id", "occupation", "description", "location"), record)}
-    elif tg_username != "":
-        with LogTime("SELECT FROM people WHERE tg_username=? AND category_id=?"):
-            c = db.cursor()
-
-            for record in c.execute("SELECT pc.title, pc.id, p.tg_id, p.occupation, p.description, p.location "
-                                    "FROM people p LEFT JOIN people_category pc ON p.category_id = pc.id "
-                                    "WHERE p.tg_username=? AND p.category_id=?", (tg_username, category_id)):
-                yield {key: value for (key, value) in
-                       zip(("title", "id", "tg_id", "occupation", "description", "location"), record)}
+    for record in _service_select("tg_id=?", (tg_id, )):
+        yield record
 
 
 def people_insert_or_update(tg_id: int, tg_username: str, occupation: str, description: str, location: str,
@@ -348,8 +324,8 @@ def import_db(new_data) -> None:
         cursor.execute("INSERT INTO people (tg_id, tg_username, category_id, is_suspended, last_modified, occupation, "
                        "description, location) "
                        "VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (
-            p["tg_id"], p["tg_username"], p["category_id"], p["is_suspended"], p["last_modified"], p["occupation"],
-            p["description"], p["location"]))
+                           p["tg_id"], p["tg_username"], p["category_id"], p["is_suspended"], p["last_modified"],
+                           p["occupation"], p["description"], p["location"]))
 
     db.commit()
 

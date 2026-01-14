@@ -218,6 +218,7 @@ async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> No
 
 
 async def post_init(application: Application) -> None:
+    # noinspection PyUnresolvedReferences
     bot = application.bot
 
     trans = i18n.default()
@@ -229,6 +230,7 @@ async def post_init(application: Application) -> None:
     for administrator in settings.ADMINISTRATORS:
         await bot.set_chat_menu_button(administrator["id"], MenuButtonCommands())
 
+    services.post_init(application)
     antispam.post_init(application, group=1)
     glossary.post_init(application, group=4)
 

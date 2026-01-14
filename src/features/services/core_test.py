@@ -2,7 +2,6 @@
 Tests for the core part of the Services feature
 """
 
-import datetime
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -11,7 +10,8 @@ from telegram.ext import Application, CallbackContext
 
 from common import i18n
 from common.settings import settings
-from . import core, keyboards
+from . import core, keyboards, state
+from .test_util import *
 
 
 class AsyncMock(MagicMock):
@@ -44,6 +44,13 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.application = Application.builder().token(settings.BOT_TOKEN).build()
         self.application.bot = MockBot(token=settings.BOT_TOKEN)
+
+        with patch('features.services.state.people_category_select_all', return_two_categories):
+            state.ServiceCategory.load()
+
+    def tearDown(self):
+        with patch('features.services.state.people_category_select_all', return_no_categories):
+            state.ServiceCategory.load()
 
     @property
     def sent_message_text(self) -> str:
@@ -178,21 +185,20 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.sent_message_text, "\n".join(expected_sent_message_text))
 
     async def test_show_main_status(self):
-        def return_no_records(_user_id=0):
+        def return_no_records(where_clause: str = "", where_params: tuple = ()):
             return []
 
-        def return_single_record(_user_id=0):
-            return [{"title": "Other", "id": 0, "occupation": "O", "description": "D", "location": "L"}]
+        def return_single_record(where_clause: str = "", where_params: tuple = ()):
+            return [{"tg_id": 1, "tg_username": "U", "category_id": 1, "occupation": "O", "description": "D",
+                     "location": "L", "is_suspended": False, "last_modified": datetime.datetime.now()}]
 
-        def return_multiple_records(_user_id=0):
-            return [{"title": "Other", "id": 0, "occupation": "O0", "description": "D0", "location": "L0"},
-                    {"title": "Category 1", "id": 1, "occupation": "O1", "description": "D1", "location": "L1"}]
+        def return_multiple_records(where_clause: str = "", where_params: tuple = ()):
+            return [{"tg_id": 1, "tg_username": "U", "category_id": 1, "occupation": "O", "description": "D",
+                     "location": "L", "is_suspended": False, "last_modified": datetime.datetime.now()},
+                    {"tg_id": 1, "tg_username": "U", "category_id": 2, "occupation": "O2", "description": "D2",
+                     "location": "L2", "is_suspended": False, "last_modified": datetime.datetime.now()}]
 
-        def return_no_categories():
-            return []
-
-        def return_single_category():
-            return [{"id": 1, "title": "Category 1"}]
+        state.Service.set_bot_username("bot_username")
 
         user = User(id=1, first_name="Joe", is_bot=False, username="joe_username")
         message = Message(message_id=1, date=datetime.datetime.now(), chat=Chat(id=1, type=Chat.PRIVATE),
@@ -208,11 +214,10 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
             bot_first_name=context.bot.first_name, main_chat_name=chat_title)
         expected_text_single_record = "\n".join(
             [trans.gettext("SERVICES_DM_HELLO_AGAIN {user_first_name}").format(user_first_name=user.first_name),
-                core._main_status_record_description(trans, context.bot.username, user.username,
-                                                     return_single_record(1)[0])])
+             core._main_status_record_description(state.Service(**return_single_record()[0]))])
 
         with patch('features.services.core.reply') as mock_reply:
-            with patch('features.services.state.people_records', return_no_records):
+            with patch('features.services.state._service_select', return_no_records):
                 with patch('features.services.state.people_category_select_all', return_no_categories):
                     await core.show_main_status(update, context)
                     mock_reply.assert_called_once_with(update, expected_text_no_categories, keyboards.standard(user))
@@ -223,7 +228,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                     mock_reply.assert_called_once_with(update, expected_text_no_categories, keyboards.standard(user))
                     mock_reply.reset_mock()
 
-            with patch('features.services.state.people_records', return_single_record):
+            with patch('features.services.state._service_select', return_single_record):
                 with patch('features.services.state.people_category_select_all', return_no_categories):
                     await core.show_main_status(update, context)
                     mock_reply.assert_called_once_with(update, expected_text_single_record, keyboards.standard(user))
@@ -234,7 +239,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                     mock_reply.assert_called_once_with(update, expected_text_single_record, keyboards.standard(user))
                     mock_reply.reset_mock()
 
-            with patch('features.services.state.people_records', return_multiple_records):
+            with patch('features.services.state._service_select', return_multiple_records):
                 with patch('features.services.state.people_category_select_all', return_single_category):
                     await core.show_main_status(update, context)
                     records = return_multiple_records()
@@ -244,7 +249,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                                                                          record_count=len(records))]
                     for record in records:
                         expected_text.append(
-                            core._main_status_record_description(trans, context.bot.username, user.username, record))
+                            core._main_status_record_description(state.Service(**record)))
                     mock_reply.assert_called_once_with(update, "\n".join(expected_text), keyboards.standard(user))
                     mock_reply.reset_mock()
 

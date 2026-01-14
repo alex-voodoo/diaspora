@@ -15,7 +15,7 @@ from common import i18n
 from common.messaging_helpers import reply, send
 from common.settings import settings
 from . import admin, const, keyboards, state
-from .state import ServiceCategory
+from .state import Service, ServiceCategory
 
 
 def _format_hint(text: str, limit: int) -> str:
@@ -99,12 +99,8 @@ async def _request_next_data_field(update: Update, context: ContextTypes.DEFAULT
     await reply(update, "\n".join(lines))
 
 
-def _main_status_record_description(trans: gettext.GNUTranslations, bot_username: str, username: str,
-                                    record: dict) -> str:
-    return "<b>{c}:</b> <a href=\"{h}\">{o}</a> ({l})".format(
-        c=record["title"] if record["title"] else trans.gettext("SERVICES_BUTTON_ENROLL_CATEGORY_DEFAULT"),
-        h=_format_deep_link_to_service(bot_username, record["id"], username), o=record["occupation"],
-        l=record["location"])
+def _main_status_record_description(service: Service) -> str:
+    return f"<b>{service.category.title}:</b> <a href=\"{service.deep_link}\">{service.occupation}</a> ({service.location})"
 
 
 async def show_main_status(update: Update, context: ContextTypes.DEFAULT_TYPE, prefix="") -> None:
@@ -112,7 +108,7 @@ async def show_main_status(update: Update, context: ContextTypes.DEFAULT_TYPE, p
 
     user = update.effective_user
 
-    records = [r for r in state.people_records(user.id)]
+    records = [r for r in state.Service.get_all_by_user(user.id)]
 
     trans = i18n.trans(user)
 
@@ -131,7 +127,7 @@ async def show_main_status(update: Update, context: ContextTypes.DEFAULT_TYPE, p
                                        len(records)).format(user_first_name=user.first_name, record_count=len(records)))
 
         for record in records:
-            text.append(_main_status_record_description(trans, context.bot.username, user.username, record))
+            text.append(_main_status_record_description(record))
 
         await reply(update, "\n".join(text), keyboards.standard(user))
     else:
@@ -289,7 +285,7 @@ async def _handle_command_enroll(update: Update, context: ContextTypes.DEFAULT_T
 
     await reply(update, trans.gettext("SERVICES_DM_ENROLL_START"))
 
-    existing_category_ids = [r["id"] for r in state.people_records(query.from_user.id)]
+    existing_category_ids = [service.category.id for service in state.Service.get_all_by_user(query.from_user.id)]
     categories = [{"id": c.id, "title": c.title} for c in ServiceCategory.all() if c.id not in existing_category_ids]
 
     category_buttons = keyboards.select_category(trans, categories, 0 not in existing_category_ids)
@@ -317,7 +313,7 @@ async def _handle_command_update(update: Update, context: ContextTypes.DEFAULT_T
 
     trans = i18n.trans(query.from_user)
     await reply(update, trans.gettext("SERVICES_DM_SELECT_CATEGORY_FOR_UPDATE"),
-                keyboards.select_category(trans, state.people_records(query.from_user.id)))
+                keyboards.select_category(trans, state.Service.get_all_by_user(query.from_user.id)))
 
     context.user_data["mode"] = "update"
 
@@ -342,12 +338,11 @@ async def _accept_category_and_request_occupation(update: Update, context: Conte
 
     lines = []
     if "mode" in context.user_data and context.user_data["mode"] == "update":
-        records = [r for r in state.people_record(category_id, tg_id=user.id)]
-        user_data["category_title"] = records[0]["title"] if user_data["category_id"] != 0 else trans.gettext(
-            "SERVICES_CATEGORY_OTHER_TITLE")
-        user_data["location"] = records[0]["location"]
-        user_data["occupation"] = records[0]["occupation"]
-        user_data["description"] = records[0]["description"]
+        service = state.Service.get(user.id, category_id)
+        user_data["category_title"] = service.category.title
+        user_data["location"] = service.location
+        user_data["occupation"] = service.occupation
+        user_data["description"] = service.description
 
         lines.append(trans.gettext("SERVICES_DM_UPDATE_OCCUPATION {title} {current_value}").format(
             title=user_data["category_title"], current_value=user_data["occupation"]))
@@ -457,7 +452,7 @@ async def _verify_legality_and_finalise_data_collection(update: Update, context:
             await _moderate_new_data(context, saved_user_data)
 
     elif query.data == const.RESPONSE_NO:
-        state.people_delete(from_user.id, int(user_data["category_id"]))
+        state.Service.delete(from_user.id, int(user_data["category_id"]))
         user_data.clear()
 
         await query.edit_message_reply_markup(None)
@@ -515,7 +510,7 @@ async def _handle_command_retire(update: Update, _context: ContextTypes.DEFAULT_
 
     trans = i18n.trans(query.from_user)
     await reply(update, trans.gettext("SERVICES_DM_SELECT_CATEGORY_FOR_RETIRE"),
-                keyboards.select_category(trans, state.people_records(query.from_user.id)))
+                keyboards.select_category(trans, state.Service.get_all_by_user(query.from_user.id)))
 
     return const.SELECTING_CATEGORY
 
@@ -528,7 +523,7 @@ async def _retire_received_category(update: Update, context: ContextTypes.DEFAUL
     await query.answer()
     await query.edit_message_reply_markup(None)
 
-    state.people_delete(query.from_user.id, int(query.data))
+    state.Service.delete(query.from_user.id, int(query.data))
 
     await show_main_status(update, context, i18n.trans(query.from_user).gettext("SERVICES_DM_RETIRE"))
 
@@ -577,7 +572,12 @@ async def handle_extended_start_command(update: Update, _context: ContextTypes.D
             occupation=service.occupation, username=service.tg_username))
 
 
-def init(application: Application, group: int):
+def post_init(application: Application) -> None:
+    # noinspection PyUnresolvedReferences
+    Service.set_bot_username(application.bot.username)
+
+
+def init(application: Application, group: int) -> None:
     """Prepare the feature as defined in the configuration"""
 
     # Enrolling

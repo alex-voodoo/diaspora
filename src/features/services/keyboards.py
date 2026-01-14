@@ -41,7 +41,7 @@ def standard(user: User) -> InlineKeyboardMarkup:
 
     buttons = [[button_who]]
 
-    records = [r for r in state.people_records(user.id)]
+    records = [r for r in state.Service.get_all_by_user(user.id)]
 
     if not records:
         buttons.append([button_enroll] if not records else [button_enroll_more])
