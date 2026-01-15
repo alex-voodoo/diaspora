@@ -156,11 +156,10 @@ async def _moderate_new_data(context: ContextTypes.DEFAULT_TYPE, data) -> None:
             occupation=data["occupation"], username=data["tg_username"]), keyboards.approve_service_change(data))
 
 
-def _who_people_to_message(people: list, context: ContextTypes.DEFAULT_TYPE) -> list:
+def _who_people_to_message(people: list[Service]) -> list[str]:
     result = []
     for p in people:
-        link = _format_deep_link_to_service(context.bot.username, p["category_id"], p["tg_username"])
-        result.append(f"- @{p["tg_username"]} ({p["location"]}): <a href=\"{link}\">{p["occupation"]}</a>")
+        result.append(f"- @{p.tg_username} ({p.location}): <a href=\"{p.deep_link}\">{p.occupation}</a>")
     return result
 
 
@@ -210,7 +209,7 @@ async def _who_received_category(update: Update, context: ContextTypes.DEFAULT_T
                     keyboards.standard(query.from_user))
         return ConversationHandler.END
 
-    user_list = ["<b>{t}</b>".format(t=category["title"])] + _who_people_to_message(category["people"], context)
+    user_list = ["<b>{t}</b>".format(t=category["title"])] + _who_people_to_message(category["people"])
 
     await reply(update, "\n".join(user_list), keyboards.standard(query.from_user))
 
@@ -234,10 +233,8 @@ async def _who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     for category in ServiceCategory.all():
         categorised_people[category.id] = {"title": category.title, "people": []}
 
-    for person in state.people_select_all_active():
-        if "category_id" not in person or person["category_id"] not in categorised_people:
-            person["category_id"] = 0
-        categorised_people[person["category_id"]]["people"].append(person)
+    for service in state.Service.get_all_active():
+        categorised_people[service.category.id]["people"].append(service)
 
     filtered_people = [{"title": c["title"], "category_id": i, "people": c["people"]} for i, c in
                        categorised_people.items() if i != 0 and c["people"]]
@@ -250,12 +247,12 @@ async def _who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         return await _who_request_category(update, context, filtered_people)
     else:
         if len(filtered_people) == 1:
-            user_list += _who_people_to_message(filtered_people[0]["people"], context)
+            user_list += _who_people_to_message(filtered_people[0]["people"])
         else:
             for category in filtered_people:
                 user_list.append("")
                 user_list.append("<b>{t}</b>".format(t=category["title"]))
-                user_list += _who_people_to_message(category["people"], context)
+                user_list += _who_people_to_message(category["people"])
 
         if len(user_list) == 1:
             user_list = [trans.gettext("SERVICES_DM_WHO_EMPTY")]

@@ -134,6 +134,11 @@ class Service:
             return Service(**service)
 
     @classmethod
+    def get_all_active(cls) -> Iterator[Self]:
+        for service in _service_get_all_active():
+            yield Service(**service)
+
+    @classmethod
     def delete(cls, tg_id: int, category_id: int) -> None:
         _service_delete(tg_id, category_id)
 
@@ -143,14 +148,21 @@ class Service:
             yield Service(**service)
 
 
-def _service_select(where_clause: str, where_params: tuple) -> Iterator:
+def _service_select(where_clause: str="", where_params: tuple=(), additional_clause: str="") -> Iterator:
     fields = (
         "tg_id", "tg_username", "category_id", "occupation", "description", "location", "is_suspended", "last_modified")
 
-    with LogTime(f"SELECT FROM people WHERE {where_clause}"):
+    query = [f"SELECT {", ".join(fields)} FROM PEOPLE"]
+    if where_clause:
+        query.append(f"WHERE {where_clause}")
+    if additional_clause:
+        query.append(additional_clause)
+    query = " ".join(query)
+
+    with LogTime(query):
         c = db.cursor()
 
-        for record in c.execute(f"SELECT {", ".join(fields)} FROM PEOPLE WHERE {where_clause}", where_params):
+        for record in c.execute(query, where_params):
             data = {key: value for (key, value) in zip(fields, record)}
             data["last_modified"] = datetime.datetime.fromisoformat(data["last_modified"])
             data["is_suspended"] = bool(data["is_suspended"])
@@ -173,6 +185,20 @@ def _service_get(category_id: int, tg_id: int = 0, tg_username: str = "") -> Ite
         yield record
 
 
+def _service_get_all_active() -> Iterator:
+    """Query all non-suspended records from the `people` table"""
+
+    for record in _service_select("is_suspended=0", (), "ORDER BY tg_username COLLATE NOCASE"):
+        yield record
+
+
+def _service_get_all_by_user(tg_id: int) -> Iterator:
+    """Return all records of a user identified by `tg_id` existing in the `people` table"""
+
+    for record in _service_select("tg_id=?", (tg_id, )):
+        yield record
+
+
 def _service_delete(tg_id: int, category_id: int) -> None:
     """Delete the user record identified by `tg_id`"""
 
@@ -182,13 +208,6 @@ def _service_delete(tg_id: int, category_id: int) -> None:
         c.execute("DELETE FROM people WHERE tg_id=? AND category_id=?", (tg_id, category_id))
 
         db.commit()
-
-
-def _service_get_all_by_user(tg_id: int) -> Iterator:
-    """Return all records of a user identified by `tg_id` existing in the `people` table"""
-
-    for record in _service_select("tg_id=?", (tg_id, )):
-        yield record
 
 
 def people_insert_or_update(tg_id: int, tg_username: str, occupation: str, description: str, location: str,
@@ -224,19 +243,6 @@ def people_suspend(tg_id: int, category_id: int) -> None:
                             "WHERE tg_id=? AND category_id=?", (tg_id, category_id))
 
         db.commit()
-
-
-def people_select_all_active() -> Iterator:
-    """Query all non-suspended records from the `people` table"""
-
-    with LogTime("SELECT * FROM people WHERE is_suspended=0"):
-        c = db.cursor()
-
-        # noinspection SpellCheckingInspection
-        for row in c.execute("SELECT tg_id, tg_username, occupation, location, category_id FROM people "
-                             "WHERE is_suspended=0 "
-                             "ORDER BY tg_username COLLATE NOCASE"):
-            yield {key: value for (key, value) in zip((i[0] for i in c.description), row)}
 
 
 def _service_category_select_all() -> Iterator:
