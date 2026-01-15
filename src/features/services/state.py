@@ -139,6 +139,16 @@ class Service:
             yield Service(**service)
 
     @classmethod
+    def set(cls, tg_id: int, tg_username: str, occupation: str, description: str, location: str, is_suspended: bool,
+            category_id: int) -> None:
+        _service_insert_or_update(tg_id, tg_username, occupation, description, location, 1 if is_suspended else 0,
+                                  category_id)
+
+    @classmethod
+    def set_is_suspended(cls, tg_id: int, category_id: int, is_suspended: bool):
+        _set_service_is_suspended(tg_id, category_id, is_suspended)
+
+    @classmethod
     def delete(cls, tg_id: int, category_id: int) -> None:
         _service_delete(tg_id, category_id)
 
@@ -148,7 +158,13 @@ class Service:
             yield Service(**service)
 
 
-def _service_select(where_clause: str="", where_params: tuple=(), additional_clause: str="") -> Iterator:
+def _execute_sql(query: str, parameters: tuple) -> None:
+    with LogTime(query):
+        db.cursor().execute(query, parameters)
+        db.commit()
+
+
+def _service_select(where_clause: str = "", where_params: tuple = (), additional_clause: str = "") -> Iterator:
     fields = (
         "tg_id", "tg_username", "category_id", "occupation", "description", "location", "is_suspended", "last_modified")
 
@@ -195,7 +211,7 @@ def _service_get_all_active() -> Iterator:
 def _service_get_all_by_user(tg_id: int) -> Iterator:
     """Return all records of a user identified by `tg_id` existing in the `people` table"""
 
-    for record in _service_select("tg_id=?", (tg_id, )):
+    for record in _service_select("tg_id=?", (tg_id,)):
         yield record
 
 
@@ -210,39 +226,17 @@ def _service_delete(tg_id: int, category_id: int) -> None:
         db.commit()
 
 
-def people_insert_or_update(tg_id: int, tg_username: str, occupation: str, description: str, location: str,
-                            is_suspended: int, category_id: int) -> None:
+def _service_insert_or_update(tg_id: int, tg_username: str, occupation: str, description: str, location: str,
+                              is_suspended: int, category_id: int) -> None:
     """Create a new or update the existing record identified by `tg_id` in the `people` table"""
 
-    with LogTime("INSERT OR REPLACE INTO people"):
-        db.cursor().execute("INSERT OR REPLACE INTO people "
-                            "(tg_id, tg_username, occupation, description, location, is_suspended, category_id) "
-                            "VALUES(?, ?, ?, ?, ?, ?, ?)",
-                            (tg_id, tg_username, occupation, description, location, is_suspended, category_id))
-
-        db.commit()
+    _execute_sql("INSERT OR REPLACE INTO people (tg_id, tg_username, occupation, description, location, is_suspended, "
+                 "category_id) VALUES(?, ?, ?, ?, ?, ?, ?)",
+        (tg_id, tg_username, occupation, description, location, is_suspended, category_id))
 
 
-def people_approve(tg_id: int, category_id: int) -> None:
-    """Set `is_suspended` to 0 for the user record identified by `tg_id`"""
-
-    with LogTime("UPDATE people SET is_suspended=0"):
-        db.cursor().execute("UPDATE people "
-                            "SET is_suspended=0 "
-                            "WHERE tg_id=? AND category_id=?", (tg_id, category_id))
-
-        db.commit()
-
-
-def people_suspend(tg_id: int, category_id: int) -> None:
-    """Set `is_suspended` to 1 for the user record identified by `tg_id`"""
-
-    with LogTime("UPDATE people SET is_suspended=1"):
-        db.cursor().execute("UPDATE people "
-                            "SET is_suspended=1 "
-                            "WHERE tg_id=? AND category_id=?", (tg_id, category_id))
-
-        db.commit()
+def _set_service_is_suspended(tg_id: int, category_id: int, is_suspended: bool) -> None:
+    _execute_sql("UPDATE people SET is_suspended=? WHERE tg_id=? AND category_id=?", (is_suspended, tg_id, category_id))
 
 
 def _service_category_select_all() -> Iterator:
@@ -295,7 +289,7 @@ def export_db() -> dict:
                 yield {key: value for (key, value) in zip((i[0] for i in c.description), row)}
 
     return {"categories": [category for category in _service_category_select_all()],
-                "people": [person for person in service_select_all()]}
+            "people": [person for person in service_select_all()]}
 
 
 def import_db(new_data) -> None:

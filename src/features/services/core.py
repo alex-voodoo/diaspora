@@ -100,7 +100,8 @@ async def _request_next_data_field(update: Update, context: ContextTypes.DEFAULT
 
 
 def _main_status_record_description(service: Service) -> str:
-    return f"<b>{service.category.title}:</b> <a href=\"{service.deep_link}\">{service.occupation}</a> ({service.location})"
+    return (f"<b>{service.category.title}:</b> <a href=\"{service.deep_link}\">{service.occupation}</a> ("
+            f"{service.location})")
 
 
 async def show_main_status(update: Update, context: ContextTypes.DEFAULT_TYPE, prefix="") -> None:
@@ -423,9 +424,8 @@ async def _verify_legality_and_finalise_data_collection(update: Update, context:
     trans = i18n.trans(query.from_user)
 
     if query.data == const.RESPONSE_YES:
-        state.people_insert_or_update(from_user.id, from_user.username, user_data["occupation"],
-                                      user_data["description"], user_data["location"],
-                                      (0 if settings.SERVICES_MODERATION_IS_LAZY else 1), user_data["category_id"])
+        state.Service.set(from_user.id, from_user.username, user_data["occupation"], user_data["description"],
+                          user_data["location"], not settings.SERVICES_MODERATION_IS_LAZY, user_data["category_id"])
 
         saved_user_data = copy.deepcopy(user_data)
         user_data.clear()
@@ -476,7 +476,7 @@ async def _confirm_user_data(update: Update, _context: ContextTypes.DEFAULT_TYPE
                 moderator_id=query.from_user.id, user_id=tg_id, category_id=category_id))
 
         if not settings.SERVICES_MODERATION_IS_LAZY:
-            state.people_approve(tg_id, category_id)
+            state.Service.set_is_suspended(tg_id, category_id, False)
 
         await query.edit_message_reply_markup(None)
         await reply(update, trans.gettext("SERVICES_ADMIN_USER_RECORD_APPROVED"))
@@ -486,7 +486,7 @@ async def _confirm_user_data(update: Update, _context: ContextTypes.DEFAULT_TYPE
                 moderator_id=query.from_user.id, user_id=tg_id, category_id=category_id))
 
         if settings.SERVICES_MODERATION_IS_LAZY:
-            state.people_suspend(tg_id, category_id)
+            state.Service.set_is_suspended(tg_id, category_id, True)
 
         await query.edit_message_reply_markup(None)
         await reply(update, trans.gettext("SERVICES_ADMIN_USER_RECORD_SUSPENDED"))
