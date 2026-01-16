@@ -158,31 +158,64 @@ class Service:
             yield Service(**service)
 
 
-def _execute_sql(query: str, parameters: tuple) -> None:
+def _sql_exec(query: str, parameters: tuple = ()) -> None:
+    """Execute an SQL query that does not return data
+
+    @param query: SQL query with placeholders for bound parameters
+    @param parameters: data to bind
+
+    `query` and `parameters` are passed directly to `sqlite3.Cursor.execute()` method.
+
+    Commits the transaction immediately after executing the query.
+    """
+
     with LogTime(query):
         db.cursor().execute(query, parameters)
         db.commit()
 
 
-def _service_select(where_clause: str = "", where_params: tuple = (), additional_clause: str = "") -> Iterator:
+def _sql_query(query: str, parameters: tuple = ()) -> Iterator:
+    """Execute an SQL query that returns data
+
+    @param query: SQL query with placeholders for bound parameters
+    @param parameters: data to bind
+
+    `query` and `parameters` are passed directly to `sqlite3.Cursor.execute()` method.
+    """
+
+    with LogTime(query):
+        for record in db.cursor().execute(query, parameters):
+            yield record
+
+
+def _service_select(where_clause: str = "", where_params: tuple = (), additional_clause: str = "") -> Iterator[dict]:
+    """Select services with optional clauses
+
+    @param where_clause: what to put into SQL WHERE clause, with placeholders for bound parameters
+    @param where_params: data to bind in the WHERE clause
+    @param additional_clause: what to add after WHERE
+    @return: data returned by the DB
+
+    Executes an SQL SELECT query that selects all columns from the `people` table.  Converts data to their correct types
+    (`last_modified` to datetime and `is_suspended` to bool).  Data is returned as a dictionary with keys compatible
+    with `Service.__init__()`.
+    """
+
     fields = (
         "tg_id", "tg_username", "category_id", "occupation", "description", "location", "is_suspended", "last_modified")
 
-    query = [f"SELECT {", ".join(fields)} FROM PEOPLE"]
+    query = [f"SELECT {", ".join(fields)} FROM people"]
     if where_clause:
         query.append(f"WHERE {where_clause}")
     if additional_clause:
         query.append(additional_clause)
     query = " ".join(query)
 
-    with LogTime(query):
-        c = db.cursor()
-
-        for record in c.execute(query, where_params):
-            data = {key: value for (key, value) in zip(fields, record)}
-            data["last_modified"] = datetime.datetime.fromisoformat(data["last_modified"])
-            data["is_suspended"] = bool(data["is_suspended"])
-            yield data
+    for record in _sql_query(query, where_params):
+        data = {key: value for (key, value) in zip(fields, record)}
+        data["last_modified"] = datetime.datetime.fromisoformat(data["last_modified"])
+        data["is_suspended"] = bool(data["is_suspended"])
+        yield data
 
 
 def _service_get(category_id: int, tg_id: int = 0, tg_username: str = "") -> Iterator:
@@ -218,25 +251,20 @@ def _service_get_all_by_user(tg_id: int) -> Iterator:
 def _service_delete(tg_id: int, category_id: int) -> None:
     """Delete the user record identified by `tg_id`"""
 
-    with LogTime("DELETE FROM people WHERE tg_id=? AND category_id=?"):
-        c = db.cursor()
-
-        c.execute("DELETE FROM people WHERE tg_id=? AND category_id=?", (tg_id, category_id))
-
-        db.commit()
+    _sql_exec("DELETE FROM people WHERE tg_id=? AND category_id=?", (tg_id, category_id))
 
 
 def _service_insert_or_update(tg_id: int, tg_username: str, occupation: str, description: str, location: str,
                               is_suspended: int, category_id: int) -> None:
     """Create a new or update the existing record identified by `tg_id` in the `people` table"""
 
-    _execute_sql("INSERT OR REPLACE INTO people (tg_id, tg_username, occupation, description, location, is_suspended, "
-                 "category_id) VALUES(?, ?, ?, ?, ?, ?, ?)",
-        (tg_id, tg_username, occupation, description, location, is_suspended, category_id))
+    _sql_exec("INSERT OR REPLACE INTO people (tg_id, tg_username, occupation, description, location, is_suspended, "
+              "category_id) VALUES(?, ?, ?, ?, ?, ?, ?)",
+              (tg_id, tg_username, occupation, description, location, is_suspended, category_id))
 
 
 def _set_service_is_suspended(tg_id: int, category_id: int, is_suspended: bool) -> None:
-    _execute_sql("UPDATE people SET is_suspended=? WHERE tg_id=? AND category_id=?", (is_suspended, tg_id, category_id))
+    _sql_exec("UPDATE people SET is_suspended=? WHERE tg_id=? AND category_id=?", (is_suspended, tg_id, category_id))
 
 
 def _service_category_select_all() -> Iterator:
@@ -256,10 +284,7 @@ def people_category_views_register(viewer_tg_id: int, category_id: int) -> None:
     @param category_id: ID of a category being viewed, -1 for the general view (no specific category was requested).
     """
 
-    with LogTime("INSERT INTO people_category_views"):
-        db.cursor().execute("INSERT INTO people_category_views (viewer_tg_id, category_id) VALUES(?, ?)",
-                            (viewer_tg_id, category_id))
-        db.commit()
+    _sql_exec("INSERT INTO people_category_views (viewer_tg_id, category_id) VALUES(?, ?)", (viewer_tg_id, category_id))
 
 
 def people_views_register(viewer_tg_id: int, tg_id: int, category_id: int) -> None:
@@ -270,10 +295,8 @@ def people_views_register(viewer_tg_id: int, tg_id: int, category_id: int) -> No
     @param category_id: ID of a category of the service that is being viewed.
     """
 
-    with LogTime("INSERT INTO people_views"):
-        db.cursor().execute("INSERT INTO people_views (viewer_tg_id, tg_id, category_id) VALUES(?, ?, ?)",
-                            (viewer_tg_id, tg_id, category_id))
-        db.commit()
+    _sql_exec("INSERT INTO people_views (viewer_tg_id, tg_id, category_id) VALUES(?, ?, ?)",
+              (viewer_tg_id, tg_id, category_id))
 
 
 def export_db() -> dict:
