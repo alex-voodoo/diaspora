@@ -83,10 +83,11 @@ def select_category(trans: gettext.GNUTranslations, categories, show_other=False
 
     buttons = []
     added_other = False
-    for category in categories if categories else [{"id": c.id, "title": c.title} for c in ServiceCategory.all()]:
-        buttons.append((InlineKeyboardButton(
-            category["title"] if category["title"] else trans.gettext("SERVICES_BUTTON_ENROLL_CATEGORY_DEFAULT"),
-            callback_data=category["id"] if category["id"] else 0),))
+    for category in categories if categories else [c for c in ServiceCategory.all()]:
+        if isinstance(category, state.ServiceCategory):
+            buttons.append((InlineKeyboardButton(category.title, callback_data=category.id),))
+        else:
+            buttons.append((InlineKeyboardButton(category["title"], callback_data=category["id"]),))
         if not category["id"]:
             added_other = True
     if show_other and not added_other:
