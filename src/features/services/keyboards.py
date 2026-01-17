@@ -3,6 +3,7 @@ Keyboards used in the Services feature
 """
 
 import gettext
+from collections.abc import Iterable
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, User
 
@@ -54,13 +55,11 @@ def standard(user: User) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(buttons)
 
 
-def select_category(trans: gettext.GNUTranslations, categories, show_other=False) -> InlineKeyboardMarkup | None:
+def select_category(categories: Iterable[ServiceCategory], show_other=False) -> InlineKeyboardMarkup | None:
     """Build the keyboard for selecting a category
 
-    Categories can be provided via the optional `categories` parameter and should be an iterable of dict-like items,
-    where each item should have `id` and `title` keys, holding the ID and the title of the category.
-
-    If `categories` is None or empty, the function will load data from the DB.
+    Categories can be provided via the `categories` parameter.  If it is empty, the function will use the full list of
+    categories existing in the DB.
 
     If there is at least one category, returns an instance of InlineKeyboardMarkup that contains a vertically aligned
     set of buttons:
@@ -78,21 +77,17 @@ def select_category(trans: gettext.GNUTranslations, categories, show_other=False
     Each button has the category ID in its callback data.  The "Default" item means "no category", its callback data is
     set to 0.
 
-    If no categories are defined in the DB and show_other is False, this function returns None.
+    If no categories are defined in the DB and `show_other` is False, this function returns None.
     """
 
     buttons = []
     added_other = False
-    for category in categories if categories else [c for c in ServiceCategory.all()]:
-        if isinstance(category, state.ServiceCategory):
-            buttons.append((InlineKeyboardButton(category.title, callback_data=category.id),))
-        else:
-            buttons.append((InlineKeyboardButton(category["title"], callback_data=category["id"]),))
-        if not category["id"]:
+    for category in categories if categories else ServiceCategory.all():
+        buttons.append((InlineKeyboardButton(category.title, callback_data=category.id),))
+        if category.id == 0:
             added_other = True
     if show_other and not added_other:
-        buttons.append(
-            (InlineKeyboardButton(trans.gettext("SERVICES_BUTTON_ENROLL_CATEGORY_DEFAULT"), callback_data=0),))
+        buttons.append((InlineKeyboardButton(i18n.default().gettext("SERVICES_CATEGORY_OTHER_TITLE"), callback_data=0),))
     if not buttons:
         return None
     return InlineKeyboardMarkup(buttons)

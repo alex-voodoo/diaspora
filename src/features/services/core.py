@@ -175,12 +175,13 @@ async def _who_request_category(update: Update, context: ContextTypes.DEFAULT_TY
     category_list = []
 
     for c in filtered_people:
-        category_list.append(
-            {"id": c["category_id"], "title": c["title"], "text": "{t}: {c}".format(t=c["title"], c=len(c["people"]))})
+        category_list.append({"object": ServiceCategory(c["category_id"], c["title"]),
+                              "text": "{t}: {c}".format(t=c["title"], c=len(c["people"]))})
 
     trans = i18n.trans(query.from_user)
     await reply(update, trans.gettext("SERVICES_DM_WHO_CATEGORY_LIST").format(
-        categories="\n".join([c["text"] for c in category_list])), keyboards.select_category(trans, category_list))
+        categories="\n".join([c["text"] for c in category_list])),
+                keyboards.select_category([c["object"] for c in category_list]))
 
     context.user_data["who_request_category"] = filtered_people
 
@@ -284,9 +285,9 @@ async def _handle_command_enroll(update: Update, context: ContextTypes.DEFAULT_T
     await reply(update, trans.gettext("SERVICES_DM_ENROLL_START"))
 
     existing_category_ids = [service.category.id for service in state.Service.get_all_by_user(query.from_user.id)]
-    categories = [{"id": c.id, "title": c.title} for c in ServiceCategory.all() if c.id not in existing_category_ids]
+    categories = [c for c in ServiceCategory.all() if c.id not in existing_category_ids]
 
-    category_buttons = keyboards.select_category(trans, categories, 0 not in existing_category_ids)
+    category_buttons = keyboards.select_category(categories, 0 not in existing_category_ids)
 
     if category_buttons:
         await reply(update, trans.gettext("SERVICES_DM_ENROLL_ASK_CATEGORY"), category_buttons)
@@ -311,7 +312,7 @@ async def _handle_command_update(update: Update, context: ContextTypes.DEFAULT_T
 
     trans = i18n.trans(query.from_user)
     await reply(update, trans.gettext("SERVICES_DM_SELECT_CATEGORY_FOR_UPDATE"),
-                keyboards.select_category(trans, state.Service.get_all_by_user(query.from_user.id)))
+                keyboards.select_category([s.category for s in state.Service.get_all_by_user(query.from_user.id)]))
 
     context.user_data["mode"] = "update"
 
@@ -506,7 +507,7 @@ async def _handle_command_retire(update: Update, _context: ContextTypes.DEFAULT_
 
     trans = i18n.trans(query.from_user)
     await reply(update, trans.gettext("SERVICES_DM_SELECT_CATEGORY_FOR_RETIRE"),
-                keyboards.select_category(trans, state.Service.get_all_by_user(query.from_user.id)))
+                keyboards.select_category([s.category for s in state.Service.get_all_by_user(query.from_user.id)]))
 
     return const.SELECTING_CATEGORY
 
