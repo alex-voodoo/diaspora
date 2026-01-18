@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-01-17 23:17+0100\n"
+"POT-Creation-Date: 2026-01-18 12:43+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -392,7 +392,7 @@ msgstr "This category is already empty."
 msgid "SERVICES_DM_WHO_LIST_HEADING"
 msgstr "Here is the directory:"
 
-#: features/services/core.py:233 features/services/keyboards.py:92
+#: features/services/core.py:233 features/services/keyboards.py:90
 #: features/services/state.py:45 features/services/state_test.py:22
 #: features/services/state_test.py:30
 msgid "SERVICES_CATEGORY_OTHER_TITLE"
@@ -519,11 +519,12 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/keyboards.py:35
+#: features/services/keyboards.py:35 features/services/keyboards_test.py:39
+#: features/services/keyboards_test.py:50
 msgid "SERVICES_BUTTON_WHO"
 msgstr "Show records"
 
-#: features/services/keyboards.py:36
+#: features/services/keyboards.py:36 features/services/keyboards_test.py:42
 msgid "SERVICES_BUTTON_ENROLL"
 msgstr "Register"
 
@@ -531,19 +532,19 @@ msgstr "Register"
 msgid "SERVICES_BUTTON_ENROLL_MORE"
 msgstr "Add another record"
 
-#: features/services/keyboards.py:38
+#: features/services/keyboards.py:38 features/services/keyboards_test.py:52
 msgid "SERVICES_BUTTON_UPDATE"
 msgstr "Update a record"
 
-#: features/services/keyboards.py:39
+#: features/services/keyboards.py:39 features/services/keyboards_test.py:54
 msgid "SERVICES_BUTTON_RETIRE"
 msgstr "Remove a record"
 
-#: features/services/keyboards.py:108 features/services/keyboards.py:119
+#: features/services/keyboards.py:106 features/services/keyboards.py:117
 msgid "SERVICES_BUTTON_YES"
 msgstr "Yes"
 
-#: features/services/keyboards.py:109 features/services/keyboards.py:120
+#: features/services/keyboards.py:107 features/services/keyboards.py:118
 msgid "SERVICES_BUTTON_NO"
 msgstr "No"
 

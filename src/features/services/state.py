@@ -218,7 +218,7 @@ def _service_select(where_clause: str = "", where_params: tuple = (), additional
         yield data
 
 
-def _service_get(category_id: int, tg_id: int = 0, tg_username: str = "") -> Iterator:
+def _service_get(category_id: int, tg_id: int = 0, tg_username: str = "") -> Iterator[dict]:
     """Return a record of a user identified by `category_id` and either `tg_id` or `tg_username` """
 
     if tg_id != 0:
@@ -234,14 +234,14 @@ def _service_get(category_id: int, tg_id: int = 0, tg_username: str = "") -> Ite
         yield record
 
 
-def _service_get_all_active() -> Iterator:
+def _service_get_all_active() -> Iterator[dict]:
     """Query all non-suspended records from the `people` table"""
 
     for record in _service_select("is_suspended=0", (), "ORDER BY tg_username COLLATE NOCASE"):
         yield record
 
 
-def _service_get_all_by_user(tg_id: int) -> Iterator:
+def _service_get_all_by_user(tg_id: int) -> Iterator[dict]:
     """Return all records of a user identified by `tg_id` existing in the `people` table"""
 
     for record in _service_select("tg_id=?", (tg_id,)):

@@ -45,7 +45,7 @@ def standard(user: User) -> InlineKeyboardMarkup:
     records = [r for r in state.Service.get_all_by_user(user.id)]
 
     if not records:
-        buttons.append([button_enroll] if not records else [button_enroll_more])
+        buttons.append([button_enroll])
     elif len(records) <= ServiceCategory.count():
         buttons.append([button_enroll_more])
 
