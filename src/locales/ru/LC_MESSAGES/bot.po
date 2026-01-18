@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-01-18 12:43+0100\n"
+"POT-Creation-Date: 2026-01-18 20:52+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -527,24 +527,27 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/keyboards.py:35 features/services/keyboards_test.py:39
-#: features/services/keyboards_test.py:50
+#: features/services/keyboards.py:35 features/services/keyboards_test.py:51
+#: features/services/keyboards_test.py:62
+#: features/services/keyboards_test.py:77
 msgid "SERVICES_BUTTON_WHO"
 msgstr "Показать список"
 
-#: features/services/keyboards.py:36 features/services/keyboards_test.py:42
+#: features/services/keyboards.py:36 features/services/keyboards_test.py:54
 msgid "SERVICES_BUTTON_ENROLL"
 msgstr "Добавить запись"
 
-#: features/services/keyboards.py:37
+#: features/services/keyboards.py:37 features/services/keyboards_test.py:65
 msgid "SERVICES_BUTTON_ENROLL_MORE"
 msgstr "Добавить ещё одну запись"
 
-#: features/services/keyboards.py:38 features/services/keyboards_test.py:52
+#: features/services/keyboards.py:38 features/services/keyboards_test.py:67
+#: features/services/keyboards_test.py:79
 msgid "SERVICES_BUTTON_UPDATE"
 msgstr "Править запись"
 
-#: features/services/keyboards.py:39 features/services/keyboards_test.py:54
+#: features/services/keyboards.py:39 features/services/keyboards_test.py:69
+#: features/services/keyboards_test.py:81
 msgid "SERVICES_BUTTON_RETIRE"
 msgstr "Удалить запись"
 

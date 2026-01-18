@@ -60,3 +60,16 @@ def service_get(tg_id: int, category_id: int = 0) -> list:
 def create_test_user(tg_id: int) -> User:
     return User(id=tg_id, first_name="Joe", is_bot=False, username=tg_username(tg_id),
                 language_code=settings.DEFAULT_LANGUAGE)
+
+
+def data_row_for_service(tg_id: int, category_id: int) -> dict:
+    """Return a dict sufficient to create a Service object with the given IDs
+
+    @param tg_id: Telegram ID of the owner of the service
+    @param category_id: ID of the category the service belongs to
+    @return: dictionary that contains generated test values for all data fields necessary to construct a Service object
+    """
+
+    return {"tg_id": tg_id, "tg_username": tg_username(tg_id), "category_id": category_id,
+            "occupation": occupation(tg_id), "description": description(tg_id), "location": location(tg_id),
+            "is_suspended": is_suspended(tg_id), "last_modified": last_modified(tg_id)}
