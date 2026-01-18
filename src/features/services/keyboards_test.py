@@ -1,5 +1,5 @@
 """
-Tests for the keyboards used in the Services feature
+Tests for keyboards used in the Services feature
 """
 
 import unittest
@@ -22,8 +22,8 @@ class TestKeyboards(unittest.TestCase):
         user = create_test_user(SERVICE_101_TG_ID)
         trans = i18n.default()
 
-        def return_no_services(tg_id: int) -> Iterator[dict]:
-            for c in []:
+        def return_no_services(_tg_id: int) -> Iterator[dict]:
+            for _c in []:
                 yield {}
 
         def return_single_service_default_category(tg_id: int) -> Iterator[dict]:

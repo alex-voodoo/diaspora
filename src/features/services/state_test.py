@@ -3,11 +3,11 @@ Tests for state.py
 """
 
 import unittest
+from collections.abc import Iterator
 from unittest.mock import MagicMock, patch
 
 from common import i18n
 from . import state
-
 from .test_util import *
 
 
@@ -54,7 +54,10 @@ class TestService(unittest.TestCase):
             state.ServiceCategory.load()
 
     def test_get(self):
-        with patch('features.services.state._service_get', service_get):
+        def return_single_service(tg_id: int, category_id: int) -> Iterator[dict]:
+            yield data_row_for_service(tg_id, category_id)
+
+        with patch('features.services.state._service_get', return_single_service):
             service = state.Service.get(SERVICE_101_CATEGORY_ID, SERVICE_101_TG_ID)
 
             self.assertEqual(service.category.id, CATEGORY_1_ID)
