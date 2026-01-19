@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-01-19 19:27+0100\n"
+"POT-Creation-Date: 2026-01-19 21:27+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -393,8 +393,11 @@ msgid "SERVICES_DM_WHO_LIST_HEADING"
 msgstr "Here is the directory:"
 
 #: features/services/core.py:233 features/services/keyboards.py:90
-#: features/services/state.py:45 features/services/state_test.py:22
-#: features/services/state_test.py:30
+#: features/services/keyboards_test.py:112
+#: features/services/keyboards_test.py:119
+#: features/services/keyboards_test.py:135
+#: features/services/keyboards_test.py:147 features/services/state.py:45
+#: features/services/state_test.py:22 features/services/state_test.py:30
 msgid "SERVICES_CATEGORY_OTHER_TITLE"
 msgstr "Other"
 

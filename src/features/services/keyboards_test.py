@@ -101,3 +101,55 @@ class TestKeyboards(unittest.TestCase):
 
         with patch('features.services.state._service_get_all_by_user', return_all_categories_with_default):
             assert_who_update_retire()
+
+    def test_select_category(self):
+        trans = i18n.default()
+
+        self.assertEqual(keyboards.select_category([]), None)
+
+        keyboard = keyboards.select_category([], True)
+        self.assertEqual(len(keyboard.inline_keyboard), 1)
+        self.assertIn((InlineKeyboardButton(trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"), callback_data=0),),
+                      keyboard.inline_keyboard)
+
+        categories = [state.ServiceCategory(4, "Category 4"), state.ServiceCategory(5, "Category 5")]
+
+        keyboard = keyboards.select_category(categories, True)
+        self.assertEqual(len(keyboard.inline_keyboard), 3)
+        self.assertIn((InlineKeyboardButton(trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"), callback_data=0),),
+                      keyboard.inline_keyboard)
+        for category in categories:
+            self.assertIn((InlineKeyboardButton(category.title, callback_data=category.id),), keyboard.inline_keyboard)
+
+        keyboard = keyboards.select_category(categories, False)
+        self.assertEqual(len(keyboard.inline_keyboard), 2)
+        for category in categories:
+            self.assertIn((InlineKeyboardButton(category.title, callback_data=category.id),), keyboard.inline_keyboard)
+
+        # Load two real categories.
+        with patch('features.services.state._service_category_select_all', return_two_categories):
+            state.ServiceCategory.load()
+
+        keyboard = keyboards.select_category(categories, True)
+        self.assertEqual(len(keyboard.inline_keyboard), 3)
+        self.assertIn((InlineKeyboardButton(trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"), callback_data=0),),
+                      keyboard.inline_keyboard)
+        for category in categories:
+            self.assertIn((InlineKeyboardButton(category.title, callback_data=category.id),), keyboard.inline_keyboard)
+
+        keyboard = keyboards.select_category(categories, False)
+        self.assertEqual(len(keyboard.inline_keyboard), 2)
+        for category in categories:
+            self.assertIn((InlineKeyboardButton(category.title, callback_data=category.id),), keyboard.inline_keyboard)
+
+        keyboard = keyboards.select_category([], True)
+        self.assertEqual(len(keyboard.inline_keyboard), 3)
+        self.assertIn((InlineKeyboardButton(trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"), callback_data=0),),
+                      keyboard.inline_keyboard)
+        for category in state.ServiceCategory.all():
+            self.assertIn((InlineKeyboardButton(category.title, callback_data=category.id),), keyboard.inline_keyboard)
+
+        keyboard = keyboards.select_category([], False)
+        self.assertEqual(len(keyboard.inline_keyboard), 2)
+        for category in state.ServiceCategory.all():
+            self.assertIn((InlineKeyboardButton(category.title, callback_data=category.id),), keyboard.inline_keyboard)
