@@ -29,8 +29,7 @@ def return_two_categories(*args, **kwargs) -> Iterator[dict]:
 
 
 def return_no_categories(*args, **kwargs) -> Iterator[dict]:
-    for _c in []:
-        yield {}
+    yield from ()
 
 
 def tg_username(tg_id: int) -> str:

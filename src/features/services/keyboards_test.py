@@ -3,7 +3,6 @@ Tests for keyboards used in the Services feature
 """
 
 import unittest
-from collections.abc import Iterator
 from unittest.mock import patch
 
 from telegram import InlineKeyboardButton
@@ -23,8 +22,7 @@ class TestKeyboards(unittest.TestCase):
         trans = i18n.default()
 
         def return_no_services(_tg_id: int) -> Iterator[dict]:
-            for _c in []:
-                yield {}
+            yield from ()
 
         def return_single_service_default_category(tg_id: int) -> Iterator[dict]:
             yield data_row_for_service(tg_id, 0)
@@ -34,52 +32,47 @@ class TestKeyboards(unittest.TestCase):
 
         def return_all_categories_without_default(tg_id: int) -> Iterator[dict]:
             for c in state.ServiceCategory.all():
-                yield {"tg_id": tg_id, "tg_username": tg_username(tg_id), "category_id": c.id,
-                       "occupation": occupation(tg_id), "description": description(tg_id), "location": location(tg_id),
-                       "is_suspended": is_suspended(tg_id), "last_modified": last_modified(tg_id)}
+                yield data_row_for_service(tg_id, c.id)
 
         def return_all_categories_with_default(tg_id: int) -> Iterator[dict]:
             for c in state.ServiceCategory.all():
                 yield data_row_for_service(tg_id, c.id)
             yield data_row_for_service(tg_id, 0)
 
+        who_button = InlineKeyboardButton(trans.gettext("SERVICES_BUTTON_WHO"), callback_data=const.COMMAND_WHO)
+        enroll_button = InlineKeyboardButton(trans.gettext("SERVICES_BUTTON_ENROLL"),
+                                             callback_data=const.COMMAND_ENROLL)
+        enroll_more_button = InlineKeyboardButton(trans.gettext("SERVICES_BUTTON_ENROLL_MORE"),
+                                                  callback_data=const.COMMAND_ENROLL)
+        update_button = InlineKeyboardButton(trans.gettext("SERVICES_BUTTON_UPDATE"),
+                                             callback_data=const.COMMAND_UPDATE)
+        retire_button = InlineKeyboardButton(trans.gettext("SERVICES_BUTTON_RETIRE"),
+                                             callback_data=const.COMMAND_RETIRE)
+
         def assert_who_enroll() -> None:
             keyboard = keyboards.standard(user)
             button_container = keyboard.inline_keyboard
             self.assertEqual(len(button_container), 2)
-            self.assertIn(
-                (InlineKeyboardButton(trans.gettext("SERVICES_BUTTON_WHO"), callback_data=const.COMMAND_WHO),),
-                button_container)
-            self.assertIn(
-                (InlineKeyboardButton(trans.gettext("SERVICES_BUTTON_ENROLL"), callback_data=const.COMMAND_ENROLL),),
-                button_container)
+            self.assertIn((who_button,), button_container)
+            self.assertIn((enroll_button,), button_container)
 
         def assert_who_enroll_more_update_retire() -> None:
             keyboard = keyboards.standard(user)
             button_container = keyboard.inline_keyboard
             self.assertEqual(len(button_container), 3)
-            self.assertIn(
-                (InlineKeyboardButton(trans.gettext("SERVICES_BUTTON_WHO"), callback_data=const.COMMAND_WHO),),
-                button_container)
-            self.assertIn((
-            InlineKeyboardButton(trans.gettext("SERVICES_BUTTON_ENROLL_MORE"), callback_data=const.COMMAND_ENROLL),),
-                button_container)
-            self.assertIn((InlineKeyboardButton(trans.gettext("SERVICES_BUTTON_UPDATE"),
-                                                callback_data=const.COMMAND_UPDATE),
-                           InlineKeyboardButton(trans.gettext("SERVICES_BUTTON_RETIRE"),
-                                                callback_data=const.COMMAND_RETIRE)), button_container)
+            self.assertIn((who_button,), button_container)
+            self.assertIn((enroll_more_button,), button_container)
+            self.assertIn((update_button, retire_button), button_container)
 
         def assert_who_update_retire() -> None:
             keyboard = keyboards.standard(user)
             button_container = keyboard.inline_keyboard
             self.assertEqual(len(button_container), 2)
-            self.assertIn(
-                (InlineKeyboardButton(trans.gettext("SERVICES_BUTTON_WHO"), callback_data=const.COMMAND_WHO),),
-                button_container)
-            self.assertIn((InlineKeyboardButton(trans.gettext("SERVICES_BUTTON_UPDATE"),
-                                                callback_data=const.COMMAND_UPDATE),
-                           InlineKeyboardButton(trans.gettext("SERVICES_BUTTON_RETIRE"),
-                                                callback_data=const.COMMAND_RETIRE)), button_container)
+            self.assertIn((who_button,), button_container)
+            self.assertIn((update_button, retire_button), button_container)
+
+        # When no categories are registered, all services belong to the "default" category that does not actually exist.
+        # A user can create only a single service, and when they have it, they can either update it or delete.
 
         with patch('features.services.state._service_get_all_by_user', return_no_services):
             assert_who_enroll()
@@ -87,8 +80,12 @@ class TestKeyboards(unittest.TestCase):
         with patch('features.services.state._service_get_all_by_user', return_single_service_default_category):
             assert_who_update_retire()
 
+        # Load two real categories.
         with patch('features.services.state._service_category_select_all', return_two_categories):
             state.ServiceCategory.load()
+
+        # When there are real categories, users can register services until they have a service in each category,
+        # including the default one.
 
         with patch('features.services.state._service_get_all_by_user', return_no_services):
             assert_who_enroll()
