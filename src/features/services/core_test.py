@@ -1,15 +1,14 @@
 """
-Tests for the core part of the Services feature
+Tests for the core.py
 """
 
 import unittest
 from unittest.mock import MagicMock, patch
 
-from telegram import Bot, Chat, Message, Update, User
+from telegram import Bot, Chat, Message, Update
 from telegram.ext import Application, CallbackContext
 
 from common import i18n
-from common.settings import settings
 from . import core, keyboards, state
 from .test_util import *
 
@@ -22,11 +21,6 @@ class AsyncMock(MagicMock):
 class MockBot(Bot):
     def __init__(self, token: str):
         super().__init__(token)
-
-        self._sent_message_text = ""
-
-    async def send_message(self, *args, **kwargs):
-        self._sent_message_text = kwargs["text"]
 
     @property
     def username(self) -> str:
@@ -51,14 +45,6 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     def tearDown(self):
         with patch('features.services.state._service_category_select_all', return_no_categories):
             state.ServiceCategory.load()
-
-    @property
-    def sent_message_text(self) -> str:
-        return self.application.bot._sent_message_text
-
-    @sent_message_text.setter
-    def sent_message_text(self, value):
-        self.application.bot._sent_message_text = value
 
     # def test__format_hint
 
@@ -112,22 +98,23 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
         request_next_data_field = AsyncMock()
 
-        # noinspection PyTypeChecker
-        result = await core._verify_limit_then_retry_or_proceed(update, context, current_stage_id, current_limit,
-                                                                current_data_field_key, next_stage_id, next_limit,
-                                                                next_data_field_key, next_data_field_insert_text,
-                                                                next_data_field_update_text, request_next_data_field)
-        self.assertEqual(result, current_stage_id)
-        self.assertEqual(self.sent_message_text, trans.ngettext("SERVICES_DM_TEXT_TOO_LONG_S {limit} {text}",
-                                                                "SERVICES_DM_TEXT_TOO_LONG_P {limit} {text}",
-                                                                current_limit).format(limit=current_limit,
-                                                                                      text=core._format_hint(
-                                                                                          new_current_text_long,
-                                                                                          current_limit)))
-        request_next_data_field.assert_not_called()
+        with patch('features.services.core.reply') as mock_reply:
+            # noinspection PyTypeChecker
+            result = await core._verify_limit_then_retry_or_proceed(update, context, current_stage_id, current_limit,
+                                                                    current_data_field_key, next_stage_id, next_limit,
+                                                                    next_data_field_key, next_data_field_insert_text,
+                                                                    next_data_field_update_text,
+                                                                    request_next_data_field)
+            self.assertEqual(result, current_stage_id)
+            mock_reply.assert_called_once_with(update, trans.ngettext("SERVICES_DM_TEXT_TOO_LONG_S {limit} {text}",
+                                                                      "SERVICES_DM_TEXT_TOO_LONG_P {limit} {text}",
+                                                                      current_limit).format(limit=current_limit,
+                                                                                            text=core._format_hint(
+                                                                                                new_current_text_long,
+                                                                                                current_limit)))
+            request_next_data_field.assert_not_called()
 
         request_next_data_field.reset_mock()
-        self.sent_message_text = ""
 
         new_current_text_short = "world"
         message = Message(message_id=2, date=datetime.datetime.now(), chat=Chat(id=1, type=Chat.PRIVATE),
@@ -137,16 +124,18 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         context = CallbackContext(application=self.application, chat_id=1, user_id=1)
         context.user_data["current"] = current_text
 
-        # noinspection PyTypeChecker
-        result = await core._verify_limit_then_retry_or_proceed(update, context, current_stage_id, current_limit,
-                                                                current_data_field_key, next_stage_id, next_limit,
-                                                                next_data_field_key, next_data_field_insert_text,
-                                                                next_data_field_update_text, request_next_data_field)
-        self.assertEqual(result, next_stage_id)
+        with patch('features.services.core.reply') as mock_reply:
+            # noinspection PyTypeChecker
+            result = await core._verify_limit_then_retry_or_proceed(update, context, current_stage_id, current_limit,
+                                                                    current_data_field_key, next_stage_id, next_limit,
+                                                                    next_data_field_key, next_data_field_insert_text,
+                                                                    next_data_field_update_text,
+                                                                    request_next_data_field)
+            self.assertEqual(result, next_stage_id)
 
-        request_next_data_field.assert_called_once_with(update, context, next_limit, next_data_field_key,
-                                                        next_data_field_insert_text, next_data_field_update_text)
-        self.assertEqual(self.sent_message_text, "")
+            mock_reply.assert_not_called()
+            request_next_data_field.assert_called_once_with(update, context, next_limit, next_data_field_key,
+                                                            next_data_field_insert_text, next_data_field_update_text)
 
     async def test__request_next_data_field(self):
         trans = i18n.default()
@@ -166,37 +155,37 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         context = CallbackContext(application=self.application, chat_id=1, user_id=1)
         context.user_data["next"] = current_next_text
 
-        await core._request_next_data_field(update, context, next_limit, next_data_field_key,
-                                            next_data_field_insert_text, next_data_field_update_text)
+        with patch('features.services.core.reply') as mock_reply:
+            await core._request_next_data_field(update, context, next_limit, next_data_field_key,
+                                                next_data_field_insert_text, next_data_field_update_text)
 
-        expected_sent_message_text = [next_data_field_insert_text, ]
-        core._maybe_append_limit_warning(trans, expected_sent_message_text, next_limit)
-        self.assertEqual(self.sent_message_text, "\n".join(expected_sent_message_text))
+            expected_reply = [next_data_field_insert_text, ]
+            core._maybe_append_limit_warning(trans, expected_reply, next_limit)
+
+            mock_reply.assert_called_once_with(update, "\n".join(expected_reply))
 
         context.user_data["mode"] = "update"
         context.user_data["category_title"] = category_title
 
-        await core._request_next_data_field(update, context, next_limit, next_data_field_key,
-                                            next_data_field_insert_text, next_data_field_update_text)
+        with patch('features.services.core.reply') as mock_reply:
+            await core._request_next_data_field(update, context, next_limit, next_data_field_key,
+                                                next_data_field_insert_text, next_data_field_update_text)
 
-        expected_sent_message_text = [
-            next_data_field_update_text.format(title=category_title, current_value=current_next_text), ]
-        core._maybe_append_limit_warning(trans, expected_sent_message_text, next_limit)
-        self.assertEqual(self.sent_message_text, "\n".join(expected_sent_message_text))
+            expected_reply = [
+                next_data_field_update_text.format(title=category_title, current_value=current_next_text), ]
+            core._maybe_append_limit_warning(trans, expected_reply, next_limit)
+            mock_reply.assert_called_once_with(update, "\n".join(expected_reply))
 
     async def test_show_main_status(self):
         def return_no_records(where_clause: str = "", where_params: tuple = ()):
             return []
 
         def return_single_record(where_clause: str = "", where_params: tuple = ()):
-            return [{"tg_id": 1, "tg_username": "U", "category_id": 1, "occupation": "O", "description": "D",
-                     "location": "L", "is_suspended": False, "last_modified": datetime.datetime.now()}]
+            return [data_row_for_service(1, 1)]
 
         def return_multiple_records(where_clause: str = "", where_params: tuple = ()):
-            return [{"tg_id": 1, "tg_username": "U", "category_id": 1, "occupation": "O", "description": "D",
-                     "location": "L", "is_suspended": False, "last_modified": datetime.datetime.now()},
-                    {"tg_id": 1, "tg_username": "U", "category_id": 2, "occupation": "O2", "description": "D2",
-                     "location": "L2", "is_suspended": False, "last_modified": datetime.datetime.now()}]
+            return [data_row_for_service(1, 1),
+                    data_row_for_service(1, 2)]
 
         state.Service.set_bot_username("bot_username")
 
@@ -248,8 +237,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                                                     len(records)).format(user_first_name=user.first_name,
                                                                          record_count=len(records))]
                     for record in records:
-                        expected_text.append(
-                            core._main_status_record_description(state.Service(**record)))
+                        expected_text.append(core._main_status_record_description(state.Service(**record)))
                     mock_reply.assert_called_once_with(update, "\n".join(expected_text), keyboards.standard(user))
                     mock_reply.reset_mock()
 

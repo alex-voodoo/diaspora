@@ -1,5 +1,5 @@
 """
-Tests for keyboards used in the Services feature
+Tests for keyboards.py
 """
 
 import unittest

@@ -3,7 +3,6 @@ Tests for state.py
 """
 
 import unittest
-from collections.abc import Iterator
 from unittest.mock import MagicMock, patch
 
 from common import i18n
