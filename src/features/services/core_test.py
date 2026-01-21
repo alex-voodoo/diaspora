@@ -3,10 +3,10 @@ Tests for the core.py
 """
 
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
-from telegram import Bot, Chat, Message, Update
-from telegram.ext import Application, CallbackContext
+from telegram import Bot, Chat, Message, Update, CallbackQuery
+from telegram.ext import Application, CallbackContext, ConversationHandler
 
 from common import i18n
 from . import core, keyboards, state
@@ -32,6 +32,18 @@ class MockBot(Bot):
 
     async def get_chat(self, *args, **kwargs):
         return Chat(1, type=Chat.GROUP, title="Main Chat")
+
+
+class MockQuery(CallbackQuery):
+    def __init__(self, id: str, from_user: User, chat_instance: str, *args, **kwargs):
+        super().__init__(id, from_user, chat_instance, *args, **kwargs)
+        pass
+
+    async def answer(self, *args, **kwargs):
+        pass
+
+    async def edit_message_reply_markup(self, *args, **kwargs):
+        pass
 
 
 class TestCore(unittest.IsolatedAsyncioTestCase):
@@ -184,8 +196,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
             return [data_row_for_service(1, 1)]
 
         def return_multiple_records(where_clause: str = "", where_params: tuple = ()):
-            return [data_row_for_service(1, 1),
-                    data_row_for_service(1, 2)]
+            return [data_row_for_service(1, 1), data_row_for_service(1, 2)]
 
         state.Service.set_bot_username("bot_username")
 
@@ -251,7 +262,23 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
     # async def _who
 
-    # async def _handle_command_enroll
+    async def test__handle_command_enroll(self):
+        trans = i18n.default()
+
+        user = User(id=1, first_name="Joe", is_bot=False)
+        message = Message(message_id=1, date=datetime.datetime.now(), chat=Chat(id=1, type=Chat.PRIVATE),
+                          text="nothing", from_user=user)
+        message.set_bot(self.application.bot)
+        update = Update(update_id=1, message=message, callback_query=MockQuery(1, user, 1, message))
+        context = CallbackContext(application=self.application, chat_id=1, user_id=1)
+
+        with patch('features.services.core.reply') as mock_reply:
+            with patch_service_get_all_by_user_return_nothing():
+                result = await core._handle_command_enroll(update, context)
+
+                self.assertEqual(result, ConversationHandler.END)
+                mock_reply.assert_called_once_with(update, trans.gettext("SERVICES_DM_ENROLL_USERNAME_REQUIRED"),
+                                                   keyboards.standard(user))
 
     # async def _handle_command_update
 

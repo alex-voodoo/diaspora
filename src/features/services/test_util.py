@@ -4,6 +4,7 @@ Helper functions and constants used in tests
 
 import datetime
 from collections.abc import Iterator
+from unittest.mock import patch
 
 from telegram import User
 
@@ -91,3 +92,15 @@ def data_row_for_service_category(category_id: int) -> dict:
     """
 
     return {"id": category_id, "title": category_title(category_id)}
+
+
+def patch_service_get_all_by_user_return_nothing():
+    """Patch features.services.state._service_get_all_by_user so that it would return an empty sequence
+
+    @return: Context manager returned from a call to unittest.mock.patch()
+    """
+
+    def return_no_services(_tg_id: int) -> Iterator[dict]:
+        yield from ()
+
+    return patch('features.services.state._service_get_all_by_user', return_no_services)

@@ -21,9 +21,6 @@ class TestKeyboards(unittest.TestCase):
         user = create_test_user(SERVICE_101_TG_ID)
         trans = i18n.default()
 
-        def return_no_services(_tg_id: int) -> Iterator[dict]:
-            yield from ()
-
         def return_single_service_default_category(tg_id: int) -> Iterator[dict]:
             yield data_row_for_service(tg_id, 0)
 
@@ -74,7 +71,7 @@ class TestKeyboards(unittest.TestCase):
         # When no categories are registered, all services belong to the "default" category that does not actually exist.
         # A user can create only a single service, and when they have it, they can either update it or delete.
 
-        with patch('features.services.state._service_get_all_by_user', return_no_services):
+        with patch_service_get_all_by_user_return_nothing():
             assert_who_enroll()
 
         with patch('features.services.state._service_get_all_by_user', return_single_service_default_category):
@@ -87,7 +84,7 @@ class TestKeyboards(unittest.TestCase):
         # When there are real categories, users can register services until they have a service in each category,
         # including the default one.
 
-        with patch('features.services.state._service_get_all_by_user', return_no_services):
+        with patch_service_get_all_by_user_return_nothing():
             assert_who_enroll()
 
         with patch('features.services.state._service_get_all_by_user', return_single_service_default_category):

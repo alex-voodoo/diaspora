@@ -273,7 +273,7 @@ async def _handle_command_enroll(update: Update, context: ContextTypes.DEFAULT_T
 
     query = update.callback_query
 
-    trans = i18n.trans(query.from_user)
+    trans = i18n.trans(update.effective_user)
 
     await query.answer()
     await query.edit_message_reply_markup(None)
