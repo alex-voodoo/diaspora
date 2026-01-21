@@ -3,13 +3,13 @@ Tests for the core.py
 """
 
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import call, MagicMock
 
-from telegram import Bot, Chat, Message, Update, CallbackQuery
+from telegram import Bot, CallbackQuery, Chat, Message, Update
 from telegram.ext import Application, CallbackContext, ConversationHandler
 
 from common import i18n
-from . import core, keyboards, state
+from . import const, core, keyboards, state
 from .test_util import *
 
 
@@ -50,9 +50,6 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.application = Application.builder().token(settings.BOT_TOKEN).build()
         self.application.bot = MockBot(token=settings.BOT_TOKEN)
-
-        with patch('features.services.state._service_category_select_all', return_two_categories):
-            state.ServiceCategory.load()
 
     def tearDown(self):
         with patch('features.services.state._service_category_select_all', return_no_categories):
@@ -198,6 +195,9 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         def return_multiple_records(where_clause: str = "", where_params: tuple = ()):
             return [data_row_for_service(1, 1), data_row_for_service(1, 2)]
 
+        with patch('features.services.state._service_category_select_all', return_two_categories):
+            state.ServiceCategory.load()
+
         state.Service.set_bot_username("bot_username")
 
         user = User(id=1, first_name="Joe", is_bot=False, username="joe_username")
@@ -272,6 +272,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         update = Update(update_id=1, message=message, callback_query=MockQuery(1, user, 1, message))
         context = CallbackContext(application=self.application, chat_id=1, user_id=1)
 
+        # A user that does not have a username cannot enroll.
         with patch('features.services.core.reply') as mock_reply:
             with patch_service_get_all_by_user_return_nothing():
                 result = await core._handle_command_enroll(update, context)
@@ -279,6 +280,39 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(result, ConversationHandler.END)
                 mock_reply.assert_called_once_with(update, trans.gettext("SERVICES_DM_ENROLL_USERNAME_REQUIRED"),
                                                    keyboards.standard(user))
+
+        user = User(id=1, first_name="Joe", is_bot=False, username="username_1")
+        message = Message(message_id=1, date=datetime.datetime.now(), chat=Chat(id=1, type=Chat.PRIVATE),
+                          text="nothing", from_user=user)
+        message.set_bot(self.application.bot)
+        update = Update(update_id=1, message=message, callback_query=MockQuery(1, user, 1, message))
+        context = CallbackContext(application=self.application, chat_id=1, user_id=1)
+
+        with patch('features.services.core.reply') as mock_reply:
+            # When no categories are defined, all services are created in the default category.  When the user starts
+            # enrolling, they proceed to entering their occupation right away.
+            with patch_service_get_all_by_user_return_nothing():
+                result = await core._handle_command_enroll(update, context)
+
+                self.assertEqual(result, const.TYPING_OCCUPATION)
+                self.assertEqual(context.user_data["category_id"], 0)
+
+                mock_reply.assert_has_calls((call(update, trans.gettext("SERVICES_DM_ENROLL_START")),
+                                             call(update, trans.gettext("SERVICES_DM_ENROLL_ASK_OCCUPATION"))), False)
+
+            # Load two real categories.
+            with patch('features.services.state._service_category_select_all', return_two_categories):
+                state.ServiceCategory.load()
+
+            # With some categories defined, the enrollment starts with selecting a category.
+            with patch_service_get_all_by_user_return_nothing():
+                result = await core._handle_command_enroll(update, context)
+
+                self.assertEqual(result, const.SELECTING_CATEGORY)
+
+                mock_reply.assert_has_calls((call(update, trans.gettext("SERVICES_DM_ENROLL_START")),
+                                             call(update, trans.gettext("SERVICES_DM_ENROLL_ASK_CATEGORY"),
+                                                  keyboards.select_category([], True))), False)
 
     # async def _handle_command_update
 

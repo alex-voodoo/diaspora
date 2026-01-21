@@ -287,7 +287,7 @@ async def _handle_command_enroll(update: Update, context: ContextTypes.DEFAULT_T
     existing_category_ids = [service.category.id for service in state.Service.get_all_by_user(query.from_user.id)]
     categories = [c for c in ServiceCategory.all() if c.id not in existing_category_ids]
 
-    category_buttons = keyboards.select_category(categories, 0 not in existing_category_ids)
+    category_buttons = keyboards.select_category(categories, 0 not in existing_category_ids and len(categories) > 0)
 
     if category_buttons:
         await reply(update, trans.gettext("SERVICES_DM_ENROLL_ASK_CATEGORY"), category_buttons)
