@@ -64,11 +64,13 @@ async def self_destructing_reply(update: Update, context: ContextTypes.DEFAULT_T
     """Replies to the message contained in the `update`.  If `timeout` is greater than zero, schedules the reply to be
     deleted."""
 
-    if update.effective_message.chat_id == update.message.from_user.id:
+    message = update.effective_message
+
+    if message.chat_id == message.from_user.id:
         logger.error("Cannot delete messages in private chats!")
         return
 
-    posted_message = await update.message.reply_text(message_body)
+    posted_message = await message.reply_text(message_body)
 
     if timeout > 0:
         context.job_queue.run_once(delete_message, timeout, data=(posted_message, delete_reply_to))

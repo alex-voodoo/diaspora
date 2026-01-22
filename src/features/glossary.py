@@ -18,7 +18,7 @@ from common import i18n, settings
 from common.admin import register_buttons, save_file_with_backup
 from common.checks import is_admin
 from common.log import LogTime
-from common.messaging_helpers import self_destructing_reaction, self_destructing_reply
+from common.messaging_helpers import reply, self_destructing_reaction, self_destructing_reply
 from common.settings import settings
 
 TERMS_FILENAME = "glossary_terms.csv"
@@ -28,7 +28,6 @@ TERMS_FILE_PATH = settings.data_dir / TERMS_FILENAME
 ADMIN_DOWNLOAD_TERMS, ADMIN_UPLOAD_TERMS = "glossary-download-terms", "glossary-upload-terms"
 ADMIN_UPLOADING_TERMS = 1
 
-logger = logging.getLogger(__name__)
 
 # Glossary data.  List of dictionary items with the following fields:
 # - regex: regular expression that should capture the trigger in a message in any form, including misspellings
@@ -99,13 +98,13 @@ def maybe_load_glossary_data():
             try:
                 regex, standard, original, explanation = row
             except Exception as e:
-                logger.warning(e)
+                logging.warning(e)
                 continue
             glossary_data.append(
                 {REGEX: re.compile("\\b{}\\b".format(regex.strip()), re.IGNORECASE), STANDARD: standard.strip(),
                  ORIGINAL: original.strip(), EXPLANATION: explanation.strip(),
                  STANDARD_STRIPPED: strip_diacritics(standard.strip())})
-    logger.info("Loaded {} triggers for the glossary".format(len(glossary_data)))
+    logging.info("Loaded {} triggers for the glossary".format(len(glossary_data)))
 
 
 def get_file() -> io.BytesIO:
@@ -160,6 +159,10 @@ async def process_normal_message(update: Update, context: ContextTypes.DEFAULT_T
 
     global glossary_data, recent_triggers
 
+    if not update.message:
+        logging.info("Skipping an update that does not have a message.")
+        return
+
     maybe_load_glossary_data()
 
     with LogTime("Trigger lookup"):
@@ -169,7 +172,7 @@ async def process_normal_message(update: Update, context: ContextTypes.DEFAULT_T
                 if term[REGEX].search(update.effective_message.text) is not None:
                     filtered.append(term)
             except re.error as e:
-                logger.warning("Exception raised while searching for regex \"{}\": {}".format(term, e))
+                logging.warning("Exception raised while searching for regex \"{}\": {}".format(term, e))
     if not filtered:
         return
 
@@ -211,12 +214,12 @@ async def maybe_process_command_explain(update: Update, context: ContextTypes.DE
     trans = i18n.default()
 
     if not recent_triggers:
-        await update.effective_message.reply_text(trans.gettext("GLOSSARY_EMPTY_CONTEXT"))
+        await reply(update, trans.gettext("GLOSSARY_EMPTY_CONTEXT"))
         return True
 
     text = [trans.gettext("GLOSSARY_EXPLANATION_HEADER")] + format_explanations(
         [t for t in glossary_data if t[STANDARD] in sorted(list(set(t[TRIGGER][STANDARD] for t in recent_triggers)))])
-    await update.effective_message.reply_text("\n".join(text))
+    await reply(update, "\n".join(text))
 
     recent_triggers = deque()
     return True
@@ -241,7 +244,7 @@ async def maybe_process_command_whatisit(update: Update, context: ContextTypes.D
 
     for term in glossary_data:
         if term[STANDARD_STRIPPED] == word:
-            await update.effective_message.reply_text(format_explanations([term])[0])
+            await reply(update, format_explanations([term])[0])
             return True
 
     possible_terms = []
@@ -254,12 +257,12 @@ async def maybe_process_command_whatisit(update: Update, context: ContextTypes.D
     if possible_terms:
         if len(possible_terms) > 1:
             text = [trans.gettext("GLOSSARY_WHATISIT_FUZZY_MATCH")] + format_explanations(possible_terms)
-            await update.effective_message.reply_text("\n".join(text))
+            await reply(update, "\n".join(text))
         else:
-            await update.effective_message.reply_text(format_explanations(possible_terms)[0])
+            await reply(update, format_explanations(possible_terms)[0])
         return True
 
-    await update.effective_message.reply_text(trans.gettext("GLOSSARY_I_DO_NOT_KNOW"))
+    await reply(update, trans.gettext("GLOSSARY_I_DO_NOT_KNOW"))
     return True
 
 
@@ -288,10 +291,9 @@ async def process_bot_mention(update: Update, context: ContextTypes.DEFAULT_TYPE
             return
 
     if settings.GLOSSARY_EXTERNAL_URL:
-        await update.effective_message.reply_text(
-            trans.gettext("GLOSSARY_UNKNOWN_COMMAND {url}").format(url=settings.GLOSSARY_EXTERNAL_URL))
+        await reply(update, trans.gettext("GLOSSARY_UNKNOWN_COMMAND {url}").format(url=settings.GLOSSARY_EXTERNAL_URL))
     else:
-        await update.effective_message.reply_text(trans.gettext("GLOSSARY_UNKNOWN_COMMAND"))
+        await reply(update, trans.gettext("GLOSSARY_UNKNOWN_COMMAND"))
 
 
 async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> [None, int]:
@@ -309,7 +311,7 @@ async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE)
     if query.data == ADMIN_DOWNLOAD_TERMS:
         await user.send_document(get_file(), filename=TERMS_FILENAME, reply_markup=None)
     elif query.data == ADMIN_UPLOAD_TERMS:
-        await query.message.reply_text(trans.gettext("GLOSSARY_MESSAGE_DM_ADMIN_REQUEST_TERMS"))
+        await reply(update, trans.gettext("GLOSSARY_MESSAGE_DM_ADMIN_REQUEST_TERMS"))
 
         return ADMIN_UPLOADING_TERMS
 
@@ -324,8 +326,7 @@ async def handle_received_terms_file(update: Update, context: ContextTypes.DEFAU
         # The new data will be loaded on the next call to `process_normal_message()`.
         glossary_data = None
 
-        await update.effective_message.reply_text(trans.gettext("GLOSSARY_MESSAGE_DM_ADMIN_TERMS_UPDATED"),
-                                                  reply_markup=None)
+        await reply(update, trans.gettext("GLOSSARY_MESSAGE_DM_ADMIN_TERMS_UPDATED"))
 
     return ConversationHandler.END
 

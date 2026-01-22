@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-01-21 22:18+0100\n"
+"POT-Creation-Date: 2026-01-22 19:49+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -179,65 +179,65 @@ msgstr "Download spam"
 msgid "ANTISPAM_BUTTON_UPLOAD_ANTISPAM_OPENAI"
 msgstr "Upload the OpenAI model"
 
-#: features/glossary.py:153
+#: features/glossary.py:152
 msgid "GLOSSARY_EXTERNAL_URL_NOTE {url}"
 msgstr "These and other words can be found in our <a href='{url}'>glossary</a>."
 
-#: features/glossary.py:185
+#: features/glossary.py:188
 msgid "GLOSSARY_TRIGGERED_EXPLANATION_HEADER"
 msgstr "This message contains several words that may appear unclear to the participants, especially those who joined this group lately.  Here they are:"
 
-#: features/glossary.py:214
+#: features/glossary.py:217
 msgid "GLOSSARY_EMPTY_CONTEXT"
 msgstr "In the recent conversation I did not notice any words that would require explanation."
 
-#: features/glossary.py:217
+#: features/glossary.py:220
 msgid "GLOSSARY_EXPLANATION_HEADER"
 msgstr "Word in the recent conversation that may require explanation:"
 
-#: features/glossary.py:256
+#: features/glossary.py:259
 msgid "GLOSSARY_WHATISIT_FUZZY_MATCH"
 msgstr "This word is not in my list, but here are some similar ones."
 
-#: features/glossary.py:262
+#: features/glossary.py:265
 msgid "GLOSSARY_I_DO_NOT_KNOW"
 msgstr "I don't know!"
 
-#: features/glossary.py:292
+#: features/glossary.py:294
 msgid "GLOSSARY_UNKNOWN_COMMAND {url}"
 msgstr ""
 "I can <b>explain</b> words in the recent discussion that could appear unclear to people.  All words can be found in the <a href='{url}'>dictionary</a>.\n"
 "\n"
 "Also you can ask me <b>what does something mean</b>, and I will give the explanation if I have it."
 
-#: features/glossary.py:294
+#: features/glossary.py:296
 msgid "GLOSSARY_UNKNOWN_COMMAND"
 msgstr ""
 "I can <b>explain</b> words in the recent discussion that could appear unclear to people.\n"
 "\n"
 "Also you can ask me <b>what does something mean</b>, and I will give the explanation if I have it."
 
-#: features/glossary.py:312
+#: features/glossary.py:314
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_REQUEST_TERMS"
 msgstr "Awaiting a CSV file."
 
-#: features/glossary.py:327
+#: features/glossary.py:329
 msgid "GLOSSARY_MESSAGE_DM_ADMIN_TERMS_UPDATED"
 msgstr "Accepted."
 
-#: features/glossary.py:349
+#: features/glossary.py:350
 msgid "GLOSSARY_COMMAND_EXPLAIN"
 msgstr "(decipher|explain|translate|help)"
 
-#: features/glossary.py:350
+#: features/glossary.py:351
 msgid "GLOSSARY_COMMAND_WHATISIT"
 msgstr "what is (?P<term>\\w+)"
 
-#: features/glossary.py:360
+#: features/glossary.py:361
 msgid "GLOSSARY_BUTTON_DOWNLOAD_TERMS"
 msgstr "Download glossary"
 
-#: features/glossary.py:362
+#: features/glossary.py:363
 msgid "GLOSSARY_BUTTON_UPLOAD_TERMS"
 msgstr "Upload glossary"
 
