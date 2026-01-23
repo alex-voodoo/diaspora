@@ -53,11 +53,11 @@ class TestService(unittest.TestCase):
             state.ServiceCategory.load()
 
     def test_get(self):
-        def return_single_service(tg_id: int, category_id: int) -> Iterator[dict]:
+        def return_single_service(category_id: int, tg_id: int) -> Iterator[dict]:
             yield data_row_for_service(tg_id, category_id)
 
         with patch('features.services.state._service_get', return_single_service):
-            service = state.Service.get(SERVICE_101_CATEGORY_ID, SERVICE_101_TG_ID)
+            service = state.Service.get(SERVICE_101_TG_ID, SERVICE_101_CATEGORY_ID)
 
             self.assertEqual(service.category.id, CATEGORY_1_ID)
             self.assertEqual(service.category.title, CATEGORY_1_TITLE)

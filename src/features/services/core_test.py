@@ -1,7 +1,7 @@
 """
 Tests for the core.py
 """
-
+import logging
 import unittest
 from unittest.mock import call, MagicMock
 
@@ -37,7 +37,6 @@ class MockBot(Bot):
 class MockQuery(CallbackQuery):
     def __init__(self, id: str, from_user: User, chat_instance: str, *args, **kwargs):
         super().__init__(id, from_user, chat_instance, *args, **kwargs)
-        pass
 
     async def answer(self, *args, **kwargs):
         pass
@@ -252,25 +251,29 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                     mock_reply.assert_called_once_with(update, "\n".join(expected_text), keyboards.standard(user))
                     mock_reply.reset_mock()
 
-    # async def _moderate_new_data
+    async def test__moderate_new_data(self):
+        logging.warning("Test not implemented")
 
-    # def _who_people_to_message
+    async def test__who_request_category(self):
+        logging.warning("Test not implemented")
 
-    # async def _who_request_category
+    async def test__who_received_category(self):
+        logging.warning("Test not implemented")
 
-    # async def _who_received_category
-
-    # async def _who
+    async def test__who(self):
+        logging.warning("Test not implemented")
 
     async def test__handle_command_enroll(self):
         trans = i18n.default()
 
+        chat = Chat(id=1, type=Chat.PRIVATE)
+        context = CallbackContext(application=self.application, chat_id=1, user_id=1)
+
+        # Create a query from a user that does not have a username.
         user = User(id=1, first_name="Joe", is_bot=False)
-        message = Message(message_id=1, date=datetime.datetime.now(), chat=Chat(id=1, type=Chat.PRIVATE),
-                          text="nothing", from_user=user)
+        message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user)
         message.set_bot(self.application.bot)
         update = Update(update_id=1, message=message, callback_query=MockQuery(1, user, 1, message))
-        context = CallbackContext(application=self.application, chat_id=1, user_id=1)
 
         # A user that does not have a username cannot enroll.
         with patch('features.services.core.reply') as mock_reply:
@@ -281,12 +284,11 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                 mock_reply.assert_called_once_with(update, trans.gettext("SERVICES_DM_ENROLL_USERNAME_REQUIRED"),
                                                    keyboards.standard(user))
 
+        # Create a query from a user that has a username.
         user = User(id=1, first_name="Joe", is_bot=False, username="username_1")
-        message = Message(message_id=1, date=datetime.datetime.now(), chat=Chat(id=1, type=Chat.PRIVATE),
-                          text="nothing", from_user=user)
+        message = Message(message_id=2, date=datetime.datetime.now(), chat=chat, from_user=user)
         message.set_bot(self.application.bot)
-        update = Update(update_id=1, message=message, callback_query=MockQuery(1, user, 1, message))
-        context = CallbackContext(application=self.application, chat_id=1, user_id=1)
+        update = Update(update_id=2, message=message, callback_query=MockQuery(2, user, 1, message))
 
         with patch('features.services.core.reply') as mock_reply:
             # When no categories are defined, all services are created in the default category.  When the user starts
@@ -314,26 +316,95 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                                              call(update, trans.gettext("SERVICES_DM_ENROLL_ASK_CATEGORY"),
                                                   keyboards.select_category([], True))), False)
 
-    # async def _handle_command_update
+    async def test__handle_command_update(self):
+        logging.warning("Test not implemented")
 
-    # async def _accept_category_and_request_occupation
+    async def test__accept_category_and_request_occupation(self):
+        logging.warning("Test not implemented")
 
-    # async def _verify_occupation_and_request_description
+    async def test__verify_occupation_and_request_description(self):
+        logging.warning("Test not implemented")
 
-    # async def _verify_description_and_request_location
+    async def test__verify_description_and_request_location(self):
+        logging.warning("Test not implemented")
 
-    # async def _verify_location_and_request_legality
+    async def test__verify_location_and_request_legality(self):
+        logging.warning("Test not implemented")
 
-    # async def _verify_legality_and_finalise_data_collection
+    async def test__verify_legality_and_finalise_data_collection(self):
+        logging.warning(f"Test not implemented")
 
-    # async def _confirm_user_data
+    async def test__confirm_user_data(self):
+        logging.warning("Test not implemented")
 
-    # async def _handle_command_retire
+    async def test__handle_command_retire(self):
+        logging.warning("Test not implemented")
 
-    # async def _retire_received_category
+    async def test__retire_received_category(self):
+        logging.warning("Test not implemented")
 
-    # async def _abort_conversation
+    async def test__abort_conversation(self):
+        logging.warning("Test not implemented")
 
-    # async def handle_extended_start_command
+    async def test_handle_extended_start_command(self):
+        trans = i18n.default()
 
-    # def init
+        chat = Chat(id=1, type=Chat.PRIVATE)
+        context = CallbackContext(application=self.application, chat_id=1, user_id=1)
+        same_user = User(id=1, first_name="Joe", is_bot=False)
+        another_user = User(id=2, first_name="Rob", is_bot=False)
+        service = state.Service(**data_row_for_service(1, 1))
+
+        # Load two real categories.
+        with patch('features.services.state._service_category_select_all', return_two_categories):
+            state.ServiceCategory.load()
+
+        def return_single_service(category_id: int, tg_id: int = 0, tg_username: str = "") -> Iterator[dict]:
+            self.assertEqual(tg_id, 0)
+            tg_id = username_to_tg_id(tg_username)
+            yield data_row_for_service(tg_id, category_id)
+
+        state.Service.set_bot_username("bot_username")
+
+        # Create a message that does not have valid text.
+        message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=same_user, text="hello")
+        message.set_bot(self.application.bot)
+        update = Update(update_id=1, message=message)
+
+        with patch('features.services.core.reply') as mock_reply:
+            with self.assertRaises(RuntimeError):
+                await core.handle_extended_start_command(update, context)
+
+            mock_reply.assert_not_called()
+
+        message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=same_user,
+                          text=f"/start service_info_{service.category.id}_{service.tg_username}")
+        message.set_bot(self.application.bot)
+        update = Update(update_id=1, message=message)
+
+        with patch('features.services.state._service_get', return_single_service):
+            with patch('features.services.state.people_views_register') as mock_stat:
+                with patch('features.services.core.reply') as mock_reply:
+                    await core.handle_extended_start_command(update, context)
+
+                    mock_reply.assert_called_once_with(update, trans.gettext(
+                        "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}").format(
+                        category_title=service.category.title, description=service.description,
+                        location=service.location, occupation=service.occupation))
+                    mock_stat.assert_called_once_with(same_user.id, service.tg_id, service.category.id)
+
+            message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=another_user,
+                              text=f"/start service_info_{service.category.id}_{service.tg_username}")
+            message.set_bot(self.application.bot)
+            update = Update(update_id=1, message=message)
+
+            with patch('features.services.state.people_views_register') as mock_stat:
+                with patch('features.services.core.reply') as mock_reply:
+                    await core.handle_extended_start_command(update, context)
+
+                    mock_reply.assert_called_once_with(update, trans.gettext(
+                        "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {"
+                        "username}").format(
+                        category_title=service.category.title, description=service.description,
+                        location=service.location, occupation=service.occupation, username=service.tg_username))
+                    mock_stat.assert_called_once_with(another_user.id, service.tg_id, service.category.id)

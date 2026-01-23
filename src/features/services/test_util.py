@@ -20,16 +20,16 @@ SERVICE_101_TG_ID = 101
 SERVICE_101_CATEGORY_ID = CATEGORY_1_ID
 
 
-def return_single_category(*args, **kwargs) -> Iterator[dict]:
+def return_single_category(*_args, **_kwargs) -> Iterator[dict]:
     yield data_row_for_service_category(CATEGORY_1_ID)
 
 
-def return_two_categories(*args, **kwargs) -> Iterator[dict]:
+def return_two_categories(*_args, **_kwargs) -> Iterator[dict]:
     yield data_row_for_service_category(CATEGORY_1_ID)
     yield data_row_for_service_category(CATEGORY_2_ID)
 
 
-def return_no_categories(*args, **kwargs) -> Iterator[dict]:
+def return_no_categories(*_args, **_kwargs) -> Iterator[dict]:
     yield from ()
 
 
@@ -63,6 +63,15 @@ def category_title(category_id: int) -> str:
 
 def last_modified(tg_id: int) -> datetime:
     return datetime.datetime.fromisoformat("2026-01-14 12:00:00") - datetime.timedelta(days=tg_id)
+
+
+def username_to_tg_id(test_tg_username: str) -> int:
+    """Deduces a test Telegram ID from a test-generated Telegram username
+
+    @param test_tg_username: test username generated previously by a call to tg_username()
+    @return: ID part of the username converted to int
+    """
+    return int(test_tg_username.split("_")[-1])
 
 
 def create_test_user(tg_id: int) -> User:

@@ -542,9 +542,12 @@ async def _abort_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 
 async def handle_extended_start_command(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> None:
-    param = update.effective_message.text.split(" ")[1]
-    if not param.startswith(const.COMMAND_INFO + "_"):
-        return
+    try:
+        param = update.effective_message.text.split(" ")[1]
+        if not param.startswith(const.COMMAND_INFO + "_"):
+            return
+    except Exception:
+        raise RuntimeError("Wrong parameter")
 
     category_id, tg_username = param[len(const.COMMAND_INFO + "_"):].split("_", 1)
     category_id = int(category_id)
