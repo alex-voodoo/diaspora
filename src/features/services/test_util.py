@@ -33,49 +33,49 @@ def return_no_categories(*_args, **_kwargs) -> Iterator[dict]:
     yield from ()
 
 
-def tg_username(tg_id: int) -> str:
+def test_tg_username(tg_id: int) -> str:
     return f"username_{tg_id}"
 
 
-def tg_first_name(tg_id: int) -> str:
+def test_tg_first_name(tg_id: int) -> str:
     return f"Firstname_{tg_id}"
 
 
-def occupation(tg_id: int) -> str:
+def test_occupation(tg_id: int) -> str:
     return f"Occupation {tg_id}"
 
 
-def description(tg_id: int) -> str:
+def test_description(tg_id: int) -> str:
     return f"Description {tg_id}"
 
 
-def location(tg_id: int) -> str:
+def test_location(tg_id: int) -> str:
     return f"Location {tg_id}"
 
 
-def is_suspended(tg_id: int) -> bool:
+def test_is_suspended(tg_id: int) -> bool:
     return tg_id % 2 == 1
 
 
-def category_title(category_id: int) -> str:
+def test_category_title(category_id: int) -> str:
     return f"Category {category_id}"
 
 
-def last_modified(tg_id: int) -> datetime:
+def test_last_modified(tg_id: int) -> datetime:
     return datetime.datetime.fromisoformat("2026-01-14 12:00:00") - datetime.timedelta(days=tg_id)
 
 
-def username_to_tg_id(test_tg_username: str) -> int:
+def test_username_to_tg_id(tg_username: str) -> int:
     """Deduces a test Telegram ID from a test-generated Telegram username
 
-    @param test_tg_username: test username generated previously by a call to tg_username()
+    @param tg_username: test username generated previously by a call to tg_username()
     @return: ID part of the username converted to int
     """
-    return int(test_tg_username.split("_")[-1])
+    return int(tg_username.split("_")[-1])
 
 
 def create_test_user(tg_id: int) -> User:
-    return User(id=tg_id, first_name=tg_first_name(tg_id), is_bot=False, username=tg_username(tg_id),
+    return User(id=tg_id, first_name=test_tg_first_name(tg_id), is_bot=False, username=test_tg_username(tg_id),
                 language_code=settings.DEFAULT_LANGUAGE)
 
 
@@ -87,9 +87,9 @@ def data_row_for_service(tg_id: int, category_id: int) -> dict:
     @return: dictionary that contains generated test values for all data fields necessary to construct a Service object
     """
 
-    return {"tg_id": tg_id, "tg_username": tg_username(tg_id), "category_id": category_id,
-            "occupation": occupation(tg_id), "description": description(tg_id), "location": location(tg_id),
-            "is_suspended": is_suspended(tg_id), "last_modified": last_modified(tg_id)}
+    return {"tg_id": tg_id, "tg_username": test_tg_username(tg_id), "category_id": category_id,
+            "occupation": test_occupation(tg_id), "description": test_description(tg_id), "location": test_location(tg_id),
+            "is_suspended": test_is_suspended(tg_id), "last_modified": test_last_modified(tg_id)}
 
 
 def data_row_for_service_category(category_id: int) -> dict:
@@ -100,7 +100,7 @@ def data_row_for_service_category(category_id: int) -> dict:
     ServiceCategory object
     """
 
-    return {"id": category_id, "title": category_title(category_id)}
+    return {"id": category_id, "title": test_category_title(category_id)}
 
 
 def patch_service_get_all_by_user_return_nothing():

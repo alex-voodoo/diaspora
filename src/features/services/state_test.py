@@ -62,12 +62,12 @@ class TestService(unittest.TestCase):
             self.assertEqual(service.category.id, CATEGORY_1_ID)
             self.assertEqual(service.category.title, CATEGORY_1_TITLE)
             self.assertEqual(service.tg_id, SERVICE_101_TG_ID)
-            self.assertEqual(service.tg_username, tg_username(SERVICE_101_TG_ID))
-            self.assertEqual(service.occupation, occupation(SERVICE_101_TG_ID))
-            self.assertEqual(service.description, description(SERVICE_101_TG_ID))
-            self.assertEqual(service.location, location(SERVICE_101_TG_ID))
-            self.assertEqual(service.is_suspended, is_suspended(SERVICE_101_TG_ID))
-            self.assertEqual(service.last_modified, last_modified(SERVICE_101_TG_ID))
+            self.assertEqual(service.tg_username, test_tg_username(SERVICE_101_TG_ID))
+            self.assertEqual(service.occupation, test_occupation(SERVICE_101_TG_ID))
+            self.assertEqual(service.description, test_description(SERVICE_101_TG_ID))
+            self.assertEqual(service.location, test_location(SERVICE_101_TG_ID))
+            self.assertEqual(service.is_suspended, test_is_suspended(SERVICE_101_TG_ID))
+            self.assertEqual(service.last_modified, test_last_modified(SERVICE_101_TG_ID))
 
     def test_delete(self):
         mock_delete = MagicMock()

@@ -1,7 +1,7 @@
 """
 Tests for the core.py
 """
-import logging
+
 import unittest
 from unittest.mock import call, MagicMock
 
@@ -35,8 +35,8 @@ class MockBot(Bot):
 
 
 class MockQuery(CallbackQuery):
-    def __init__(self, id: str, from_user: User, chat_instance: str, *args, **kwargs):
-        super().__init__(id, from_user, chat_instance, *args, **kwargs)
+    def __init__(self, _id: str, from_user: User, chat_instance: str, *args, **kwargs):
+        super().__init__(_id, from_user, chat_instance, *args, **kwargs)
 
     async def answer(self, *args, **kwargs):
         pass
@@ -185,13 +185,13 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
             mock_reply.assert_called_once_with(update, "\n".join(expected_reply))
 
     async def test_show_main_status(self):
-        def return_no_records(where_clause: str = "", where_params: tuple = ()):
+        def return_no_records(_where_clause: str = "", _where_params: tuple = ()):
             return []
 
-        def return_single_record(where_clause: str = "", where_params: tuple = ()):
+        def return_single_record(_where_clause: str = "", _where_params: tuple = ()):
             return [data_row_for_service(1, 1)]
 
-        def return_multiple_records(where_clause: str = "", where_params: tuple = ()):
+        def return_multiple_records(_where_clause: str = "", _where_params: tuple = ()):
             return [data_row_for_service(1, 1), data_row_for_service(1, 2)]
 
         with patch('features.services.state._service_category_select_all', return_two_categories):
@@ -273,7 +273,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         user = User(id=1, first_name="Joe", is_bot=False)
         message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user)
         message.set_bot(self.application.bot)
-        update = Update(update_id=1, message=message, callback_query=MockQuery(1, user, 1, message))
+        update = Update(update_id=1, message=message, callback_query=MockQuery("1", user, "1", message))
 
         # A user that does not have a username cannot enroll.
         with patch('features.services.core.reply') as mock_reply:
@@ -288,7 +288,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         user = User(id=1, first_name="Joe", is_bot=False, username="username_1")
         message = Message(message_id=2, date=datetime.datetime.now(), chat=chat, from_user=user)
         message.set_bot(self.application.bot)
-        update = Update(update_id=2, message=message, callback_query=MockQuery(2, user, 1, message))
+        update = Update(update_id=2, message=message, callback_query=MockQuery("2", user, "1", message))
 
         with patch('features.services.core.reply') as mock_reply:
             # When no categories are defined, all services are created in the default category.  When the user starts
@@ -361,7 +361,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
         def return_single_service(category_id: int, tg_id: int = 0, tg_username: str = "") -> Iterator[dict]:
             self.assertEqual(tg_id, 0)
-            tg_id = username_to_tg_id(tg_username)
+            tg_id = test_username_to_tg_id(tg_username)
             yield data_row_for_service(tg_id, category_id)
 
         state.Service.set_bot_username("bot_username")
