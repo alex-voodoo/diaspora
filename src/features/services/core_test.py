@@ -252,16 +252,16 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                     mock_reply.reset_mock()
 
     async def test__moderate_new_data(self):
-        logging.warning("Test not implemented")
+        self.skipTest("Test not implemented")
 
     async def test__who_request_category(self):
-        logging.warning("Test not implemented")
+        self.skipTest("Test not implemented")
 
     async def test__who_received_category(self):
-        logging.warning("Test not implemented")
+        self.skipTest("Test not implemented")
 
     async def test__who(self):
-        logging.warning("Test not implemented")
+        self.skipTest("Test not implemented")
 
     async def test__handle_command_enroll(self):
         trans = i18n.default()
@@ -317,34 +317,34 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                                                   keyboards.select_category([], True))), False)
 
     async def test__handle_command_update(self):
-        logging.warning("Test not implemented")
+        self.skipTest("Test not implemented")
 
     async def test__accept_category_and_request_occupation(self):
-        logging.warning("Test not implemented")
+        self.skipTest("Test not implemented")
 
     async def test__verify_occupation_and_request_description(self):
-        logging.warning("Test not implemented")
+        self.skipTest("Test not implemented")
 
     async def test__verify_description_and_request_location(self):
-        logging.warning("Test not implemented")
+        self.skipTest("Test not implemented")
 
     async def test__verify_location_and_request_legality(self):
-        logging.warning("Test not implemented")
+        self.skipTest("Test not implemented")
 
     async def test__verify_legality_and_finalise_data_collection(self):
-        logging.warning(f"Test not implemented")
+        self.skipTest(f"Test not implemented")
 
     async def test__confirm_user_data(self):
-        logging.warning("Test not implemented")
+        self.skipTest("Test not implemented")
 
     async def test__handle_command_retire(self):
-        logging.warning("Test not implemented")
+        self.skipTest("Test not implemented")
 
     async def test__retire_received_category(self):
-        logging.warning("Test not implemented")
+        self.skipTest("Test not implemented")
 
     async def test__abort_conversation(self):
-        logging.warning("Test not implemented")
+        self.skipTest("Test not implemented")
 
     async def test_handle_extended_start_command(self):
         trans = i18n.default()
