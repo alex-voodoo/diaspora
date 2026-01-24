@@ -344,7 +344,26 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         self.skipTest("Test not implemented")
 
     async def test__abort_conversation(self):
-        self.skipTest("Test not implemented")
+        trans = i18n.default()
+
+        chat = Chat(id=1, type=Chat.PRIVATE)
+        context = CallbackContext(application=self.application, chat_id=1, user_id=1)
+        user = User(id=1, first_name="Joe", is_bot=False)
+        message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user)
+        update = Update(update_id=1, message=message)
+
+        with patch('features.services.core.show_main_status') as mock_show_main_status:
+            context.user_data["hello"] = "world"
+            context.user_data["mode"] = "update"
+            context.user_data["other"] = "stuff"
+
+            result = await core._abort_conversation(update, context)
+
+            mock_show_main_status.assert_called_once_with(update, context,
+                                                          trans.gettext("SERVICES_DM_CONVERSATION_CANCELLED"))
+
+            self.assertEqual(result, ConversationHandler.END)
+            self.assertFalse(bool(context.user_data))
 
     async def test_handle_extended_start_command(self):
         trans = i18n.default()
@@ -404,7 +423,6 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
                     mock_reply.assert_called_once_with(update, trans.gettext(
                         "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {"
-                        "username}").format(
-                        category_title=service.category.title, description=service.description,
+                        "username}").format(category_title=service.category.title, description=service.description,
                         location=service.location, occupation=service.occupation, username=service.tg_username))
                     mock_stat.assert_called_once_with(another_user.id, service.tg_id, service.category.id)
