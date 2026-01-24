@@ -3,7 +3,6 @@ Tests for keyboards.py
 """
 
 import unittest
-from unittest.mock import patch
 
 from telegram import InlineKeyboardButton
 

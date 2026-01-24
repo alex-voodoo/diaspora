@@ -3,7 +3,7 @@ Tests for state.py
 """
 
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from common import i18n
 from . import state
