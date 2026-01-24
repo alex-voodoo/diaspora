@@ -169,7 +169,6 @@ async def _who_request_category(update: Update, context: ContextTypes.DEFAULT_TY
 
     query = update.callback_query
 
-    await query.answer()
     await query.edit_message_reply_markup(None)
 
     category_list = []
@@ -193,7 +192,6 @@ async def _who_received_category(update: Update, context: ContextTypes.DEFAULT_T
 
     query = update.callback_query
 
-    await query.answer()
     await query.edit_message_reply_markup(None)
 
     filtered_people = context.user_data["who_request_category"]
@@ -223,8 +221,6 @@ async def _who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Show the current registry"""
 
     query = update.callback_query
-
-    await query.answer()
 
     trans = i18n.trans(query.from_user)
 
@@ -275,7 +271,6 @@ async def _handle_command_enroll(update: Update, context: ContextTypes.DEFAULT_T
 
     trans = i18n.trans(update.effective_user)
 
-    await query.answer()
     await query.edit_message_reply_markup(None)
 
     if not query.from_user.username:
@@ -307,7 +302,6 @@ async def _handle_command_update(update: Update, context: ContextTypes.DEFAULT_T
 
     query = update.callback_query
 
-    await query.answer()
     await query.edit_message_reply_markup(None)
 
     trans = i18n.trans(query.from_user)
@@ -332,7 +326,6 @@ async def _accept_category_and_request_occupation(update: Update, context: Conte
 
     user_data["category_id"] = category_id
 
-    await query.answer()
     await query.edit_message_reply_markup(None)
 
     lines = []
@@ -418,8 +411,6 @@ async def _verify_legality_and_finalise_data_collection(update: Update, context:
     query = update.callback_query
     from_user = query.from_user
 
-    await query.answer()
-
     user_data = context.user_data
 
     trans = i18n.trans(query.from_user)
@@ -463,8 +454,6 @@ async def _confirm_user_data(update: Update, _context: ContextTypes.DEFAULT_TYPE
 
     query = update.callback_query
 
-    await query.answer()
-
     command, tg_id, category_id = query.data.split(":")
     tg_id = int(tg_id)
     category_id = int(category_id)
@@ -502,7 +491,6 @@ async def _handle_command_retire(update: Update, _context: ContextTypes.DEFAULT_
 
     query = update.callback_query
 
-    await query.answer()
     await query.edit_message_reply_markup(None)
 
     trans = i18n.trans(query.from_user)
@@ -517,7 +505,6 @@ async def _retire_received_category(update: Update, context: ContextTypes.DEFAUL
 
     query = update.callback_query
 
-    await query.answer()
     await query.edit_message_reply_markup(None)
 
     state.Service.delete(query.from_user.id, int(query.data))
