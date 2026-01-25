@@ -252,7 +252,40 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                     mock_reply.reset_mock()
 
     async def test__moderate_new_data(self):
-        self.skipTest("Test not implemented")
+        context = CallbackContext(application=self.application, chat_id=1, user_id=1)
+
+        data = {"category_id": 4, "category_title": "Category title", "description": "Description",
+                "location": "Location", "occupation": "Occupation", "tg_id": 1, "tg_username": "username_1"}
+
+        with patch('features.services.core.send') as mock_send:
+            with patch('features.services.core.settings') as mock_settings:
+                mock_settings.DEVELOPER_CHAT_ID = 12345
+                mock_settings.ADMINISTRATORS = []
+
+                await core._moderate_new_data(context, data)
+
+                mock_send.assert_called_once_with(context, mock_settings.DEVELOPER_CHAT_ID, i18n.default().gettext(
+                    "SERVICES_ADMIN_APPROVE_USER_DATA {category} {description} {location} {occupation} {"
+                    "username}").format(category=data["category_title"], description=data["description"],
+                                        location=data["location"], occupation=data["occupation"],
+                                        username=data["tg_username"]), keyboards.approve_service_change(data))
+
+                mock_send.reset_mock()
+
+                mock_settings.ADMINISTRATORS = [{"id": 234, "username": "username_234"},
+                                                {"id": 567, "username": "username_567"},
+                                                {"id": 890, "username": "username_890"}]
+
+                await core._moderate_new_data(context, data)
+
+                calls = [call(context, a["id"], i18n.default().gettext(
+                    "SERVICES_ADMIN_APPROVE_USER_DATA {category} {description} {location} {occupation} {"
+                    "username}").format(category=data["category_title"], description=data["description"],
+                                        location=data["location"], occupation=data["occupation"],
+                                        username=data["tg_username"]), keyboards.approve_service_change(data)) for a in
+                         mock_settings.ADMINISTRATORS]
+
+                mock_send.assert_has_calls(calls, True)
 
     async def test__who_request_category(self):
         self.skipTest("Test not implemented")
@@ -424,5 +457,6 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                     mock_reply.assert_called_once_with(update, trans.gettext(
                         "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {"
                         "username}").format(category_title=service.category.title, description=service.description,
-                        location=service.location, occupation=service.occupation, username=service.tg_username))
+                                            location=service.location, occupation=service.occupation,
+                                            username=service.tg_username))
                     mock_stat.assert_called_once_with(another_user.id, service.tg_id, service.category.id)
