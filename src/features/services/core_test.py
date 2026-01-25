@@ -51,7 +51,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         self.application.bot = MockBot(token=settings.BOT_TOKEN)
 
     def tearDown(self):
-        with patch('features.services.state._service_category_select_all', return_no_categories):
+        with patch("features.services.state._service_category_select_all", return_no_categories):
             state.ServiceCategory.load()
 
     # def test__format_hint
@@ -106,7 +106,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
         request_next_data_field = AsyncMock()
 
-        with patch('features.services.core.reply') as mock_reply:
+        with patch("features.services.core.reply") as mock_reply:
             # noinspection PyTypeChecker
             result = await core._verify_limit_then_retry_or_proceed(update, context, current_stage_id, current_limit,
                                                                     current_data_field_key, next_stage_id, next_limit,
@@ -132,7 +132,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         context = CallbackContext(application=self.application, chat_id=1, user_id=1)
         context.user_data["current"] = current_text
 
-        with patch('features.services.core.reply') as mock_reply:
+        with patch("features.services.core.reply") as mock_reply:
             # noinspection PyTypeChecker
             result = await core._verify_limit_then_retry_or_proceed(update, context, current_stage_id, current_limit,
                                                                     current_data_field_key, next_stage_id, next_limit,
@@ -163,7 +163,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         context = CallbackContext(application=self.application, chat_id=1, user_id=1)
         context.user_data["next"] = current_next_text
 
-        with patch('features.services.core.reply') as mock_reply:
+        with patch("features.services.core.reply") as mock_reply:
             await core._request_next_data_field(update, context, next_limit, next_data_field_key,
                                                 next_data_field_insert_text, next_data_field_update_text)
 
@@ -175,7 +175,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         context.user_data["mode"] = "update"
         context.user_data["category_title"] = category_title
 
-        with patch('features.services.core.reply') as mock_reply:
+        with patch("features.services.core.reply") as mock_reply:
             await core._request_next_data_field(update, context, next_limit, next_data_field_key,
                                                 next_data_field_insert_text, next_data_field_update_text)
 
@@ -194,7 +194,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         def return_multiple_records(_where_clause: str = "", _where_params: tuple = ()):
             return [data_row_for_service(1, 1), data_row_for_service(1, 2)]
 
-        with patch('features.services.state._service_category_select_all', return_two_categories):
+        with patch("features.services.state._service_category_select_all", return_two_categories):
             state.ServiceCategory.load()
 
         state.Service.set_bot_username("bot_username")
@@ -215,31 +215,31 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
             [trans.gettext("SERVICES_DM_HELLO_AGAIN {user_first_name}").format(user_first_name=user.first_name),
              core._main_status_record_description(state.Service(**return_single_record()[0]))])
 
-        with patch('features.services.core.reply') as mock_reply:
-            with patch('features.services.state._service_select', return_no_records):
-                with patch('features.services.state._service_category_select_all', return_no_categories):
+        with patch("features.services.core.reply") as mock_reply:
+            with patch("features.services.state._service_select", return_no_records):
+                with patch("features.services.state._service_category_select_all", return_no_categories):
                     await core.show_main_status(update, context)
                     mock_reply.assert_called_once_with(update, expected_text_no_categories, keyboards.standard(user))
                     mock_reply.reset_mock()
 
-                with patch('features.services.state._service_category_select_all', return_single_category):
+                with patch("features.services.state._service_category_select_all", return_single_category):
                     await core.show_main_status(update, context)
                     mock_reply.assert_called_once_with(update, expected_text_no_categories, keyboards.standard(user))
                     mock_reply.reset_mock()
 
-            with patch('features.services.state._service_select', return_single_record):
-                with patch('features.services.state._service_category_select_all', return_no_categories):
+            with patch("features.services.state._service_select", return_single_record):
+                with patch("features.services.state._service_category_select_all", return_no_categories):
                     await core.show_main_status(update, context)
                     mock_reply.assert_called_once_with(update, expected_text_single_record, keyboards.standard(user))
                     mock_reply.reset_mock()
 
-                with patch('features.services.state._service_category_select_all', return_single_category):
+                with patch("features.services.state._service_category_select_all", return_single_category):
                     await core.show_main_status(update, context)
                     mock_reply.assert_called_once_with(update, expected_text_single_record, keyboards.standard(user))
                     mock_reply.reset_mock()
 
-            with patch('features.services.state._service_select', return_multiple_records):
-                with patch('features.services.state._service_category_select_all', return_single_category):
+            with patch("features.services.state._service_select", return_multiple_records):
+                with patch("features.services.state._service_category_select_all", return_single_category):
                     await core.show_main_status(update, context)
                     records = return_multiple_records()
                     expected_text = [trans.ngettext("SERVICES_DM_HELLO_AGAIN_S {user_first_name} {record_count}",
@@ -257,8 +257,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         data = {"category_id": 4, "category_title": "Category title", "description": "Description",
                 "location": "Location", "occupation": "Occupation", "tg_id": 1, "tg_username": "username_1"}
 
-        with patch('features.services.core.send') as mock_send:
-            with patch('features.services.core.settings') as mock_settings:
+        with patch("features.services.core.send") as mock_send:
+            with patch("features.services.core.settings") as mock_settings:
                 mock_settings.DEVELOPER_CHAT_ID = 12345
                 mock_settings.ADMINISTRATORS = []
 
@@ -309,7 +309,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         update = Update(update_id=1, message=message, callback_query=MockQuery("1", user, "1", message))
 
         # A user that does not have a username cannot enroll.
-        with patch('features.services.core.reply') as mock_reply:
+        with patch("features.services.core.reply") as mock_reply:
             with patch_service_get_all_by_user_return_nothing():
                 result = await core._handle_command_enroll(update, context)
 
@@ -323,7 +323,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         message.set_bot(self.application.bot)
         update = Update(update_id=2, message=message, callback_query=MockQuery("2", user, "1", message))
 
-        with patch('features.services.core.reply') as mock_reply:
+        with patch("features.services.core.reply") as mock_reply:
             # When no categories are defined, all services are created in the default category.  When the user starts
             # enrolling, they proceed to entering their occupation right away.
             with patch_service_get_all_by_user_return_nothing():
@@ -336,8 +336,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                                              call(update, trans.gettext("SERVICES_DM_ENROLL_ASK_OCCUPATION"))), False)
 
             # Load two real categories.
-            with patch('features.services.state._service_category_select_all', return_two_categories):
-                state.ServiceCategory.load()
+            load_test_categories(2)
 
             # With some categories defined, the enrollment starts with selecting a category.
             with patch_service_get_all_by_user_return_nothing():
@@ -385,7 +384,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user)
         update = Update(update_id=1, message=message)
 
-        with patch('features.services.core.show_main_status') as mock_show_main_status:
+        with patch("features.services.core.show_main_status") as mock_show_main_status:
             context.user_data["hello"] = "world"
             context.user_data["mode"] = "update"
             context.user_data["other"] = "stuff"
@@ -408,8 +407,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         service = state.Service(**data_row_for_service(1, 1))
 
         # Load two real categories.
-        with patch('features.services.state._service_category_select_all', return_two_categories):
-            state.ServiceCategory.load()
+        load_test_categories(2)
 
         def return_single_service(category_id: int, tg_id: int = 0, tg_username: str = "") -> Iterator[dict]:
             self.assertEqual(tg_id, 0)
@@ -423,7 +421,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         message.set_bot(self.application.bot)
         update = Update(update_id=1, message=message)
 
-        with patch('features.services.core.reply') as mock_reply:
+        with patch("features.services.core.reply") as mock_reply:
             with self.assertRaises(RuntimeError):
                 await core.handle_extended_start_command(update, context)
 
@@ -434,9 +432,9 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         message.set_bot(self.application.bot)
         update = Update(update_id=1, message=message)
 
-        with patch('features.services.state._service_get', return_single_service):
-            with patch('features.services.state.people_views_register') as mock_stat:
-                with patch('features.services.core.reply') as mock_reply:
+        with patch("features.services.state._service_get", return_single_service):
+            with patch("features.services.state.people_views_register") as mock_stat:
+                with patch("features.services.core.reply") as mock_reply:
                     await core.handle_extended_start_command(update, context)
 
                     mock_reply.assert_called_once_with(update, trans.gettext(
@@ -450,8 +448,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
             message.set_bot(self.application.bot)
             update = Update(update_id=1, message=message)
 
-            with patch('features.services.state.people_views_register') as mock_stat:
-                with patch('features.services.core.reply') as mock_reply:
+            with patch("features.services.state.people_views_register") as mock_stat:
+                with patch("features.services.core.reply") as mock_reply:
                     await core.handle_extended_start_command(update, context)
 
                     mock_reply.assert_called_once_with(update, trans.gettext(

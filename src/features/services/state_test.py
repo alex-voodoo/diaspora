@@ -12,7 +12,7 @@ from .test_util import *
 
 class TestServiceCategory(unittest.TestCase):
     def tearDown(self):
-        with patch('features.services.state._service_category_select_all', return_no_categories):
+        with patch("features.services.state._service_category_select_all", return_no_categories):
             state.ServiceCategory.load()
 
     def test_get(self):
@@ -23,40 +23,40 @@ class TestServiceCategory(unittest.TestCase):
         with self.assertRaises(KeyError):
             _category = state.ServiceCategory.get(CATEGORY_1_ID)
 
-        with patch('features.services.state._service_category_select_all', return_single_category):
+        with patch("features.services.state._service_category_select_all", return_single_category):
             state.ServiceCategory.load()
 
             self.assertEqual(state.ServiceCategory.get(0).title, trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"))
             self.assertEqual(state.ServiceCategory.get(CATEGORY_1_ID).title, CATEGORY_1_TITLE)
 
     def test_load(self):
-        with patch('features.services.state._service_category_select_all', return_no_categories):
+        with patch("features.services.state._service_category_select_all", return_no_categories):
             state.ServiceCategory.load()
             self.assertEqual(state.ServiceCategory._categories, {})
 
-        with patch('features.services.state._service_category_select_all', return_single_category):
+        with patch("features.services.state._service_category_select_all", return_single_category):
             state.ServiceCategory.load()
             self.assertEqual(len(state.ServiceCategory._categories), 1)
 
-        with patch('features.services.state._service_category_select_all', return_no_categories):
+        with patch("features.services.state._service_category_select_all", return_no_categories):
             state.ServiceCategory.load()
             self.assertEqual(state.ServiceCategory._categories, {})
 
 
 class TestService(unittest.TestCase):
     def setUp(self):
-        with patch('features.services.state._service_category_select_all', return_single_category):
+        with patch("features.services.state._service_category_select_all", return_single_category):
             state.ServiceCategory.load()
 
     def tearDown(self):
-        with patch('features.services.state._service_category_select_all', return_no_categories):
+        with patch("features.services.state._service_category_select_all", return_no_categories):
             state.ServiceCategory.load()
 
     def test_get(self):
         def return_single_service(category_id: int, tg_id: int) -> Iterator[dict]:
             yield data_row_for_service(tg_id, category_id)
 
-        with patch('features.services.state._service_get', return_single_service):
+        with patch("features.services.state._service_get", return_single_service):
             service = state.Service.get(SERVICE_101_TG_ID, SERVICE_101_CATEGORY_ID)
 
             self.assertEqual(service.category.id, CATEGORY_1_ID)
@@ -71,7 +71,7 @@ class TestService(unittest.TestCase):
 
     def test_delete(self):
         mock_delete = MagicMock()
-        with patch('features.services.state._service_delete', mock_delete):
+        with patch("features.services.state._service_delete", mock_delete):
             state.Service.delete(SERVICE_101_TG_ID, CATEGORY_1_ID)
 
             mock_delete.assert_called_once_with(SERVICE_101_TG_ID, CATEGORY_1_ID)

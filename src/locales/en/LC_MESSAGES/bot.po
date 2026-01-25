@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-01-24 22:33+0100\n"
+"POT-Creation-Date: 2026-01-25 13:12+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -394,10 +394,10 @@ msgid "SERVICES_DM_WHO_LIST_HEADING"
 msgstr "Here is the directory:"
 
 #: features/services/core.py:229 features/services/keyboards.py:90
-#: features/services/keyboards_test.py:108
-#: features/services/keyboards_test.py:115
-#: features/services/keyboards_test.py:131
-#: features/services/keyboards_test.py:143 features/services/state.py:45
+#: features/services/keyboards_test.py:107
+#: features/services/keyboards_test.py:114
+#: features/services/keyboards_test.py:129
+#: features/services/keyboards_test.py:141 features/services/state.py:45
 #: features/services/state_test.py:21 features/services/state_test.py:29
 msgid "SERVICES_CATEGORY_OTHER_TITLE"
 msgstr "Other"
@@ -414,11 +414,11 @@ msgstr ""
 "Please register a username for your profile and try again."
 
 #: features/services/core.py:280 features/services/core_test.py:335
-#: features/services/core_test.py:348
+#: features/services/core_test.py:347
 msgid "SERVICES_DM_ENROLL_START"
 msgstr "Let us start!"
 
-#: features/services/core.py:288 features/services/core_test.py:349
+#: features/services/core.py:288 features/services/core_test.py:348
 msgid "SERVICES_DM_ENROLL_ASK_CATEGORY"
 msgstr "Please select a category that matches your service the best."
 
@@ -501,11 +501,11 @@ msgstr "Select category to delete."
 msgid "SERVICES_DM_RETIRE"
 msgstr "The record is deleted."
 
-#: features/services/core.py:526 features/services/core_test.py:396
+#: features/services/core.py:526 features/services/core_test.py:395
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Let us start again."
 
-#: features/services/core.py:551 features/services/core_test.py:442
+#: features/services/core.py:551 features/services/core_test.py:440
 msgid "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}"
 msgstr ""
 "Your service in the category <b>{category_title}</b>\n"
@@ -515,7 +515,7 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/core.py:556 features/services/core_test.py:457
+#: features/services/core.py:556 features/services/core_test.py:455
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "Service by @{username} in the category <b>{category_title}</b>\n"

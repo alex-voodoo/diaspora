@@ -13,7 +13,7 @@ from .test_util import *
 
 class TestKeyboards(unittest.TestCase):
     def tearDown(self):
-        with patch('features.services.state._service_category_select_all', return_no_categories):
+        with patch("features.services.state._service_category_select_all", return_no_categories):
             state.ServiceCategory.load()
 
     def test_standard(self):
@@ -73,12 +73,11 @@ class TestKeyboards(unittest.TestCase):
         with patch_service_get_all_by_user_return_nothing():
             assert_who_enroll()
 
-        with patch('features.services.state._service_get_all_by_user', return_single_service_default_category):
+        with patch("features.services.state._service_get_all_by_user", return_single_service_default_category):
             assert_who_update_retire()
 
-        # Load two real categories.
-        with patch('features.services.state._service_category_select_all', return_two_categories):
-            state.ServiceCategory.load()
+        # Load some real categories.
+        load_test_categories(5)
 
         # When there are real categories, users can register services until they have a service in each category,
         # including the default one.
@@ -86,16 +85,16 @@ class TestKeyboards(unittest.TestCase):
         with patch_service_get_all_by_user_return_nothing():
             assert_who_enroll()
 
-        with patch('features.services.state._service_get_all_by_user', return_single_service_default_category):
+        with patch("features.services.state._service_get_all_by_user", return_single_service_default_category):
             assert_who_enroll_more_update_retire()
 
-        with patch('features.services.state._service_get_all_by_user', return_single_service_category_1):
+        with patch("features.services.state._service_get_all_by_user", return_single_service_category_1):
             assert_who_enroll_more_update_retire()
 
-        with patch('features.services.state._service_get_all_by_user', return_all_categories_without_default):
+        with patch("features.services.state._service_get_all_by_user", return_all_categories_without_default):
             assert_who_enroll_more_update_retire()
 
-        with patch('features.services.state._service_get_all_by_user', return_all_categories_with_default):
+        with patch("features.services.state._service_get_all_by_user", return_all_categories_with_default):
             assert_who_update_retire()
 
     def test_select_category(self):
@@ -123,8 +122,7 @@ class TestKeyboards(unittest.TestCase):
             self.assertIn((InlineKeyboardButton(category.title, callback_data=category.id),), keyboard.inline_keyboard)
 
         # Load two real categories.
-        with patch('features.services.state._service_category_select_all', return_two_categories):
-            state.ServiceCategory.load()
+        load_test_categories(2)
 
         keyboard = keyboards.select_category(categories, True)
         self.assertEqual(len(keyboard.inline_keyboard), 3)
