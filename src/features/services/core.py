@@ -183,7 +183,7 @@ async def _who_request_category(update: Update, context: ContextTypes.DEFAULT_TY
     await reply(update, trans.gettext("SERVICES_DM_WHO_CATEGORY_LIST {categories} {disclaimer}").format(
         categories="\n".join([c["text"] for c in category_list]),
         disclaimer=trans.gettext("SERVICES_DM_WHO_DISCLAIMER")),
-                keyboards.select_category([c["object"] for c in category_list]))
+                keyboards.select_category([c["object"] for c in category_list], True))
 
     context.user_data["who_request_category"] = categorised_people
 
