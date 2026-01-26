@@ -164,7 +164,7 @@ def _who_people_to_message(people: list[Service]) -> list[str]:
     return result
 
 
-async def _who_request_category(update: Update, context: ContextTypes.DEFAULT_TYPE, filtered_people: list) -> int:
+async def _who_request_category(update: Update, context: ContextTypes.DEFAULT_TYPE, categorised_people: dict) -> int:
     """Ask user for a category to show"""
 
     query = update.callback_query
@@ -173,16 +173,18 @@ async def _who_request_category(update: Update, context: ContextTypes.DEFAULT_TY
 
     category_list = []
 
-    for c in filtered_people:
-        category_list.append({"object": ServiceCategory(c["category_id"], c["title"]),
-                              "text": "{t}: {c}".format(t=c["title"], c=len(c["people"]))})
+    for category in state.ServiceCategory.all(True):
+        if category.id not in categorised_people:
+            continue
+
+        category_list.append({"object": category, "text": f"{category.title}: {len(categorised_people[category.id])}"})
 
     trans = i18n.trans(query.from_user)
     await reply(update, trans.gettext("SERVICES_DM_WHO_CATEGORY_LIST").format(
         categories="\n".join([c["text"] for c in category_list])),
                 keyboards.select_category([c["object"] for c in category_list]))
 
-    context.user_data["who_request_category"] = filtered_people
+    context.user_data["who_request_category"] = categorised_people
 
     return const.SELECTING_CATEGORY
 
@@ -194,22 +196,19 @@ async def _who_received_category(update: Update, context: ContextTypes.DEFAULT_T
 
     await query.edit_message_reply_markup(None)
 
-    filtered_people = context.user_data["who_request_category"]
+    categorised_people = context.user_data["who_request_category"]
     category_id = int(query.data)
 
     state.people_category_views_register(query.from_user.id, category_id)
 
-    category = None
-    for c in filtered_people:
-        if c["category_id"] == category_id:
-            category = c
-            break
-    if not category:
+    if category_id not in categorised_people:
         await reply(update, i18n.trans(query.from_user).gettext("SERVICES_DM_WHO_CATEGORY_EMPTY"),
                     keyboards.standard(query.from_user))
         return ConversationHandler.END
 
-    user_list = ["<b>{t}</b>".format(t=category["title"])] + _who_people_to_message(category["people"])
+    category = state.ServiceCategory.get(category_id)
+
+    user_list = [f"<b>{category.title}</b>"] + _who_people_to_message(categorised_people[category_id])
 
     await reply(update, "\n".join(user_list), keyboards.standard(query.from_user))
 
@@ -226,31 +225,27 @@ async def _who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     user_list = [trans.gettext("SERVICES_DM_WHO_LIST_HEADING")]
 
-    categorised_people = {0: {"title": trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"), "category_id": 0, "people": []}}
-
-    for category in ServiceCategory.all():
-        categorised_people[category.id] = {"title": category.title, "people": []}
+    categorised_people = {}
 
     for service in state.Service.get_all_active():
-        categorised_people[service.category.id]["people"].append(service)
-
-    filtered_people = [{"title": c["title"], "category_id": i, "people": c["people"]} for i, c in
-                       categorised_people.items() if i != 0 and c["people"]]
-    if categorised_people[0]["people"]:
-        filtered_people.append(categorised_people[0])
+        if service.category.id not in categorised_people:
+            categorised_people[service.category.id] = []
+        categorised_people[service.category.id].append(service)
 
     state.people_category_views_register(query.from_user.id, -1)
 
-    if settings.SHOW_CATEGORIES_ALWAYS and len(filtered_people) > 1:
-        return await _who_request_category(update, context, filtered_people)
+    if settings.SHOW_CATEGORIES_ALWAYS and len(categorised_people) > 1:
+        return await _who_request_category(update, context, categorised_people)
     else:
-        if len(filtered_people) == 1:
-            user_list += _who_people_to_message(filtered_people[0]["people"])
+        if len(categorised_people) == 1:
+            user_list += _who_people_to_message(categorised_people[0])
         else:
-            for category in filtered_people:
+            for category in state.ServiceCategory.all(True):
+                if category.id not in categorised_people:
+                    continue
                 user_list.append("")
-                user_list.append("<b>{t}</b>".format(t=category["title"]))
-                user_list += _who_people_to_message(category["people"])
+                user_list.append(f"<b>{category.title}</b>")
+                user_list += _who_people_to_message(categorised_people[category.id])
 
         if len(user_list) == 1:
             user_list = [trans.gettext("SERVICES_DM_WHO_EMPTY")]
@@ -261,7 +256,7 @@ async def _who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             await reply(update, united_message, keyboards.standard(query.from_user))
             return ConversationHandler.END
         else:
-            return await _who_request_category(update, context, filtered_people)
+            return await _who_request_category(update, context, categorised_people)
 
 
 async def _handle_command_enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -280,7 +275,7 @@ async def _handle_command_enroll(update: Update, context: ContextTypes.DEFAULT_T
     await reply(update, trans.gettext("SERVICES_DM_ENROLL_START"))
 
     existing_category_ids = [service.category.id for service in state.Service.get_all_by_user(query.from_user.id)]
-    categories = [c for c in ServiceCategory.all() if c.id not in existing_category_ids]
+    categories = [c for c in ServiceCategory.all(False) if c.id not in existing_category_ids]
 
     category_buttons = keyboards.select_category(categories, 0 not in existing_category_ids and len(categories) > 0)
 

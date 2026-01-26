@@ -27,13 +27,12 @@ class TestKeyboards(unittest.TestCase):
             yield data_row_for_service(tg_id, CATEGORY_1_ID)
 
         def return_all_categories_without_default(tg_id: int) -> Iterator[dict]:
-            for c in state.ServiceCategory.all():
+            for c in state.ServiceCategory.all(False):
                 yield data_row_for_service(tg_id, c.id)
 
         def return_all_categories_with_default(tg_id: int) -> Iterator[dict]:
-            for c in state.ServiceCategory.all():
+            for c in state.ServiceCategory.all(True):
                 yield data_row_for_service(tg_id, c.id)
-            yield data_row_for_service(tg_id, 0)
 
         who_button = InlineKeyboardButton(trans.gettext("SERVICES_BUTTON_WHO"), callback_data=const.COMMAND_WHO)
         enroll_button = InlineKeyboardButton(trans.gettext("SERVICES_BUTTON_ENROLL"),
@@ -140,10 +139,10 @@ class TestKeyboards(unittest.TestCase):
         self.assertEqual(len(keyboard.inline_keyboard), 3)
         self.assertIn((InlineKeyboardButton(trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"), callback_data=0),),
                       keyboard.inline_keyboard)
-        for category in state.ServiceCategory.all():
+        for category in state.ServiceCategory.all(True):
             self.assertIn((InlineKeyboardButton(category.title, callback_data=category.id),), keyboard.inline_keyboard)
 
         keyboard = keyboards.select_category([], False)
         self.assertEqual(len(keyboard.inline_keyboard), 2)
-        for category in state.ServiceCategory.all():
+        for category in state.ServiceCategory.all(False):
             self.assertIn((InlineKeyboardButton(category.title, callback_data=category.id),), keyboard.inline_keyboard)

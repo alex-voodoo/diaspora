@@ -20,6 +20,7 @@ class ServiceCategory:
     """
 
     _categories = {}
+    _order = []
 
     def __init__(self, db_id: int, title: str):
         self._id = db_id
@@ -54,6 +55,8 @@ class ServiceCategory:
         for category in _service_category_select_all():
             cls._categories[category["id"]] = ServiceCategory(category["id"], category["title"])
 
+        cls._order = [c.id for c in sorted(cls._categories.values(), key=lambda v: v.title)]
+
     @classmethod
     def count(cls) -> int:
         """Return number of categories"""
@@ -61,11 +64,13 @@ class ServiceCategory:
         return len(cls._categories)
 
     @classmethod
-    def all(cls) -> Iterator[Self]:
-        """Return all service categories"""
+    def all(cls, yield_default_category: bool) -> Iterator[Self]:
+        """Return all service categories sorted alphabetically by title"""
 
-        for category in cls._categories.values():
-            yield category
+        for id in cls._order:
+            yield cls.get(id)
+        if yield_default_category:
+            yield cls.get(0)
 
 
 class Service:

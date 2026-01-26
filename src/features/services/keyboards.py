@@ -82,12 +82,15 @@ def select_category(categories: Iterable[ServiceCategory], show_other=False) -> 
 
     buttons = []
     added_other = False
-    for category in categories if categories else ServiceCategory.all():
-        buttons.append((InlineKeyboardButton(category.title, callback_data=category.id),))
+    for category in categories if categories else ServiceCategory.all(True):
         if category.id == 0:
+            if not show_other:
+                continue
             added_other = True
+        buttons.append((InlineKeyboardButton(category.title, callback_data=category.id),))
     if show_other and not added_other:
-        buttons.append((InlineKeyboardButton(i18n.default().gettext("SERVICES_CATEGORY_OTHER_TITLE"), callback_data=0),))
+        default_category = ServiceCategory.get(0)
+        buttons.append((InlineKeyboardButton(default_category.title, callback_data=default_category.id),))
     if not buttons:
         return None
     return InlineKeyboardMarkup(buttons)
