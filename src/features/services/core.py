@@ -180,8 +180,9 @@ async def _who_request_category(update: Update, context: ContextTypes.DEFAULT_TY
         category_list.append({"object": category, "text": f"{category.title}: {len(categorised_people[category.id])}"})
 
     trans = i18n.trans(query.from_user)
-    await reply(update, trans.gettext("SERVICES_DM_WHO_CATEGORY_LIST").format(
-        categories="\n".join([c["text"] for c in category_list])),
+    await reply(update, trans.gettext("SERVICES_DM_WHO_CATEGORY_LIST {categories} {disclaimer}").format(
+        categories="\n".join([c["text"] for c in category_list]),
+        disclaimer=trans.gettext("SERVICES_DM_WHO_DISCLAIMER")),
                 keyboards.select_category([c["object"] for c in category_list]))
 
     context.user_data["who_request_category"] = categorised_people
@@ -201,14 +202,17 @@ async def _who_received_category(update: Update, context: ContextTypes.DEFAULT_T
 
     state.people_category_views_register(query.from_user.id, category_id)
 
+    trans = i18n.trans(query.from_user)
     if category_id not in categorised_people:
-        await reply(update, i18n.trans(query.from_user).gettext("SERVICES_DM_WHO_CATEGORY_EMPTY"),
+        await reply(update, trans.gettext("SERVICES_DM_WHO_CATEGORY_EMPTY"),
                     keyboards.standard(query.from_user))
         return ConversationHandler.END
 
     category = state.ServiceCategory.get(category_id)
 
     user_list = [f"<b>{category.title}</b>"] + _who_people_to_message(categorised_people[category_id])
+    user_list.append("")
+    user_list.append(trans.gettext("SERVICES_DM_WHO_DISCLAIMER"))
 
     await reply(update, "\n".join(user_list), keyboards.standard(query.from_user))
 
@@ -246,6 +250,8 @@ async def _who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
                 user_list.append("")
                 user_list.append(f"<b>{category.title}</b>")
                 user_list += _who_people_to_message(categorised_people[category.id])
+                user_list.append("")
+                user_list.append(trans.gettext("SERVICES_DM_WHO_DISCLAIMER"))
 
         if len(user_list) == 1:
             user_list = [trans.gettext("SERVICES_DM_WHO_EMPTY")]
