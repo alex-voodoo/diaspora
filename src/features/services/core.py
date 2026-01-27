@@ -167,6 +167,9 @@ def _who_people_to_message(people: list[Service]) -> list[str]:
 async def _who_request_category(update: Update, context: ContextTypes.DEFAULT_TYPE, categorised_people: dict) -> int:
     """Ask user for a category to show"""
 
+    if not categorised_people:
+        raise RuntimeError("Cannot request a category: no people to show")
+
     query = update.callback_query
 
     await query.edit_message_reply_markup(None)
@@ -204,8 +207,7 @@ async def _who_received_category(update: Update, context: ContextTypes.DEFAULT_T
 
     trans = i18n.trans(query.from_user)
     if category_id not in categorised_people:
-        await reply(update, trans.gettext("SERVICES_DM_WHO_CATEGORY_EMPTY"),
-                    keyboards.standard(query.from_user))
+        await reply(update, trans.gettext("SERVICES_DM_WHO_CATEGORY_EMPTY"), keyboards.standard(query.from_user))
         return ConversationHandler.END
 
     category = state.ServiceCategory.get(category_id)

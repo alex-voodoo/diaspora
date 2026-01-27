@@ -9,7 +9,7 @@ from telegram import Bot, CallbackQuery, Chat, Message, Update
 from telegram.ext import Application, CallbackContext, ConversationHandler
 
 from common import i18n
-from . import const, core, keyboards, state
+from . import const, core, keyboards
 from .test_util import *
 
 
@@ -288,7 +288,54 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                 mock_send.assert_has_calls(calls, True)
 
     async def test__who_request_category(self):
-        self.skipTest("Test not implemented")
+        trans = i18n.default()
+
+        chat = Chat(id=1, type=Chat.PRIVATE)
+        context = CallbackContext(application=self.application, chat_id=1, user_id=1)
+
+        # Create a query from a user that does not have a username.
+        user = User(id=1, first_name="Joe", is_bot=False)
+        message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user)
+        message.set_bot(self.application.bot)
+        update = Update(update_id=1, message=message, callback_query=MockQuery("1", user, "1", message))
+
+        categorised_people = {}
+
+        # When no categories are passed, this must not be called.
+        with self.assertRaises(RuntimeError):
+            await core._who_request_category(update, context, categorised_people)
+
+        async def test_with_services_in_categories(category_ids: list[int]):
+            with patch("features.services.core.reply") as mock_reply:
+                categorised_people = {category_id: [state.Service(**data_row_for_service(1, category_id)),
+                                                    state.Service(**data_row_for_service(2, category_id)),
+                                                    state.Service(**data_row_for_service(3, category_id))] for
+                                      category_id in category_ids}
+
+                expected_category_list = []
+                for category in state.ServiceCategory.all(True):
+                    if category.id not in category_ids:
+                        continue
+                    expected_category_list.append(
+                        {"object": category, "text": f"{category.title}: {len(categorised_people[category.id])}"})
+
+                result = await core._who_request_category(update, context, categorised_people)
+                self.assertEqual(result, const.SELECTING_CATEGORY)
+                mock_reply.assert_called_once_with(update, trans.gettext(
+                    "SERVICES_DM_WHO_CATEGORY_LIST {categories} {disclaimer}").format(
+                    categories="\n".join([c["text"] for c in expected_category_list]),
+                    disclaimer=trans.gettext("SERVICES_DM_WHO_DISCLAIMER")), keyboards.select_category(
+                    [c["object"] for c in expected_category_list], True))
+
+        await test_with_services_in_categories([0, ])
+
+        load_test_categories(5)
+
+        await test_with_services_in_categories([0, ])
+        await test_with_services_in_categories([0, 1])
+        await test_with_services_in_categories([0, 2])
+        await test_with_services_in_categories([1, 2, 3])
+        await test_with_services_in_categories([1, 2, 3, 4, 5])
 
     async def test__who_received_category(self):
         self.skipTest("Test not implemented")
