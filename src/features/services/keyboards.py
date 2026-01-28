@@ -55,11 +55,12 @@ def standard(user: User) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(buttons)
 
 
-def select_category(categories: Iterable[ServiceCategory], show_other=False) -> InlineKeyboardMarkup | None:
+def select_category(categories: Iterable[ServiceCategory] = None) -> InlineKeyboardMarkup | None:
     """Build the keyboard for selecting a category
 
-    Categories can be provided via the `categories` parameter.  If it is empty, the function will use the full list of
-    categories existing in the DB.
+    @param categories: optional categories to show.  If not provided, the function will use the list of categories
+    defined in the DB.
+    @return: keyboard markup or None
 
     If there is at least one category, returns an instance of InlineKeyboardMarkup that contains a vertically aligned
     set of buttons:
@@ -74,25 +75,18 @@ def select_category(categories: Iterable[ServiceCategory], show_other=False) -> 
     | Default    |
     +------------+
 
-    Each button has the category ID in its callback data.  The "Default" item means "no category", its callback data is
-    set to 0.
-
-    If no categories are defined in the DB and `show_other` is False, this function returns None.
+    Each button has the category ID in its callback data.  Only categories defined in the DB are returned, maintaining
+    their standard order.
     """
 
-    buttons = []
-    added_other = False
-    for category in categories if categories else ServiceCategory.all(True):
-        if category.id == 0:
-            if not show_other:
-                continue
-            added_other = True
-        buttons.append((InlineKeyboardButton(category.title, callback_data=category.id),))
-    if show_other and not added_other:
-        default_category = ServiceCategory.get(0)
-        buttons.append((InlineKeyboardButton(default_category.title, callback_data=default_category.id),))
+    effective_categories = categories if categories is not None else ServiceCategory.all(True)
+    effective_ids = [c.id for c in effective_categories]
+
+    buttons = [(InlineKeyboardButton(c.title, callback_data=c.id),) for c in state.ServiceCategory.all(True) if
+               c.id in effective_ids]
     if not buttons:
         return None
+
     return InlineKeyboardMarkup(buttons)
 
 

@@ -14,7 +14,8 @@ from common.log import LogTime
 class ServiceCategory:
     """Wraps a service category database record
 
-    The class caches the entire `people_category` table and provides a `get()` method for accessing individual items.
+    The class caches the entire `people_category` table and provides methods for accessing individual items and the
+    entire collection.
 
     The storage must be initialised by calling the `load()` class method.
     """
@@ -22,8 +23,9 @@ class ServiceCategory:
     _categories = {}
     _order = []
 
-    def __init__(self, db_id: int, title: str):
-        self._id = db_id
+    # noinspection PyShadowingBuiltins
+    def __init__(self, id: int, title: str):
+        self._id = id
         self._title = title
 
     @property
@@ -65,10 +67,10 @@ class ServiceCategory:
 
     @classmethod
     def all(cls, yield_default_category: bool) -> Iterator[Self]:
-        """Return all service categories sorted alphabetically by title"""
+        """Return all service categories sorted alphabetically by title (the default category goes in the end)"""
 
-        for id in cls._order:
-            yield cls.get(id)
+        for category_id in cls._order:
+            yield cls.get(category_id)
         if yield_default_category:
             yield cls.get(0)
 

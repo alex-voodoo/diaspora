@@ -3,18 +3,21 @@ Tests for keyboards.py
 """
 
 import unittest
+from collections.abc import Iterable
 
 from telegram import InlineKeyboardButton
 
 from common import i18n
-from . import const, keyboards, state
+from . import const, keyboards
 from .test_util import *
 
 
 class TestKeyboards(unittest.TestCase):
+    def setUp(self):
+        load_test_categories(0)
+
     def tearDown(self):
-        with patch("features.services.state._service_category_select_all", return_no_categories):
-            state.ServiceCategory.load()
+        load_test_categories(0)
 
     def test_standard(self):
         user = create_test_user(SERVICE_101_TG_ID)
@@ -99,50 +102,44 @@ class TestKeyboards(unittest.TestCase):
     def test_select_category(self):
         trans = i18n.default()
 
-        self.assertEqual(keyboards.select_category([]), None)
+        def test_keyboard(custom_categories: Iterable[state.ServiceCategory], expected_button_ids: list[int]):
+            result = keyboards.select_category(custom_categories)
 
-        keyboard = keyboards.select_category([], True)
+            if len(expected_button_ids) == 0:
+                self.assertIsNone(result)
+                return
+
+            self.assertSequenceEqual(result.inline_keyboard,
+                                     [(InlineKeyboardButton(c.title, callback_data=c.id),) for c in
+                                      [state.ServiceCategory.get(category_id) for category_id in expected_button_ids]])
+
+        def category_list(ids: list[int]) -> Iterator[state.ServiceCategory]:
+            for category_id in ids:
+                yield state.ServiceCategory(**data_row_for_service_category(category_id))
+
+        # When no categories are defined in the DB, the default keyboard should have a single button for the default
+        # category.
+        keyboard = keyboards.select_category()
         self.assertEqual(len(keyboard.inline_keyboard), 1)
         self.assertIn((InlineKeyboardButton(trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"), callback_data=0),),
                       keyboard.inline_keyboard)
 
-        categories = [state.ServiceCategory(4, "Category 4"), state.ServiceCategory(5, "Category 5")]
-
-        keyboard = keyboards.select_category(categories, True)
-        self.assertEqual(len(keyboard.inline_keyboard), 3)
-        self.assertIn((InlineKeyboardButton(trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"), callback_data=0),),
-                      keyboard.inline_keyboard)
-        for category in categories:
-            self.assertIn((InlineKeyboardButton(category.title, callback_data=category.id),), keyboard.inline_keyboard)
-
-        keyboard = keyboards.select_category(categories, False)
-        self.assertEqual(len(keyboard.inline_keyboard), 2)
-        for category in categories:
-            self.assertIn((InlineKeyboardButton(category.title, callback_data=category.id),), keyboard.inline_keyboard)
+        test_keyboard([], [])
+        test_keyboard(category_list([0]), [0])
+        test_keyboard(category_list([1, 2, 3, 4]), [])
+        test_keyboard(category_list([0, 1, 2, 3, 4]), [0])
 
         # Load two real categories.
         load_test_categories(2)
 
-        keyboard = keyboards.select_category(categories, True)
-        self.assertEqual(len(keyboard.inline_keyboard), 3)
-        self.assertIn((InlineKeyboardButton(trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"), callback_data=0),),
-                      keyboard.inline_keyboard)
-        for category in categories:
-            self.assertIn((InlineKeyboardButton(category.title, callback_data=category.id),), keyboard.inline_keyboard)
+        # When some categories are defined in the DB, the default keyboard should have them all, plus the default
+        # category.
+        keyboard = keyboards.select_category()
+        expected_buttons = [(InlineKeyboardButton(c.title, callback_data=c.id),) for c in
+                            [state.ServiceCategory.get(category_id) for category_id in [1, 2, 0]]]
+        self.assertSequenceEqual(expected_buttons, keyboard.inline_keyboard)
 
-        keyboard = keyboards.select_category(categories, False)
-        self.assertEqual(len(keyboard.inline_keyboard), 2)
-        for category in categories:
-            self.assertIn((InlineKeyboardButton(category.title, callback_data=category.id),), keyboard.inline_keyboard)
-
-        keyboard = keyboards.select_category([], True)
-        self.assertEqual(len(keyboard.inline_keyboard), 3)
-        self.assertIn((InlineKeyboardButton(trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"), callback_data=0),),
-                      keyboard.inline_keyboard)
-        for category in state.ServiceCategory.all(True):
-            self.assertIn((InlineKeyboardButton(category.title, callback_data=category.id),), keyboard.inline_keyboard)
-
-        keyboard = keyboards.select_category([], False)
-        self.assertEqual(len(keyboard.inline_keyboard), 2)
-        for category in state.ServiceCategory.all(False):
-            self.assertIn((InlineKeyboardButton(category.title, callback_data=category.id),), keyboard.inline_keyboard)
+        test_keyboard([], [])
+        test_keyboard(category_list([0]), [0])
+        test_keyboard(category_list([1, 2, 3, 4]), [1, 2])
+        test_keyboard(category_list([0, 1, 2, 3, 4]), [1, 2, 0])

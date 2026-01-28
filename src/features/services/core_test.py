@@ -299,11 +299,9 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         message.set_bot(self.application.bot)
         update = Update(update_id=1, message=message, callback_query=MockQuery("1", user, "1", message))
 
-        categorised_people = {}
-
-        # When no categories are passed, this must not be called.
+        # _who_request_category() must not be called with an empty set of people.
         with self.assertRaises(RuntimeError):
-            await core._who_request_category(update, context, categorised_people)
+            await core._who_request_category(update, context, {})
 
         async def test_with_services_in_categories(category_ids: list[int]):
             with patch("features.services.core.reply") as mock_reply:
@@ -325,7 +323,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                     "SERVICES_DM_WHO_CATEGORY_LIST {categories} {disclaimer}").format(
                     categories="\n".join([c["text"] for c in expected_category_list]),
                     disclaimer=trans.gettext("SERVICES_DM_WHO_DISCLAIMER")), keyboards.select_category(
-                    [c["object"] for c in expected_category_list], True))
+                    [c["object"] for c in expected_category_list]))
 
         await test_with_services_in_categories([0, ])
 
@@ -334,8 +332,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         await test_with_services_in_categories([0, ])
         await test_with_services_in_categories([0, 1])
         await test_with_services_in_categories([0, 2])
-        await test_with_services_in_categories([1, 2, 3])
-        await test_with_services_in_categories([1, 2, 3, 4, 5])
+        await test_with_services_in_categories([3, 1, 2])
+        await test_with_services_in_categories([1, 2, 0, 4, 3, 5])
 
     async def test__who_received_category(self):
         self.skipTest("Test not implemented")
@@ -382,6 +380,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                 mock_reply.assert_has_calls((call(update, trans.gettext("SERVICES_DM_ENROLL_START")),
                                              call(update, trans.gettext("SERVICES_DM_ENROLL_ASK_OCCUPATION"))), False)
 
+            mock_reply.reset_mock()
+
             # Load two real categories.
             load_test_categories(2)
 
@@ -393,7 +393,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
                 mock_reply.assert_has_calls((call(update, trans.gettext("SERVICES_DM_ENROLL_START")),
                                              call(update, trans.gettext("SERVICES_DM_ENROLL_ASK_CATEGORY"),
-                                                  keyboards.select_category([], True))), False)
+                                                  keyboards.select_category())), False)
 
     async def test__handle_command_update(self):
         self.skipTest("Test not implemented")

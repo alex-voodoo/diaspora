@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-01-27 21:47+0100\n"
+"POT-Creation-Date: 2026-01-28 23:13+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -384,7 +384,7 @@ msgstr ""
 "\n"
 "Принять изменения?"
 
-#: features/services/core.py:186 features/services/core_test.py:324
+#: features/services/core.py:186 features/services/core_test.py:322
 msgid "SERVICES_DM_WHO_CATEGORY_LIST {categories} {disclaimer}"
 msgstr ""
 "Вот категории услуг и число записей в каждой на данный момент:\n"
@@ -396,7 +396,7 @@ msgstr ""
 "Какую категорию показать?"
 
 #: features/services/core.py:188 features/services/core.py:217
-#: features/services/core.py:256 features/services/core_test.py:327
+#: features/services/core.py:256 features/services/core_test.py:325
 msgid "SERVICES_DM_WHO_DISCLAIMER"
 msgstr "❗Объявления размещают участники группы. Администрация не отвечает за качество их услуг."
 
@@ -412,14 +412,14 @@ msgstr "Вот кого я знаю:"
 msgid "SERVICES_DM_WHO_EMPTY"
 msgstr "Пока никто не записался, будьте первым!"
 
-#: features/services/core.py:280 features/services/core_test.py:364
+#: features/services/core.py:280 features/services/core_test.py:362
 msgid "SERVICES_DM_ENROLL_USERNAME_REQUIRED"
 msgstr ""
 "В вашем профиле Телеграм не задано имя пользователя. Добавьте его в настройках, чтобы другие участники могли написать вам, не зная вашего номера.\n"
 "\n"
 "После этого я смогу добавить вас в список."
 
-#: features/services/core.py:283 features/services/core_test.py:382
+#: features/services/core.py:283 features/services/core_test.py:380
 #: features/services/core_test.py:394
 msgid "SERVICES_DM_ENROLL_START"
 msgstr "Давайте знакомиться!"
@@ -429,7 +429,7 @@ msgid "SERVICES_DM_ENROLL_ASK_CATEGORY"
 msgstr "Выберите категорию, к которой можно отнести вашу услугу."
 
 #: features/services/core.py:298 features/services/core.py:347
-#: features/services/core_test.py:383
+#: features/services/core_test.py:381
 msgid "SERVICES_DM_ENROLL_ASK_OCCUPATION"
 msgstr "Сформулируйте коротко, кто вы или что вы делаете. Например, «Парикмахер», «Няня», «Учу сёрфингу», «Помогаю с уборкой»."
 
@@ -531,38 +531,35 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/keyboards.py:35 features/services/keyboards_test.py:37
+#: features/services/keyboards.py:35 features/services/keyboards_test.py:40
 msgid "SERVICES_BUTTON_WHO"
 msgstr "Показать список"
 
-#: features/services/keyboards.py:36 features/services/keyboards_test.py:38
+#: features/services/keyboards.py:36 features/services/keyboards_test.py:41
 msgid "SERVICES_BUTTON_ENROLL"
 msgstr "Добавить запись"
 
-#: features/services/keyboards.py:37 features/services/keyboards_test.py:40
+#: features/services/keyboards.py:37 features/services/keyboards_test.py:43
 msgid "SERVICES_BUTTON_ENROLL_MORE"
 msgstr "Добавить ещё одну запись"
 
-#: features/services/keyboards.py:38 features/services/keyboards_test.py:42
+#: features/services/keyboards.py:38 features/services/keyboards_test.py:45
 msgid "SERVICES_BUTTON_UPDATE"
 msgstr "Править запись"
 
-#: features/services/keyboards.py:39 features/services/keyboards_test.py:44
+#: features/services/keyboards.py:39 features/services/keyboards_test.py:47
 msgid "SERVICES_BUTTON_RETIRE"
 msgstr "Удалить запись"
 
-#: features/services/keyboards.py:109 features/services/keyboards.py:120
+#: features/services/keyboards.py:103 features/services/keyboards.py:114
 msgid "SERVICES_BUTTON_YES"
 msgstr "Да"
 
-#: features/services/keyboards.py:110 features/services/keyboards.py:121
+#: features/services/keyboards.py:104 features/services/keyboards.py:115
 msgid "SERVICES_BUTTON_NO"
 msgstr "Нет"
 
-#: features/services/keyboards_test.py:106
-#: features/services/keyboards_test.py:113
-#: features/services/keyboards_test.py:128
-#: features/services/keyboards_test.py:140 features/services/state.py:46
+#: features/services/keyboards_test.py:124 features/services/state.py:48
 #: features/services/state_test.py:21 features/services/state_test.py:29
 msgid "SERVICES_CATEGORY_OTHER_TITLE"
 msgstr "Другое"

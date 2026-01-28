@@ -186,7 +186,7 @@ async def _who_request_category(update: Update, context: ContextTypes.DEFAULT_TY
     await reply(update, trans.gettext("SERVICES_DM_WHO_CATEGORY_LIST {categories} {disclaimer}").format(
         categories="\n".join([c["text"] for c in category_list]),
         disclaimer=trans.gettext("SERVICES_DM_WHO_DISCLAIMER")),
-                keyboards.select_category([c["object"] for c in category_list], True))
+                keyboards.select_category([c["object"] for c in category_list]))
 
     context.user_data["who_request_category"] = categorised_people
 
@@ -283,11 +283,11 @@ async def _handle_command_enroll(update: Update, context: ContextTypes.DEFAULT_T
     await reply(update, trans.gettext("SERVICES_DM_ENROLL_START"))
 
     existing_category_ids = [service.category.id for service in state.Service.get_all_by_user(query.from_user.id)]
-    categories = [c for c in ServiceCategory.all(False) if c.id not in existing_category_ids]
+    categories = [c for c in ServiceCategory.all(True) if c.id not in existing_category_ids]
 
-    category_buttons = keyboards.select_category(categories, 0 not in existing_category_ids and len(categories) > 0)
+    category_buttons = keyboards.select_category(categories)
 
-    if category_buttons:
+    if category_buttons and state.ServiceCategory.count() > 0:
         await reply(update, trans.gettext("SERVICES_DM_ENROLL_ASK_CATEGORY"), category_buttons)
 
         return const.SELECTING_CATEGORY
