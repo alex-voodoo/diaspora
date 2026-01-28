@@ -42,6 +42,26 @@ class TestServiceCategory(unittest.TestCase):
             state.ServiceCategory.load()
             self.assertEqual(state.ServiceCategory._categories, {})
 
+    def test_all(self):
+        # Two-digit IDs would not work.
+        unordered_sequence = (4, 9, 3, 2, 8, 5, 6)
+
+        def return_unordered_categories(*_args, **_kwargs) -> Iterator[dict]:
+            for category_id in unordered_sequence:
+                yield data_row_for_service_category(category_id)
+
+        with patch("features.services.state._service_category_select_all", return_unordered_categories):
+            state.ServiceCategory.load()
+
+        all_categories = [c for c in state.ServiceCategory.all(False)]
+        self.assertEqual(len(all_categories), len(unordered_sequence))
+        self.assertListEqual([c.id for c in all_categories], sorted(unordered_sequence))
+
+        all_categories = [c for c in state.ServiceCategory.all(True)]
+        self.assertEqual(len(all_categories), len(unordered_sequence) + 1)
+        self.assertListEqual([c.id for c in all_categories][:-1], sorted(unordered_sequence))
+        self.assertEqual(all_categories[-1].id, 0)
+
 
 class TestService(unittest.TestCase):
     def setUp(self):
