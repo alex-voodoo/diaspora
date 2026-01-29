@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-01-29 21:37+0100\n"
+"POT-Creation-Date: 2026-01-29 21:49+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -543,11 +543,11 @@ msgstr "Update a record"
 msgid "SERVICES_BUTTON_RETIRE"
 msgstr "Remove a record"
 
-#: features/services/keyboards.py:102 features/services/keyboards.py:113
+#: features/services/keyboards.py:102 features/services/keyboards.py:126
 msgid "SERVICES_BUTTON_YES"
 msgstr "Yes"
 
-#: features/services/keyboards.py:103 features/services/keyboards.py:114
+#: features/services/keyboards.py:103 features/services/keyboards.py:127
 msgid "SERVICES_BUTTON_NO"
 msgstr "No"
 

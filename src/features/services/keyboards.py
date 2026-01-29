@@ -90,7 +90,7 @@ def select_category(categories: Iterable[state.ServiceCategory] = None) -> Inlin
 
 
 def yes_no(trans: gettext.GNUTranslations) -> InlineKeyboardMarkup:
-    """Builds the YES/NO keyboard used in the step where the user confirms legality of their service
+    """Build the YES/NO keyboard used in the step where the user confirms legality of their service
 
     +-----+----+
     | YES | NO |
@@ -107,7 +107,20 @@ def yes_no(trans: gettext.GNUTranslations) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(((response_button_yes, response_button_no),))
 
 
-def approve_service_change(data) -> InlineKeyboardMarkup:
+def approve_service_change(data: dict) -> InlineKeyboardMarkup:
+    """Build the YES/NO keyboard presented to a moderator that would approve or suspend a new or updated service
+
+    @param data: dictionary that must contain `tg_id` and `category_id` of the service to be moderated.
+
+    Returns an instance of InlineKeyboardMarkup with Yes and No buttons aligned in a row.  Buttons have callback data
+    that encodes decision and identifiers of the service.
+
+    +-----+----+
+    | YES | NO |
+    +-----+----+
+
+    """
+
     trans = i18n.default()
 
     response_buttons = {trans.gettext("SERVICES_BUTTON_YES"): const.MODERATOR_APPROVE,
