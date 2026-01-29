@@ -51,8 +51,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         self.application.bot = MockBot(token=settings.BOT_TOKEN)
 
     def tearDown(self):
-        with patch("features.services.state._service_category_select_all", return_no_categories):
-            state.ServiceCategory.load()
+        load_test_categories(0)
 
     # def test__format_hint
 
@@ -194,8 +193,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         def return_multiple_records(_where_clause: str = "", _where_params: tuple = ()):
             return [data_row_for_service(1, 1), data_row_for_service(1, 2)]
 
-        with patch("features.services.state._service_category_select_all", return_two_categories):
-            state.ServiceCategory.load()
+        load_test_categories(2)
 
         state.Service.set_bot_username("bot_username")
 
@@ -214,6 +212,12 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         expected_text_single_record = "\n".join(
             [trans.gettext("SERVICES_DM_HELLO_AGAIN {user_first_name}").format(user_first_name=user.first_name),
              core._main_status_record_description(state.Service(**return_single_record()[0]))])
+
+        def return_no_categories(*_args, **_kwargs) -> Iterator[dict]:
+            yield from ()
+
+        def return_single_category(*_args, **_kwargs) -> Iterator[dict]:
+            yield data_row_for_service_category(1)
 
         with patch("features.services.core.reply") as mock_reply:
             with patch("features.services.state._service_select", return_no_records):

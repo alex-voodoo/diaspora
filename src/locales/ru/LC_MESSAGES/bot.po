@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-01-29 15:10+0100\n"
+"POT-Creation-Date: 2026-01-29 21:37+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -334,14 +334,14 @@ msgstr "Выгрузить книгу услуг"
 msgid "SERVICES_ADMIN_BUTTON_IMPORT_DB"
 msgstr "Загрузить книгу услуг"
 
-#: features/services/core.py:37 features/services/core_test.py:80
+#: features/services/core.py:37 features/services/core_test.py:79
 msgid "SERVICES_DM_DATA_FIELD_LIMIT_S {limit}"
 msgid_plural "SERVICES_DM_DATA_FIELD_LIMIT_P {limit}"
 msgstr[0] "(Не более {limit} символа.)"
 msgstr[1] "(Не более {limit} символов.)"
 msgstr[2] "(Не более {limit} символов.)"
 
-#: features/services/core.py:63 features/services/core_test.py:117
+#: features/services/core.py:63 features/services/core_test.py:116
 msgid "SERVICES_DM_TEXT_TOO_LONG_S {limit} {text}"
 msgid_plural "SERVICES_DM_TEXT_TOO_LONG_P {limit} {text}"
 msgstr[0] ""
@@ -354,11 +354,11 @@ msgstr[2] ""
 "Слишком длинно! В этом поле я могу сохранить не более {limit} символов. Жирным выделено то, что входит:\n"
 "{text}"
 
-#: features/services/core.py:123 features/services/core_test.py:215
+#: features/services/core.py:123 features/services/core_test.py:213
 msgid "SERVICES_DM_HELLO_AGAIN {user_first_name}"
 msgstr "Здравствуйте, {user_first_name}. Вот ваша запись.\n"
 
-#: features/services/core.py:127 features/services/core_test.py:247
+#: features/services/core.py:127 features/services/core_test.py:251
 msgid "SERVICES_DM_HELLO_AGAIN_S {user_first_name} {record_count}"
 msgid_plural "SERVICES_DM_HELLO_AGAIN_P {user_first_name} {record_count}"
 msgstr[0] "Здравствуйте, {user_first_name}. Вот ваша {record_count} запись.\n"
@@ -369,12 +369,12 @@ msgstr[2] "Здравствуйте, {user_first_name}. Вот ваши {record_
 msgid "SERVICES_DM_NO_RECORDS"
 msgstr "У вас нет записей."
 
-#: features/services/core.py:141 features/services/core_test.py:212
+#: features/services/core.py:141 features/services/core_test.py:210
 msgid "SERVICES_DM_HELLO {bot_first_name} {main_chat_name}"
 msgstr "Здравствуйте, я бот {bot_first_name} — хранитель полезных контактов группы «{main_chat_name}». Подскажу, кто будет полезен вам, или помогу найти клиентов."
 
-#: features/services/core.py:153 features/services/core_test.py:267
-#: features/services/core_test.py:281
+#: features/services/core.py:153 features/services/core_test.py:271
+#: features/services/core_test.py:285
 msgid "SERVICES_ADMIN_APPROVE_USER_DATA {category} {description} {location} {occupation} {username}"
 msgstr ""
 "Пользователь @{username} изменил свою запись в категории <b>{category}</b>.\n"
@@ -384,7 +384,7 @@ msgstr ""
 "\n"
 "Принять изменения?"
 
-#: features/services/core.py:185 features/services/core_test.py:322
+#: features/services/core.py:185 features/services/core_test.py:326
 msgid "SERVICES_DM_WHO_CATEGORY_LIST {categories} {disclaimer}"
 msgstr ""
 "Вот категории услуг и число записей в каждой на данный момент:\n"
@@ -396,7 +396,7 @@ msgstr ""
 "Какую категорию показать?"
 
 #: features/services/core.py:187 features/services/core.py:216
-#: features/services/core.py:255 features/services/core_test.py:325
+#: features/services/core.py:255 features/services/core_test.py:329
 msgid "SERVICES_DM_WHO_DISCLAIMER"
 msgstr "❗Объявления размещают участники группы. Администрация не отвечает за качество их услуг."
 
@@ -412,24 +412,24 @@ msgstr "Вот кого я знаю:"
 msgid "SERVICES_DM_WHO_EMPTY"
 msgstr "Пока никто не записался, будьте первым!"
 
-#: features/services/core.py:279 features/services/core_test.py:362
+#: features/services/core.py:279 features/services/core_test.py:366
 msgid "SERVICES_DM_ENROLL_USERNAME_REQUIRED"
 msgstr ""
 "В вашем профиле Телеграм не задано имя пользователя. Добавьте его в настройках, чтобы другие участники могли написать вам, не зная вашего номера.\n"
 "\n"
 "После этого я смогу добавить вас в список."
 
-#: features/services/core.py:282 features/services/core_test.py:380
-#: features/services/core_test.py:394
+#: features/services/core.py:282 features/services/core_test.py:384
+#: features/services/core_test.py:398
 msgid "SERVICES_DM_ENROLL_START"
 msgstr "Давайте знакомиться!"
 
-#: features/services/core.py:290 features/services/core_test.py:395
+#: features/services/core.py:290 features/services/core_test.py:399
 msgid "SERVICES_DM_ENROLL_ASK_CATEGORY"
 msgstr "Выберите категорию, к которой можно отнести вашу услугу."
 
 #: features/services/core.py:297 features/services/core.py:346
-#: features/services/core_test.py:381
+#: features/services/core_test.py:385
 msgid "SERVICES_DM_ENROLL_ASK_OCCUPATION"
 msgstr "Сформулируйте коротко, кто вы или что вы делаете. Например, «Парикмахер», «Няня», «Учу сёрфингу», «Помогаю с уборкой»."
 
@@ -443,13 +443,13 @@ msgstr ""
 "Введите новое краткое описание вашей услуги в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:365 features/services/core_test.py:94
-#: features/services/core_test.py:156
+#: features/services/core.py:365 features/services/core_test.py:93
+#: features/services/core_test.py:155
 msgid "SERVICES_DM_ENROLL_ASK_DESCRIPTION"
 msgstr "Опишите вашу услугу подробно."
 
-#: features/services/core.py:366 features/services/core_test.py:95
-#: features/services/core_test.py:157
+#: features/services/core.py:366 features/services/core_test.py:94
+#: features/services/core_test.py:156
 msgid "SERVICES_DM_UPDATE_DESCRIPTION {title} {current_value}"
 msgstr ""
 "Введите новое подробное описание вашей услуги в категории «{title}». Сейчас оно выглядит так:\n"
@@ -507,11 +507,11 @@ msgstr "Выберите категорию для удаления."
 msgid "SERVICES_DM_RETIRE"
 msgstr "Запись удалена."
 
-#: features/services/core.py:528 features/services/core_test.py:442
+#: features/services/core.py:528 features/services/core_test.py:446
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Начнём сначала."
 
-#: features/services/core.py:553 features/services/core_test.py:487
+#: features/services/core.py:553 features/services/core_test.py:491
 msgid "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}"
 msgstr ""
 "Ваша услуга в категории <b>{category_title}</b>\n"
@@ -521,7 +521,7 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/core.py:558 features/services/core_test.py:502
+#: features/services/core.py:558 features/services/core_test.py:506
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "Услуга @{username} в категории <b>{category_title}</b>\n"
@@ -560,7 +560,7 @@ msgid "SERVICES_BUTTON_NO"
 msgstr "Нет"
 
 #: features/services/keyboards_test.py:117 features/services/state.py:48
-#: features/services/state_test.py:21 features/services/state_test.py:29
+#: features/services/state_test.py:26 features/services/state_test.py:33
 msgid "SERVICES_CATEGORY_OTHER_TITLE"
 msgstr "Другое"
 

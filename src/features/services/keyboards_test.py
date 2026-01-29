@@ -20,14 +20,14 @@ class TestKeyboards(unittest.TestCase):
         load_test_categories(0)
 
     def test_standard(self):
-        user = create_test_user(SERVICE_101_TG_ID)
+        user = create_test_user(1)
         trans = i18n.default()
 
         def return_single_service_default_category(tg_id: int) -> Iterator[dict]:
             yield data_row_for_service(tg_id, 0)
 
         def return_single_service_category_1(tg_id: int) -> Iterator[dict]:
-            yield data_row_for_service(tg_id, CATEGORY_1_ID)
+            yield data_row_for_service(tg_id, 1)
 
         def return_all_categories_with_default(tg_id: int) -> Iterator[dict]:
             for c in state.ServiceCategory.all():

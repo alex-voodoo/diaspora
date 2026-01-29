@@ -6,14 +6,19 @@ import unittest
 from unittest.mock import MagicMock
 
 from common import i18n
-from . import state
 from .test_util import *
+
+
+CATEGORY_1_ID = 1
+CATEGORY_1_TITLE = "Category 1"
+
+SERVICE_101_TG_ID = 101
+SERVICE_101_CATEGORY_ID = CATEGORY_1_ID
 
 
 class TestServiceCategory(unittest.TestCase):
     def tearDown(self):
-        with patch("features.services.state._service_category_select_all", return_no_categories):
-            state.ServiceCategory.load()
+        load_test_categories(0)
 
     def test_get(self):
         trans = i18n.default()
@@ -23,24 +28,20 @@ class TestServiceCategory(unittest.TestCase):
         with self.assertRaises(KeyError):
             _category = state.ServiceCategory.get(CATEGORY_1_ID)
 
-        with patch("features.services.state._service_category_select_all", return_single_category):
-            state.ServiceCategory.load()
+        load_test_categories(1)
 
-            self.assertEqual(state.ServiceCategory.get(0).title, trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"))
-            self.assertEqual(state.ServiceCategory.get(CATEGORY_1_ID).title, CATEGORY_1_TITLE)
+        self.assertEqual(state.ServiceCategory.get(0).title, trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"))
+        self.assertEqual(state.ServiceCategory.get(CATEGORY_1_ID).title, CATEGORY_1_TITLE)
 
     def test_load(self):
-        with patch("features.services.state._service_category_select_all", return_no_categories):
-            state.ServiceCategory.load()
-            self.assertEqual(state.ServiceCategory._categories, {})
+        load_test_categories(0)
+        self.assertEqual(state.ServiceCategory._categories, {})
 
-        with patch("features.services.state._service_category_select_all", return_single_category):
-            state.ServiceCategory.load()
-            self.assertEqual(len(state.ServiceCategory._categories), 1)
+        load_test_categories(1)
+        self.assertEqual(len(state.ServiceCategory._categories), 1)
 
-        with patch("features.services.state._service_category_select_all", return_no_categories):
-            state.ServiceCategory.load()
-            self.assertEqual(state.ServiceCategory._categories, {})
+        load_test_categories(0)
+        self.assertEqual(state.ServiceCategory._categories, {})
 
     def test_all(self):
         # Two-digit IDs would not work.
@@ -61,12 +62,10 @@ class TestServiceCategory(unittest.TestCase):
 
 class TestService(unittest.TestCase):
     def setUp(self):
-        with patch("features.services.state._service_category_select_all", return_single_category):
-            state.ServiceCategory.load()
+        load_test_categories(1)
 
     def tearDown(self):
-        with patch("features.services.state._service_category_select_all", return_no_categories):
-            state.ServiceCategory.load()
+        load_test_categories(0)
 
     def test_get(self):
         def return_single_service(category_id: int, tg_id: int) -> Iterator[dict]:
