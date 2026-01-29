@@ -29,12 +29,8 @@ class TestKeyboards(unittest.TestCase):
         def return_single_service_category_1(tg_id: int) -> Iterator[dict]:
             yield data_row_for_service(tg_id, CATEGORY_1_ID)
 
-        def return_all_categories_without_default(tg_id: int) -> Iterator[dict]:
-            for c in state.ServiceCategory.all(False):
-                yield data_row_for_service(tg_id, c.id)
-
         def return_all_categories_with_default(tg_id: int) -> Iterator[dict]:
-            for c in state.ServiceCategory.all(True):
+            for c in state.ServiceCategory.all():
                 yield data_row_for_service(tg_id, c.id)
 
         who_button = InlineKeyboardButton(trans.gettext("SERVICES_BUTTON_WHO"), callback_data=const.COMMAND_WHO)
@@ -91,9 +87,6 @@ class TestKeyboards(unittest.TestCase):
             assert_who_enroll_more_update_retire()
 
         with patch("features.services.state._service_get_all_by_user", return_single_service_category_1):
-            assert_who_enroll_more_update_retire()
-
-        with patch("features.services.state._service_get_all_by_user", return_all_categories_without_default):
             assert_who_enroll_more_update_retire()
 
         with patch("features.services.state._service_get_all_by_user", return_all_categories_with_default):

@@ -15,7 +15,6 @@ from common import i18n
 from common.messaging_helpers import reply, send
 from common.settings import settings
 from . import admin, const, keyboards, state
-from .state import Service, ServiceCategory
 
 
 def _format_hint(text: str, limit: int) -> str:
@@ -99,7 +98,7 @@ async def _request_next_data_field(update: Update, context: ContextTypes.DEFAULT
     await reply(update, "\n".join(lines))
 
 
-def _main_status_record_description(service: Service) -> str:
+def _main_status_record_description(service: state.Service) -> str:
     return (f"<b>{service.category.title}:</b> <a href=\"{service.deep_link}\">{service.occupation}</a> ("
             f"{service.location})")
 
@@ -157,7 +156,7 @@ async def _moderate_new_data(context: ContextTypes.DEFAULT_TYPE, data) -> None:
             occupation=data["occupation"], username=data["tg_username"]), keyboards.approve_service_change(data))
 
 
-def _who_people_to_message(people: list[Service]) -> list[str]:
+def _who_people_to_message(people: list[state.Service]) -> list[str]:
     result = []
     for p in people:
         result.append(f"- @{p.tg_username} ({p.location}): <a href=\"{p.deep_link}\">{p.occupation}</a>")
@@ -176,7 +175,7 @@ async def _who_request_category(update: Update, context: ContextTypes.DEFAULT_TY
 
     category_list = []
 
-    for category in state.ServiceCategory.all(True):
+    for category in state.ServiceCategory.all():
         if category.id not in categorised_people:
             continue
 
@@ -246,7 +245,7 @@ async def _who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         if len(categorised_people) == 1:
             user_list += _who_people_to_message(categorised_people[0])
         else:
-            for category in state.ServiceCategory.all(True):
+            for category in state.ServiceCategory.all():
                 if category.id not in categorised_people:
                     continue
                 user_list.append("")
@@ -283,7 +282,7 @@ async def _handle_command_enroll(update: Update, context: ContextTypes.DEFAULT_T
     await reply(update, trans.gettext("SERVICES_DM_ENROLL_START"))
 
     existing_category_ids = [service.category.id for service in state.Service.get_all_by_user(query.from_user.id)]
-    categories = [c for c in ServiceCategory.all(True) if c.id not in existing_category_ids]
+    categories = [c for c in state.ServiceCategory.all() if c.id not in existing_category_ids]
 
     category_buttons = keyboards.select_category(categories)
 
@@ -602,4 +601,4 @@ def init(application: Application, group: int) -> None:
             "^({approve}|{decline}):[0-9]+:[0-9]+$".format(approve=const.MODERATOR_APPROVE,
                                                            decline=const.MODERATOR_DECLINE))), group=2)
 
-    ServiceCategory.load()
+    state.ServiceCategory.load()

@@ -9,7 +9,6 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, User
 
 from common import i18n
 from . import const, state
-from .state import ServiceCategory
 
 
 def standard(user: User) -> InlineKeyboardMarkup:
@@ -46,7 +45,7 @@ def standard(user: User) -> InlineKeyboardMarkup:
 
     if not records:
         buttons.append([button_enroll])
-    elif len(records) <= ServiceCategory.count():
+    elif len(records) <= state.ServiceCategory.count():
         buttons.append([button_enroll_more])
 
     if len(records) > 0:
@@ -55,7 +54,7 @@ def standard(user: User) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(buttons)
 
 
-def select_category(categories: Iterable[ServiceCategory] = None) -> InlineKeyboardMarkup | None:
+def select_category(categories: Iterable[state.ServiceCategory] = None) -> InlineKeyboardMarkup | None:
     """Build the keyboard for selecting a category
 
     @param categories: optional categories to show.  If not provided, the function will use the list of categories
@@ -79,10 +78,10 @@ def select_category(categories: Iterable[ServiceCategory] = None) -> InlineKeybo
     their standard order.
     """
 
-    effective_categories = categories if categories is not None else ServiceCategory.all(True)
+    effective_categories = categories if categories is not None else state.ServiceCategory.all()
     effective_ids = [c.id for c in effective_categories]
 
-    buttons = [(InlineKeyboardButton(c.title, callback_data=c.id),) for c in state.ServiceCategory.all(True) if
+    buttons = [(InlineKeyboardButton(c.title, callback_data=c.id),) for c in state.ServiceCategory.all() if
                c.id in effective_ids]
     if not buttons:
         return None

@@ -53,11 +53,7 @@ class TestServiceCategory(unittest.TestCase):
         with patch("features.services.state._service_category_select_all", return_unordered_categories):
             state.ServiceCategory.load()
 
-        all_categories = [c for c in state.ServiceCategory.all(False)]
-        self.assertEqual(len(all_categories), len(unordered_sequence))
-        self.assertListEqual([c.id for c in all_categories], sorted(unordered_sequence))
-
-        all_categories = [c for c in state.ServiceCategory.all(True)]
+        all_categories = [c for c in state.ServiceCategory.all()]
         self.assertEqual(len(all_categories), len(unordered_sequence) + 1)
         self.assertListEqual([c.id for c in all_categories][:-1], sorted(unordered_sequence))
         self.assertEqual(all_categories[-1].id, 0)

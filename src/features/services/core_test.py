@@ -311,7 +311,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                                       category_id in category_ids}
 
                 expected_category_list = []
-                for category in state.ServiceCategory.all(True):
+                for category in state.ServiceCategory.all():
                     if category.id not in category_ids:
                         continue
                     expected_category_list.append(

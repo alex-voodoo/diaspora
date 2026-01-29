@@ -66,13 +66,12 @@ class ServiceCategory:
         return len(cls._categories)
 
     @classmethod
-    def all(cls, yield_default_category: bool) -> Iterator[Self]:
+    def all(cls) -> Iterator[Self]:
         """Return all service categories sorted alphabetically by title (the default category goes in the end)"""
 
         for category_id in cls._order:
             yield cls.get(category_id)
-        if yield_default_category:
-            yield cls.get(0)
+        yield cls.get(0)
 
 
 class Service:
