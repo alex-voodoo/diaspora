@@ -173,19 +173,17 @@ async def _who_request_category(update: Update, context: ContextTypes.DEFAULT_TY
 
     await query.edit_message_reply_markup(None)
 
-    category_list = []
+    categories = []
 
     for category in state.ServiceCategory.all():
         if category.id not in categorised_people:
             continue
 
-        category_list.append({"object": category, "text": f"{category.title}: {len(categorised_people[category.id])}"})
+        categories.append(category)
 
     trans = i18n.trans(query.from_user)
-    await reply(update, trans.gettext("SERVICES_DM_WHO_CATEGORY_LIST {categories} {disclaimer}").format(
-        categories="\n".join([c["text"] for c in category_list]),
-        disclaimer=trans.gettext("SERVICES_DM_WHO_DISCLAIMER")),
-                keyboards.select_category([c["object"] for c in category_list]))
+    await reply(update, trans.gettext("SERVICES_DM_WHO_CATEGORY_LIST {disclaimer}").format(
+        disclaimer=trans.gettext("SERVICES_DM_WHO_DISCLAIMER")), keyboards.select_category(categories))
 
     context.user_data["who_request_category"] = categorised_people
 
@@ -563,7 +561,7 @@ async def handle_extended_start_command(update: Update, _context: ContextTypes.D
 
 def post_init(application: Application) -> None:
     # noinspection PyUnresolvedReferences
-    Service.set_bot_username(application.bot.username)
+    state.Service.set_bot_username(application.bot.username)
 
 
 def init(application: Application, group: int) -> None:

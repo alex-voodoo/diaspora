@@ -324,8 +324,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                 result = await core._who_request_category(update, context, categorised_people)
                 self.assertEqual(result, const.SELECTING_CATEGORY)
                 mock_reply.assert_called_once_with(update, trans.gettext(
-                    "SERVICES_DM_WHO_CATEGORY_LIST {categories} {disclaimer}").format(
-                    categories="\n".join([c["text"] for c in expected_category_list]),
+                    "SERVICES_DM_WHO_CATEGORY_LIST {disclaimer}").format(
                     disclaimer=trans.gettext("SERVICES_DM_WHO_DISCLAIMER")), keyboards.select_category(
                     [c["object"] for c in expected_category_list]))
 
