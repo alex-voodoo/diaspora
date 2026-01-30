@@ -33,7 +33,7 @@ def test_location(tg_id: int) -> str:
 
 
 def test_is_suspended(tg_id: int) -> bool:
-    return tg_id % 2 == 1
+    return tg_id % 2 == 0
 
 
 def test_category_title(category_id: int) -> str:

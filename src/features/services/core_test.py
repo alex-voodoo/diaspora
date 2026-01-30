@@ -323,10 +323,11 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
                 result = await core._who_request_category(update, context, categorised_people)
                 self.assertEqual(result, const.SELECTING_CATEGORY)
-                mock_reply.assert_called_once_with(update, trans.gettext(
-                    "SERVICES_DM_WHO_CATEGORY_LIST {disclaimer}").format(
-                    disclaimer=trans.gettext("SERVICES_DM_WHO_DISCLAIMER")), keyboards.select_category(
-                    [c["object"] for c in expected_category_list]))
+                mock_reply.assert_called_once_with(update,
+                                                   trans.gettext("SERVICES_DM_WHO_CATEGORY_LIST {disclaimer}").format(
+                                                       disclaimer=trans.gettext("SERVICES_DM_WHO_DISCLAIMER")),
+                                                   keyboards.select_category(
+                                                       [c["object"] for c in expected_category_list]))
 
         await test_with_services_in_categories([0, ])
 
@@ -452,9 +453,10 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
         chat = Chat(id=1, type=Chat.PRIVATE)
         context = CallbackContext(application=self.application, chat_id=1, user_id=1)
-        same_user = User(id=1, first_name="Joe", is_bot=False)
-        another_user = User(id=2, first_name="Rob", is_bot=False)
+        user_1 = User(id=1, first_name="Joe", is_bot=False)
+        user_2 = User(id=2, first_name="Rob", is_bot=False)
         service = state.Service(**data_row_for_service(1, 1))
+        suspended_service = state.Service(**data_row_for_service(2, 1))
 
         # Load two real categories.
         load_test_categories(2)
@@ -464,10 +466,13 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
             tg_id = test_username_to_tg_id(tg_username)
             yield data_row_for_service(tg_id, category_id)
 
+        def return_no_service(category_id: int, tg_id: int = 0, tg_username: str = "") -> Iterator[dict]:
+            yield from ()
+
         state.Service.set_bot_username("bot_username")
 
         # Create a message that does not have valid text.
-        message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=same_user, text="hello")
+        message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user_1, text="hello")
         message.set_bot(self.application.bot)
         update = Update(update_id=1, message=message)
 
@@ -477,13 +482,13 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
             mock_reply.assert_not_called()
 
-        message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=same_user,
+        message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user_1,
                           text=f"/start service_info_{service.category.id}_{service.tg_username}")
         message.set_bot(self.application.bot)
         update = Update(update_id=1, message=message)
 
-        with patch("features.services.state._service_get", return_single_service):
-            with patch("features.services.state.people_views_register") as mock_stat:
+        with patch("features.services.state.people_views_register") as mock_stat:
+            with patch("features.services.state._service_get", return_single_service):
                 with patch("features.services.core.reply") as mock_reply:
                     await core.handle_extended_start_command(update, context)
 
@@ -491,14 +496,15 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                         "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}").format(
                         category_title=service.category.title, description=service.description,
                         location=service.location, occupation=service.occupation))
-                    mock_stat.assert_called_once_with(same_user.id, service.tg_id, service.category.id)
+                    mock_stat.assert_called_once_with(user_1.id, service.tg_id, service.category.id)
 
-            message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=another_user,
-                              text=f"/start service_info_{service.category.id}_{service.tg_username}")
-            message.set_bot(self.application.bot)
-            update = Update(update_id=1, message=message)
+                mock_stat.reset_mock()
 
-            with patch("features.services.state.people_views_register") as mock_stat:
+                message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user_2,
+                                  text=f"/start service_info_{service.category.id}_{service.tg_username}")
+                message.set_bot(self.application.bot)
+                update = Update(update_id=1, message=message)
+
                 with patch("features.services.core.reply") as mock_reply:
                     await core.handle_extended_start_command(update, context)
 
@@ -507,4 +513,45 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                         "username}").format(category_title=service.category.title, description=service.description,
                                             location=service.location, occupation=service.occupation,
                                             username=service.tg_username))
-                    mock_stat.assert_called_once_with(another_user.id, service.tg_id, service.category.id)
+                    mock_stat.assert_called_once_with(user_2.id, service.tg_id, service.category.id)
+
+                mock_stat.reset_mock()
+
+                message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user_1,
+                                  text=f"/start service_info_{suspended_service.category.id}_"
+                                       f"{suspended_service.tg_username}")
+                message.set_bot(self.application.bot)
+                update = Update(update_id=1, message=message)
+
+                with patch("features.services.core.reply") as mock_reply:
+                    await core.handle_extended_start_command(update, context)
+
+                    mock_reply.assert_called_once_with(update, trans.gettext("SERVICES_DM_SERVICE_NOT_FOUND"))
+                    mock_stat.assert_not_called()
+
+                mock_stat.reset_mock()
+
+                message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user_2,
+                                  text=f"/start service_info_{suspended_service.category
+                                  .id}_{suspended_service.tg_username}")
+                message.set_bot(self.application.bot)
+                update = Update(update_id=1, message=message)
+
+                with patch("features.services.core.reply") as mock_reply:
+                    await core.handle_extended_start_command(update, context)
+
+                    mock_reply.assert_called_once_with(update, trans.gettext(
+                        "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}").format(
+                        category_title=suspended_service.category.title, description=suspended_service.description,
+                        location=suspended_service.location, occupation=suspended_service.occupation,
+                        username=suspended_service.tg_username))
+                    mock_stat.assert_called_once_with(user_2.id, suspended_service.tg_id, suspended_service.category.id)
+
+                mock_stat.reset_mock()
+
+            with patch("features.services.state._service_get", return_no_service):
+                with patch("features.services.core.reply") as mock_reply:
+                    await core.handle_extended_start_command(update, context)
+
+                    mock_reply.assert_called_once_with(update, trans.gettext("SERVICES_DM_SERVICE_NOT_FOUND"))
+                    mock_stat.assert_not_called()

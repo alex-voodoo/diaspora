@@ -68,6 +68,13 @@ class TestService(unittest.TestCase):
         load_test_categories(0)
 
     def test_get(self):
+        def return_no_service(category_id: int, tg_id: int) -> Iterator[dict]:
+            yield from ()
+
+        with patch("features.services.state._service_get", return_no_service):
+            with self.assertRaises(state.Service.NotFound):
+                service = state.Service.get(1, 1)
+
         def return_single_service(category_id: int, tg_id: int) -> Iterator[dict]:
             yield data_row_for_service(tg_id, category_id)
 

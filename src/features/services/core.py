@@ -543,7 +543,14 @@ async def handle_extended_start_command(update: Update, _context: ContextTypes.D
 
     trans = i18n.trans(user)
 
-    service = state.Service.get_by_username(tg_username, category_id)
+    try:
+        service = state.Service.get_by_username(tg_username, category_id)
+        if service.is_suspended and user.id != service.tg_id:
+            await reply(update, trans.gettext("SERVICES_DM_SERVICE_NOT_FOUND"))
+            return
+    except state.Service.NotFound:
+        await reply(update, trans.gettext("SERVICES_DM_SERVICE_NOT_FOUND"))
+        return
 
     state.people_views_register(user.id, service.tg_id, category_id)
 

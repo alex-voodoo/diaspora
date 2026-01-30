@@ -77,6 +77,9 @@ class ServiceCategory:
 class Service:
     """Wraps a service database record"""
 
+    class NotFound(Exception):
+        pass
+
     _bot_username: str
 
     def __init__(self, **kwargs):
@@ -133,11 +136,13 @@ class Service:
     def get(cls, tg_id: int, category_id: int) -> Self:
         for service in _service_get(category_id, tg_id):
             return Service(**service)
+        raise Service.NotFound
 
     @classmethod
     def get_by_username(cls, tg_username: str, category_id: int) -> Self:
         for service in _service_get(category_id, tg_username=tg_username):
             return Service(**service)
+        raise Service.NotFound
 
     @classmethod
     def get_all_active(cls) -> Iterator[Self]:
