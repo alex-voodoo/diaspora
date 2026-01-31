@@ -169,6 +169,27 @@ class Service:
             yield Service(**service)
 
 
+class ServiceCategoryStats:
+    def __init__(self, category_id: int, view_count: int, viewer_count: int):
+        self._category_id = category_id
+        self._view_count = view_count
+        self._viewer_count = viewer_count
+
+    @property
+    def category(self) -> ServiceCategory:
+        if self._category_id >= 0:
+            return ServiceCategory.get(self._category_id)
+        return ServiceCategory(-1, i18n.default().gettext("SERVICES_CATEGORY_LIST_TITLE"))
+
+    @property
+    def view_count(self) -> int:
+        return self._view_count
+
+    @property
+    def viewer_count(self) -> int:
+        return self._viewer_count
+
+
 def _sql_exec(query: str, parameters: tuple = ()) -> None:
     """Execute an SQL query that does not return data
 
@@ -185,7 +206,7 @@ def _sql_exec(query: str, parameters: tuple = ()) -> None:
         db.commit()
 
 
-def _sql_query(query: str, parameters: tuple = ()) -> Iterator:
+def _sql_query(query: str, parameters: tuple = ()) -> Iterator[dict]:
     """Execute an SQL query that returns data
 
     @param query: SQL query with placeholders for bound parameters
@@ -195,8 +216,9 @@ def _sql_query(query: str, parameters: tuple = ()) -> Iterator:
     """
 
     with LogTime(query):
-        for record in db.cursor().execute(query, parameters):
-            yield record
+        c = db.cursor()
+        for record in c.execute(query, parameters):
+            yield {key: value for (key, value) in zip((i[0] for i in c.description), record)}
 
 
 def _service_select(where_clause: str = "", where_params: tuple = (), additional_clause: str = "") -> Iterator[dict]:
@@ -212,10 +234,8 @@ def _service_select(where_clause: str = "", where_params: tuple = (), additional
     with `Service.__init__()`.
     """
 
-    fields = (
-        "tg_id", "tg_username", "category_id", "occupation", "description", "location", "is_suspended", "last_modified")
-
-    query = [f"SELECT {", ".join(fields)} FROM people"]
+    query = ["SELECT tg_id, tg_username, category_id, occupation, description, location, is_suspended, last_modified "
+             "FROM people"]
     if where_clause:
         query.append(f"WHERE {where_clause}")
     if additional_clause:
@@ -223,10 +243,9 @@ def _service_select(where_clause: str = "", where_params: tuple = (), additional
     query = " ".join(query)
 
     for record in _sql_query(query, where_params):
-        data = {key: value for (key, value) in zip(fields, record)}
-        data["last_modified"] = datetime.datetime.fromisoformat(data["last_modified"])
-        data["is_suspended"] = bool(data["is_suspended"])
-        yield data
+        record["last_modified"] = datetime.datetime.fromisoformat(record["last_modified"])
+        record["is_suspended"] = bool(record["is_suspended"])
+        yield record
 
 
 def _service_get(category_id: int, tg_id: int = 0, tg_username: str = "") -> Iterator[dict]:
@@ -308,6 +327,13 @@ def people_views_register(viewer_tg_id: int, tg_id: int, category_id: int) -> No
 
     _sql_exec("INSERT INTO people_views (viewer_tg_id, tg_id, category_id) VALUES(?, ?, ?)",
               (viewer_tg_id, tg_id, category_id))
+
+
+def people_category_views_report(from_date: datetime.datetime) -> Iterator[ServiceCategoryStats]:
+    for row in _sql_query("SELECT category_id, COUNT(1) as view_count, COUNT(DISTINCT viewer_tg_id) as viewer_count "
+                          "FROM people_category_views WHERE timestamp > ? GROUP BY category_id",
+                          (from_date.strftime("%Y-%m-%d"),)):
+        yield ServiceCategoryStats(**row)
 
 
 def export_db() -> dict:

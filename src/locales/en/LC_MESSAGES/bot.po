@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-01-31 19:17+0100\n"
+"POT-Creation-Date: 2026-01-31 21:38+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -307,31 +307,51 @@ msgstr "The request is rejected."
 msgid "MODERATION_RESULT_ACCEPTED"
 msgstr "The request is accepted.  I so far cannot do anything with this, so please act according to the rules."
 
-#: features/services/admin.py:41
+#: features/services/admin.py:42
 msgid "SERVICES_MESSAGE_DM_ADMIN_REQUEST_DB"
 msgstr "Awaiting a JSON file."
 
-#: features/services/admin.py:70
+#: features/services/admin.py:71
 msgid "SERVICES_MESSAGE_DM_ADMIN_DB_IMPORTED"
 msgstr "Accepted."
 
-#: features/services/admin.py:73
+#: features/services/admin.py:74
 msgid "SERVICES_MESSAGE_DM_ADMIN_INVALID_JSON"
 msgstr "File format error."
 
-#: features/services/admin.py:76
+#: features/services/admin.py:77
 msgid "ADMIN_MESSAGE_DM_INTERNAL_ERROR"
 msgstr "An internal error occurred.  See details in the log."
 
-#: features/services/admin.py:94
+#: features/services/admin.py:88
+msgid "SERVICES_VIEW_COUNT_S {count}"
+msgid_plural "SERVICES_VIEW_COUNT_P {count}"
+msgstr[0] "{count} view"
+msgstr[1] "{count} views"
+
+#: features/services/admin.py:91
+msgid "SERVICES_VIEWER_COUNT_S {count}"
+msgid_plural "SERVICES_VIEWER_COUNT_P {count}"
+msgstr[0] "{count} user"
+msgstr[1] "{count} users"
+
+#: features/services/admin.py:101
+msgid "ADMIN_MESSAGE_DM_STATS_EMPTY"
+msgstr "No stats so far."
+
+#: features/services/admin.py:104
+msgid "SERVICES_MESSAGE_DM_ADMIN_STATS_HEADER {from_date}"
+msgstr "Statistics from {from_date}"
+
+#: features/services/admin.py:127
 msgid "SERVICES_ADMIN_BUTTON_EXPORT_DB"
 msgstr "Download services"
 
-#: features/services/admin.py:96
+#: features/services/admin.py:129
 msgid "SERVICES_ADMIN_BUTTON_IMPORT_DB"
 msgstr "Upload services"
 
-#: features/services/admin.py:98
+#: features/services/admin.py:131
 msgid "SERVICES_ADMIN_BUTTON_STATS"
 msgstr "Services' statistics"
 
@@ -562,6 +582,7 @@ msgstr "No"
 msgid "SERVICES_CATEGORY_OTHER_TITLE"
 msgstr "Other"
 
-#~ msgid "SERVICES_BUTTON_ENROLL_CATEGORY_DEFAULT"
-#~ msgstr "Other"
+#: features/services/state.py:182
+msgid "SERVICES_CATEGORY_LIST_TITLE"
+msgstr "List of categories"
 

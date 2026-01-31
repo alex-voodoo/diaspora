@@ -1,7 +1,7 @@
 """
 Admin functions of the Services feature
 """
-
+import datetime
 import io
 import json
 import logging
@@ -17,9 +17,10 @@ from common.checks import is_admin
 from common.messaging_helpers import reply
 from . import state
 
-_ADMIN_EXPORT_DB, _ADMIN_IMPORT_DB, _ADMIN_STATS = ("services-admin-export-db", "services-admin-import-db",
-                                                    "services-admin-stats")
+_ADMIN_EXPORT_DB, _ADMIN_IMPORT_DB, _ADMIN_STATS = (
+    "services-admin-export-db", "services-admin-import-db", "services-admin-stats")
 _ADMIN_UPLOADING_DB = 1
+_STATS_PERIOD_DAYS = 30
 
 
 async def _handle_query(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> None | int:
@@ -79,7 +80,39 @@ async def _handle_received_db(update: Update, _context: ContextTypes.DEFAULT_TYP
 
 
 async def _show_stats(update: Update) -> None:
-    pass
+    trans = i18n.trans(update.effective_user)
+
+    from_date = datetime.datetime.now() - datetime.timedelta(days=_STATS_PERIOD_DAYS)
+
+    def get_view_count_text(count: int) -> str:
+        return trans.ngettext("SERVICES_VIEW_COUNT_S {count}", "SERVICES_VIEW_COUNT_P {count}", count).format(count=count)
+
+    def get_viewer_count_text(count: int) -> str:
+        return trans.ngettext("SERVICES_VIEWER_COUNT_S {count}", "SERVICES_VIEWER_COUNT_P {count}", count).format(count=count)
+
+    def get_stat_line(category_title: str, view_count: int, viewer_count: int) -> str:
+        return f"{category_title}: {get_view_count_text(view_count)}, {get_viewer_count_text(viewer_count)}"
+
+    category_stats = {}
+    for stats in state.people_category_views_report(from_date):
+        category_stats[stats.category.id] = get_stat_line(stats.category.title, stats.view_count, stats.viewer_count)
+
+    if not category_stats:
+        await reply(update, trans.gettext("ADMIN_MESSAGE_DM_STATS_EMPTY"), get_main_keyboard())
+        return
+
+    message = [trans.gettext("SERVICES_MESSAGE_DM_ADMIN_STATS_HEADER {from_date}").format(
+        from_date=from_date.strftime("%Y-%m-%d")), ""]
+
+    if -1 in category_stats.keys():
+        message.append(category_stats[-1])
+    for category in state.ServiceCategory.all():
+        if category.id in category_stats.keys():
+            message.append(category_stats[category.id])
+        else:
+            message.append(get_stat_line(category.title, 0, 0))
+
+    await reply(update, "\n".join(message), get_main_keyboard())
 
 
 def register_handlers(application: Application, group: int):
@@ -95,4 +128,5 @@ def register_handlers(application: Application, group: int):
                                             callback_data=_ADMIN_EXPORT_DB),
                        InlineKeyboardButton(trans.gettext("SERVICES_ADMIN_BUTTON_IMPORT_DB"),
                                             callback_data=_ADMIN_IMPORT_DB)), (
-                      InlineKeyboardButton(trans.gettext("SERVICES_ADMIN_BUTTON_STATS"), callback_data=_ADMIN_STATS),)))
+                          InlineKeyboardButton(trans.gettext("SERVICES_ADMIN_BUTTON_STATS"),
+                                               callback_data=_ADMIN_STATS),)))
