@@ -15,6 +15,7 @@ from common import i18n
 from common.admin import get_main_keyboard, register_buttons, has_attachment
 from common.checks import is_admin
 from common.messaging_helpers import reply
+from common.settings import settings
 from . import state
 
 _ADMIN_EXPORT_DB, _ADMIN_IMPORT_DB, _ADMIN_STATS = (
@@ -101,8 +102,12 @@ async def _show_stats(update: Update) -> None:
         await reply(update, trans.gettext("ADMIN_MESSAGE_DM_STATS_EMPTY"), get_main_keyboard())
         return
 
-    message = [trans.gettext("SERVICES_MESSAGE_DM_ADMIN_STATS_HEADER {from_date}").format(
-        from_date=from_date.strftime("%Y-%m-%d")), ""]
+    if settings.SERVICES_STATS_INCLUDE_ADMINISTRATORS:
+        stats_header = trans.gettext("SERVICES_MESSAGE_DM_ADMIN_STATS_HEADER_INCLUDING_ADMINISTRATORS {from_date}")
+    else:
+        stats_header = trans.gettext("SERVICES_MESSAGE_DM_ADMIN_STATS_HEADER {from_date}")
+
+    message = [stats_header.format(from_date=from_date.strftime("%Y-%m-%d")), ""]
 
     if -1 in category_stats.keys():
         message.append(category_stats[-1])

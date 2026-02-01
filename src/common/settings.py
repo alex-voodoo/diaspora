@@ -96,6 +96,8 @@ class Settings:
         self.SERVICES_OCCUPATION_MAX_LENGTH = 30
         # Maximum length of the Description.  0 means no limit (not recommended).  Default is 1000.
         self.SERVICES_DESCRIPTION_MAX_LENGTH = 1000
+        # Whether to include administrators into statistics report.  Default is false.
+        self.SERVICES_STATS_INCLUDE_ADMINISTRATORS = False
 
         # --------------------------------------------------------------------------------------------------------------
         # Greeting new users
