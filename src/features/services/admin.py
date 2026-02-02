@@ -92,7 +92,7 @@ async def _show_stats(update: Update) -> None:
         return trans.ngettext("SERVICES_VIEWER_COUNT_S {count}", "SERVICES_VIEWER_COUNT_P {count}", count).format(count=count)
 
     def get_stat_line(category_title: str, view_count: int, viewer_count: int) -> str:
-        return f"{category_title}: {get_view_count_text(view_count)}, {get_viewer_count_text(viewer_count)}"
+        return f"<b>{category_title}:</b> {get_view_count_text(view_count)}, {get_viewer_count_text(viewer_count)}"
 
     category_stats = {}
     for stats in state.people_category_views_report(from_date):
@@ -102,10 +102,7 @@ async def _show_stats(update: Update) -> None:
         await reply(update, trans.gettext("ADMIN_MESSAGE_DM_STATS_EMPTY"), get_main_keyboard())
         return
 
-    if settings.SERVICES_STATS_INCLUDE_ADMINISTRATORS:
-        stats_header = trans.gettext("SERVICES_MESSAGE_DM_ADMIN_STATS_HEADER_INCLUDING_ADMINISTRATORS {from_date}")
-    else:
-        stats_header = trans.gettext("SERVICES_MESSAGE_DM_ADMIN_STATS_HEADER {from_date}")
+    stats_header = trans.gettext("SERVICES_MESSAGE_DM_ADMIN_STATS_HEADER {from_date}")
 
     message = [stats_header.format(from_date=from_date.strftime("%Y-%m-%d")), ""]
 
@@ -116,6 +113,10 @@ async def _show_stats(update: Update) -> None:
             message.append(category_stats[category.id])
         else:
             message.append(get_stat_line(category.title, 0, 0))
+
+    if not settings.SERVICES_STATS_INCLUDE_ADMINISTRATORS:
+        message.append("")
+        message.append(trans.gettext("SERVICES_MESSAGE_DM_ADMIN_STATS_FOOTER_ADMINISTRATORS_EXCLUDED"))
 
     await reply(update, "\n".join(message), get_main_keyboard())
 

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-02-01 20:54+0100\n"
+"POT-Creation-Date: 2026-02-02 12:29+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -344,23 +344,23 @@ msgstr[2] "{count} пользователей"
 msgid "ADMIN_MESSAGE_DM_STATS_EMPTY"
 msgstr "Статистики пока нет."
 
-#: features/services/admin.py:106
-msgid "SERVICES_MESSAGE_DM_ADMIN_STATS_HEADER_INCLUDING_ADMINISTRATORS {from_date}"
-msgstr "Статистика с {from_date} (включая администраторов)"
-
-#: features/services/admin.py:108
+#: features/services/admin.py:105
 msgid "SERVICES_MESSAGE_DM_ADMIN_STATS_HEADER {from_date}"
-msgstr "Статистика с {from_date}"
+msgstr "<b>Просмотры категорий за период с {from_date}</b>"
 
-#: features/services/admin.py:132
+#: features/services/admin.py:119
+msgid "SERVICES_MESSAGE_DM_ADMIN_STATS_FOOTER_ADMINISTRATORS_EXCLUDED"
+msgstr "Активность администраторов исключена из статистики."
+
+#: features/services/admin.py:133
 msgid "SERVICES_ADMIN_BUTTON_EXPORT_DB"
 msgstr "Выгрузить книгу услуг"
 
-#: features/services/admin.py:134
+#: features/services/admin.py:135
 msgid "SERVICES_ADMIN_BUTTON_IMPORT_DB"
 msgstr "Загрузить книгу услуг"
 
-#: features/services/admin.py:136
+#: features/services/admin.py:137
 msgid "SERVICES_ADMIN_BUTTON_STATS"
 msgstr "Статистика книги услуг"
 

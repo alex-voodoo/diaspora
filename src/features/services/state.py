@@ -332,18 +332,15 @@ def people_views_register(viewer_tg_id: int, tg_id: int, category_id: int) -> No
 
 def people_category_views_report(from_date: datetime.datetime) -> Iterator[ServiceCategoryStats]:
     parameters = (from_date.strftime("%Y-%m-%d"),)
-    if settings.SERVICES_STATS_INCLUDE_ADMINISTRATORS:
-        query = ("SELECT category_id, COUNT(1) as view_count, COUNT(DISTINCT viewer_tg_id) as viewer_count "
-                 "FROM people_category_views "
-                 "WHERE timestamp > ? "
-                 "GROUP BY category_id")
-    else:
+    additional_where_clause = ""
+    if not settings.SERVICES_STATS_INCLUDE_ADMINISTRATORS:
         admin_id_phds = ", ".join(["?"] * len(settings.ADMINISTRATORS))
-        query = (f"SELECT category_id, COUNT(1) as view_count, COUNT(DISTINCT viewer_tg_id) as viewer_count "
-                 f"FROM people_category_views "
-                 f"WHERE timestamp > ?  AND viewer_tg_id NOT IN ({admin_id_phds}) "
-                 f"GROUP BY category_id")
+        additional_where_clause = f"AND viewer_tg_id NOT IN ({admin_id_phds})"
         parameters += tuple(admin["id"] for admin in settings.ADMINISTRATORS)
+    query = (f"SELECT category_id, COUNT(1) as view_count, COUNT(DISTINCT viewer_tg_id) as viewer_count "
+             f"FROM people_category_views "
+             f"WHERE timestamp > ? {additional_where_clause} "
+             f"GROUP BY category_id")
 
     for row in _sql_query(query, parameters):
         yield ServiceCategoryStats(**row)
