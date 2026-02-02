@@ -340,7 +340,54 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         await test_with_services_in_categories([1, 2, 0, 4, 3, 5])
 
     async def test__who_received_category(self):
-        self.skipTest("Test not implemented")
+        trans = i18n.default()
+
+        chat = Chat(id=1, type=Chat.PRIVATE)
+
+        user = User(id=1, first_name="Joe", is_bot=False)
+        message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user)
+        message.set_bot(self.application.bot)
+
+        with patch("features.services.state.people_category_views_register") as mock_stat:
+            with patch("features.services.core.reply") as mock_reply:
+                with patch_service_get_all_by_user_return_nothing():
+                    context = CallbackContext(application=self.application, chat_id=1, user_id=1)
+                    context.user_data["who_request_category"] = {}
+
+                    update = Update(update_id=1, message=message,
+                                    callback_query=MockQuery("1", user, "1", message=message, data="1"))
+
+                    with self.assertRaises(RuntimeError):
+                        await core._who_received_category(update, context), ConversationHandler.END
+
+                    load_test_categories(2)
+                    state.Service.set_bot_username("bot_username")
+
+                    categorised_people = {1: [state.Service(**data_row_for_service(1, 1))],
+                                          2: [state.Service(**data_row_for_service(1, 2)),
+                                              state.Service(**data_row_for_service(2, 2))]}
+
+                    for selected_category_id in (1, 2):
+                        update = Update(update_id=1, message=message,
+                                        callback_query=MockQuery("1", user, "1", message=message,
+                                                                 data=str(selected_category_id)))
+                        context.user_data["who_request_category"] = categorised_people
+
+                        self.assertEqual(await core._who_received_category(update, context), ConversationHandler.END)
+
+                        category = state.ServiceCategory.get(selected_category_id)
+
+                        user_list = [f"<b>{category.title}</b>"] + core._who_people_to_message(
+                            categorised_people[selected_category_id])
+                        user_list.append("")
+                        user_list.append(trans.gettext("SERVICES_DM_WHO_DISCLAIMER"))
+
+                        mock_reply.assert_called_once_with(update, "\n".join(user_list), keyboards.standard(user))
+                        mock_stat.assert_called_once_with(1, selected_category_id)
+                        self.assertNotIn("who_request_category", context.user_data)
+
+                        mock_reply.reset_mock()
+                        mock_stat.reset_mock()
 
     async def test__who(self):
         self.skipTest("Test not implemented")
@@ -532,8 +579,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                 mock_stat.reset_mock()
 
                 message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user_2,
-                                  text=f"/start service_info_{suspended_service.category
-                                  .id}_{suspended_service.tg_username}")
+                                  text=f"/start service_info_{suspended_service.category.id}_"
+                                       f"{suspended_service.tg_username}")
                 message.set_bot(self.application.bot)
                 update = Update(update_id=1, message=message)
 

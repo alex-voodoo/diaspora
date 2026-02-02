@@ -199,15 +199,14 @@ async def _who_received_category(update: Update, context: ContextTypes.DEFAULT_T
 
     categorised_people = context.user_data["who_request_category"]
     category_id = int(query.data)
-
-    state.people_category_views_register(query.from_user.id, category_id)
+    if category_id not in categorised_people:
+        raise RuntimeError(f"No category {category_id}")
 
     trans = i18n.trans(query.from_user)
-    if category_id not in categorised_people:
-        await reply(update, trans.gettext("SERVICES_DM_WHO_CATEGORY_EMPTY"), keyboards.standard(query.from_user))
-        return ConversationHandler.END
 
     category = state.ServiceCategory.get(category_id)
+
+    state.people_category_views_register(query.from_user.id, category_id)
 
     user_list = [f"<b>{category.title}</b>"] + _who_people_to_message(categorised_people[category_id])
     user_list.append("")
