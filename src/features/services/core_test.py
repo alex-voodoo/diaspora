@@ -9,7 +9,7 @@ from telegram import Bot, CallbackQuery, Chat, Message, Update
 from telegram.ext import Application, CallbackContext, ConversationHandler
 
 from common import i18n
-from . import const, core, keyboards
+from . import const, core, keyboards, render
 from .test_util import *
 
 
@@ -54,16 +54,6 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         load_test_categories(0)
 
     # def test__format_hint
-
-    def test__format_deep_link_to_service(self):
-        bot_username = "bot_username"
-        username = "username"
-        self.assertEqual(core._format_deep_link_to_service(bot_username, None, username),
-                         f"t.me/{bot_username}?start=service_info_0_{username}")
-        self.assertEqual(core._format_deep_link_to_service(bot_username, 0, username),
-                         f"t.me/{bot_username}?start=service_info_0_{username}")
-        self.assertEqual(core._format_deep_link_to_service(bot_username, 1, username),
-                         f"t.me/{bot_username}?start=service_info_1_{username}")
 
     def test__maybe_append_limit_warning(self):
         trans = i18n.default()
@@ -211,7 +201,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
             bot_first_name=context.bot.first_name, main_chat_name=chat_title)
         expected_text_single_record = "\n".join(
             [trans.gettext("SERVICES_DM_HELLO_AGAIN {user_first_name}").format(user_first_name=user.first_name),
-             core._main_status_record_description(state.Service(**return_single_record()[0]))])
+             render.service_description_for_owner(state.Service(**return_single_record()[0]))])
 
         def return_no_categories(*_args, **_kwargs) -> Iterator[dict]:
             yield from ()
@@ -251,7 +241,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                                                     len(records)).format(user_first_name=user.first_name,
                                                                          record_count=len(records))]
                     for record in records:
-                        expected_text.append(core._main_status_record_description(state.Service(**record)))
+                        expected_text.append(render.service_description_for_owner(state.Service(**record)))
                     mock_reply.assert_called_once_with(update, "\n".join(expected_text), keyboards.standard(user))
                     mock_reply.reset_mock()
 
@@ -323,11 +313,9 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
                 result = await core._who_request_category(update, context, categorised_people)
                 self.assertEqual(result, const.SELECTING_CATEGORY)
-                mock_reply.assert_called_once_with(update,
-                                                   trans.gettext("SERVICES_DM_WHO_CATEGORY_LIST {disclaimer}").format(
-                                                       disclaimer=trans.gettext("SERVICES_DM_WHO_DISCLAIMER")),
-                                                   keyboards.select_category(
-                                                       [c["object"] for c in expected_category_list]))
+                mock_reply.assert_called_once_with(update, render.prepend_disclaimer(trans, trans.gettext(
+                    "SERVICES_DM_WHO_CATEGORY_LIST")), keyboards.select_category(
+                    [c["object"] for c in expected_category_list]))
 
         await test_with_services_in_categories([0, ])
 
@@ -377,12 +365,10 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
                         category = state.ServiceCategory.get(selected_category_id)
 
-                        user_list = [f"<b>{category.title}</b>"] + core._who_people_to_message(
-                            categorised_people[selected_category_id])
-                        user_list.append("")
-                        user_list.append(trans.gettext("SERVICES_DM_WHO_DISCLAIMER"))
-
-                        mock_reply.assert_called_once_with(update, "\n".join(user_list), keyboards.standard(user))
+                        expected_text = render.append_disclaimer(trans, render.category_with_services(category,
+                                                                                                      categorised_people[
+                                                                                                          category.id]))
+                        mock_reply.assert_called_once_with(update, expected_text, keyboards.standard(user))
                         mock_stat.assert_called_once_with(1, selected_category_id)
                         self.assertNotIn("who_request_category", context.user_data)
 
@@ -513,6 +499,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
             tg_id = test_username_to_tg_id(tg_username)
             yield data_row_for_service(tg_id, category_id)
 
+        # noinspection PyUnusedLocal
         def return_no_service(category_id: int, tg_id: int = 0, tg_username: str = "") -> Iterator[dict]:
             yield from ()
 

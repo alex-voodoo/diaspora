@@ -14,15 +14,11 @@ from telegram.ext import Application, CallbackQueryHandler, ContextTypes, Conver
 from common import i18n
 from common.messaging_helpers import reply, send
 from common.settings import settings
-from . import admin, const, keyboards, state
+from . import admin, const, keyboards, render, state
 
 
 def _format_hint(text: str, limit: int) -> str:
     return f"<b>{text[:limit]}</b>{text[limit:limit + 10]}…"
-
-
-def _format_deep_link_to_service(bot_username: str, category_id: int, tg_username: str) -> str:
-    return f"t.me/{bot_username}?start=service_info_{category_id or 0}_{tg_username}"
 
 
 def _maybe_append_limit_warning(trans: gettext.GNUTranslations, message: list, limit: int) -> None:
@@ -98,11 +94,6 @@ async def _request_next_data_field(update: Update, context: ContextTypes.DEFAULT
     await reply(update, "\n".join(lines))
 
 
-def _main_status_record_description(service: state.Service) -> str:
-    return (f"<b>{service.category.title}:</b> <a href=\"{service.deep_link}\">{service.occupation}</a> ("
-            f"{service.location})")
-
-
 async def show_main_status(update: Update, context: ContextTypes.DEFAULT_TYPE, prefix="") -> None:
     """Show the current status of the user"""
 
@@ -127,7 +118,7 @@ async def show_main_status(update: Update, context: ContextTypes.DEFAULT_TYPE, p
                                        len(records)).format(user_first_name=user.first_name, record_count=len(records)))
 
         for record in records:
-            text.append(_main_status_record_description(record))
+            text.append(render.service_description_for_owner(record))
 
         await reply(update, "\n".join(text), keyboards.standard(user))
     else:
@@ -156,13 +147,6 @@ async def _moderate_new_data(context: ContextTypes.DEFAULT_TYPE, data) -> None:
             occupation=data["occupation"], username=data["tg_username"]), keyboards.approve_service_change(data))
 
 
-def _who_people_to_message(people: list[state.Service]) -> list[str]:
-    result = []
-    for p in people:
-        result.append(f"- @{p.tg_username} ({p.location}): <a href=\"{p.deep_link}\">{p.occupation}</a>")
-    return result
-
-
 async def _who_request_category(update: Update, context: ContextTypes.DEFAULT_TYPE, categorised_people: dict) -> int:
     """Ask user for a category to show"""
 
@@ -182,8 +166,8 @@ async def _who_request_category(update: Update, context: ContextTypes.DEFAULT_TY
         categories.append(category)
 
     trans = i18n.trans(query.from_user)
-    await reply(update, trans.gettext("SERVICES_DM_WHO_CATEGORY_LIST {disclaimer}").format(
-        disclaimer=trans.gettext("SERVICES_DM_WHO_DISCLAIMER")), keyboards.select_category(categories))
+    await reply(update, render.prepend_disclaimer(trans, trans.gettext("SERVICES_DM_WHO_CATEGORY_LIST")),
+                keyboards.select_category(categories))
 
     context.user_data["who_request_category"] = categorised_people
 
@@ -208,11 +192,9 @@ async def _who_received_category(update: Update, context: ContextTypes.DEFAULT_T
 
     state.people_category_views_register(query.from_user.id, category_id)
 
-    user_list = [f"<b>{category.title}</b>"] + _who_people_to_message(categorised_people[category_id])
-    user_list.append("")
-    user_list.append(trans.gettext("SERVICES_DM_WHO_DISCLAIMER"))
+    message = render.category_with_services(category, categorised_people[category.id])
 
-    await reply(update, "\n".join(user_list), keyboards.standard(query.from_user))
+    await reply(update, render.append_disclaimer(trans, message), keyboards.standard(query.from_user))
 
     del context.user_data["who_request_category"]
     return ConversationHandler.END
@@ -222,10 +204,7 @@ async def _who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Show the current registry"""
 
     query = update.callback_query
-
     trans = i18n.trans(query.from_user)
-
-    user_list = [trans.gettext("SERVICES_DM_WHO_LIST_HEADING")]
 
     categorised_people = {}
 
@@ -239,22 +218,22 @@ async def _who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if settings.SHOW_CATEGORIES_ALWAYS and len(categorised_people) > 1:
         return await _who_request_category(update, context, categorised_people)
     else:
+        user_list = [trans.gettext("SERVICES_DM_WHO_LIST_HEADING")]
+
         if len(categorised_people) == 1:
-            user_list += _who_people_to_message(categorised_people[0])
+            user_list += [render.service_description_for_public(service) for service in categorised_people[0]]
         else:
             for category in state.ServiceCategory.all():
                 if category.id not in categorised_people:
                     continue
                 user_list.append("")
-                user_list.append(f"<b>{category.title}</b>")
-                user_list += _who_people_to_message(categorised_people[category.id])
-                user_list.append("")
-                user_list.append(trans.gettext("SERVICES_DM_WHO_DISCLAIMER"))
+                user_list.append(render.category_with_services(category, categorised_people[category.id]))
 
         if len(user_list) == 1:
-            user_list = [trans.gettext("SERVICES_DM_WHO_EMPTY")]
+            await reply(update, trans.gettext("SERVICES_DM_WHO_EMPTY"), keyboards.standard(query.from_user))
+            return ConversationHandler.END
 
-        united_message = "\n".join(user_list)
+        united_message = render.append_disclaimer("\n".join(user_list))
         if len(united_message) < settings.MAX_MESSAGE_LENGTH:
             await query.edit_message_reply_markup(None)
             await reply(update, united_message, keyboards.standard(query.from_user))
