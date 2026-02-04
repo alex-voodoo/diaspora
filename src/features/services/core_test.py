@@ -3,52 +3,20 @@ Tests for the core.py
 """
 
 import unittest
-from unittest.mock import call, MagicMock
+from unittest.mock import call
 
-from telegram import Bot, CallbackQuery, Chat, Message, Update
+from telegram import Chat, Message, Update
 from telegram.ext import Application, CallbackContext, ConversationHandler
 
-from common import i18n
+from common import i18n, test_util
 from . import const, core, keyboards, render
 from .test_util import *
-
-
-class AsyncMock(MagicMock):
-    async def __call__(self, *args, **kwargs):
-        return super(AsyncMock, self).__call__(*args, **kwargs)
-
-
-class MockBot(Bot):
-    def __init__(self, token: str):
-        super().__init__(token)
-
-    @property
-    def username(self) -> str:
-        return "bot_username"
-
-    @property
-    def first_name(self) -> str:
-        return "Bot"
-
-    async def get_chat(self, *args, **kwargs):
-        return Chat(1, type=Chat.GROUP, title="Main Chat")
-
-
-class MockQuery(CallbackQuery):
-    def __init__(self, _id: str, from_user: User, chat_instance: str, *args, **kwargs):
-        super().__init__(_id, from_user, chat_instance, *args, **kwargs)
-
-    async def answer(self, *args, **kwargs):
-        pass
-
-    async def edit_message_reply_markup(self, *args, **kwargs):
-        pass
 
 
 class TestCore(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.application = Application.builder().token(settings.BOT_TOKEN).build()
-        self.application.bot = MockBot(token=settings.BOT_TOKEN)
+        self.application.bot = test_util.MockBot(token=settings.BOT_TOKEN)
 
     def tearDown(self):
         load_test_categories(0)
@@ -93,7 +61,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         context = CallbackContext(application=self.application, chat_id=1, user_id=1)
         context.user_data["current"] = current_text
 
-        request_next_data_field = AsyncMock()
+        request_next_data_field = test_util.AsyncMock()
 
         with patch("features.services.core.reply") as mock_reply:
             # noinspection PyTypeChecker
@@ -291,7 +259,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         user = User(id=1, first_name="Joe", is_bot=False)
         message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user)
         message.set_bot(self.application.bot)
-        update = Update(update_id=1, message=message, callback_query=MockQuery("1", user, "1", message))
+        update = Update(update_id=1, message=message, callback_query=test_util.MockQuery("1", user, "1", message))
 
         # _who_request_category() must not be called with an empty set of people.
         with self.assertRaises(RuntimeError):
@@ -343,7 +311,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                     context.user_data["who_request_category"] = {}
 
                     update = Update(update_id=1, message=message,
-                                    callback_query=MockQuery("1", user, "1", message=message, data="1"))
+                                    callback_query=test_util.MockQuery("1", user, "1", message=message, data="1"))
 
                     with self.assertRaises(RuntimeError):
                         await core._who_received_category(update, context), ConversationHandler.END
@@ -357,7 +325,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
                     for selected_category_id in (1, 2):
                         update = Update(update_id=1, message=message,
-                                        callback_query=MockQuery("1", user, "1", message=message,
+                                        callback_query=test_util.MockQuery("1", user, "1", message=message,
                                                                  data=str(selected_category_id)))
                         context.user_data["who_request_category"] = categorised_people
 
@@ -388,7 +356,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         user = User(id=1, first_name="Joe", is_bot=False)
         message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user)
         message.set_bot(self.application.bot)
-        update = Update(update_id=1, message=message, callback_query=MockQuery("1", user, "1", message))
+        update = Update(update_id=1, message=message, callback_query=test_util.MockQuery("1", user, "1", message))
 
         # A user that does not have a username cannot enroll.
         with patch("features.services.core.reply") as mock_reply:
@@ -403,7 +371,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         user = User(id=1, first_name="Joe", is_bot=False, username="username_1")
         message = Message(message_id=2, date=datetime.datetime.now(), chat=chat, from_user=user)
         message.set_bot(self.application.bot)
-        update = Update(update_id=2, message=message, callback_query=MockQuery("2", user, "1", message))
+        update = Update(update_id=2, message=message, callback_query=test_util.MockQuery("2", user, "1", message))
 
         with patch("features.services.core.reply") as mock_reply:
             # When no categories are defined, all services are created in the default category.  When the user starts
