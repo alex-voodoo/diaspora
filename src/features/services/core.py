@@ -17,10 +17,6 @@ from common.settings import settings
 from . import admin, const, keyboards, render, state
 
 
-def _format_hint(text: str, limit: int) -> str:
-    return f"<b>{text[:limit]}</b>{text[limit:limit + 10]}…"
-
-
 def _maybe_append_limit_warning(trans: gettext.GNUTranslations, message: list, limit: int) -> None:
     """Perform one repeating part of conversation logic where a value is checked against length limit
 
@@ -55,10 +51,7 @@ async def _verify_limit_then_retry_or_proceed(update: Update, context: ContextTy
 
     new_text = message.text.strip()
     if 0 < current_limit < len(new_text):
-        new_text = _format_hint(new_text, current_limit)
-        await reply(update, trans.ngettext("SERVICES_DM_TEXT_TOO_LONG_S {limit} {text}",
-                                           "SERVICES_DM_TEXT_TOO_LONG_P {limit} {text}", current_limit).format(
-            limit=current_limit, text=new_text))
+        await reply(update, render.text_too_long(trans, new_text, current_limit))
         return current_stage_id
 
     user_data = context.user_data

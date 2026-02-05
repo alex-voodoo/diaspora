@@ -21,8 +21,6 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     def tearDown(self):
         load_test_categories(0)
 
-    # def test__format_hint
-
     def test__maybe_append_limit_warning(self):
         trans = i18n.default()
         initial_message = ["hello", "world"]
@@ -71,12 +69,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                                                                     next_data_field_update_text,
                                                                     request_next_data_field)
             self.assertEqual(result, current_stage_id)
-            mock_reply.assert_called_once_with(update, trans.ngettext("SERVICES_DM_TEXT_TOO_LONG_S {limit} {text}",
-                                                                      "SERVICES_DM_TEXT_TOO_LONG_P {limit} {text}",
-                                                                      current_limit).format(limit=current_limit,
-                                                                                            text=core._format_hint(
-                                                                                                new_current_text_long,
-                                                                                                current_limit)))
+            mock_reply.assert_called_once_with(update,
+                                               render.text_too_long(trans, new_current_text_long, current_limit))
             request_next_data_field.assert_not_called()
 
         request_next_data_field.reset_mock()
@@ -326,7 +320,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                     for selected_category_id in (1, 2):
                         update = Update(update_id=1, message=message,
                                         callback_query=test_util.MockQuery("1", user, "1", message=message,
-                                                                 data=str(selected_category_id)))
+                                                                           data=str(selected_category_id)))
                         context.user_data["who_request_category"] = categorised_people
 
                         self.assertEqual(await core._who_received_category(update, context), ConversationHandler.END)

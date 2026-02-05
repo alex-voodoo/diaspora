@@ -27,3 +27,10 @@ def append_disclaimer(trans: gettext.GNUTranslations, message: str) -> str:
 
 def prepend_disclaimer(trans: gettext.GNUTranslations, message: str) -> str:
     return "\n\n".join([trans.gettext("SERVICES_DM_WHO_DISCLAIMER"), message])
+
+
+def text_too_long(trans: gettext.GNUTranslations, text: str, limit: int) -> str:
+    new_text = f"<b>{text[:limit]}</b>{text[limit:limit + 10]}…"
+
+    return trans.ngettext("SERVICES_DM_TEXT_TOO_LONG_S {limit} {text}", "SERVICES_DM_TEXT_TOO_LONG_P {limit} {text}",
+                          limit).format(limit=limit, text=new_text)
