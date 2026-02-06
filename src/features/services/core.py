@@ -17,6 +17,15 @@ from common.settings import settings
 from . import admin, const, keyboards, render, state
 
 
+def _get_all_services() -> dict:
+    result = {}
+    for service in state.Service.get_all_active():
+        if service.category.id not in result:
+            result[service.category.id] = []
+        result[service.category.id].append(service)
+
+    return result
+
 def _maybe_append_limit_warning(trans: gettext.GNUTranslations, message: list, limit: int) -> None:
     """Perform one repeating part of conversation logic where a value is checked against length limit
 
@@ -193,18 +202,13 @@ async def _who_received_category(update: Update, context: ContextTypes.DEFAULT_T
     return ConversationHandler.END
 
 
-async def _who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def _handle_command_who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Show the current registry"""
 
     query = update.callback_query
     trans = i18n.trans(query.from_user)
 
-    categorised_people = {}
-
-    for service in state.Service.get_all_active():
-        if service.category.id not in categorised_people:
-            categorised_people[service.category.id] = []
-        categorised_people[service.category.id].append(service)
+    categorised_people = _get_all_services()
 
     state.people_category_views_register(query.from_user.id, -1)
 
@@ -226,7 +230,7 @@ async def _who(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
             await reply(update, trans.gettext("SERVICES_DM_WHO_EMPTY"), keyboards.standard(query.from_user))
             return ConversationHandler.END
 
-        united_message = render.append_disclaimer("\n".join(user_list))
+        united_message = render.append_disclaimer(trans, "\n".join(user_list))
         if len(united_message) < settings.MAX_MESSAGE_LENGTH:
             await query.edit_message_reply_markup(None)
             await reply(update, united_message, keyboards.standard(query.from_user))
@@ -559,7 +563,7 @@ def init(application: Application, group: int) -> None:
                 const.CONFIRMING_LEGALITY: [CallbackQueryHandler(_verify_legality_and_finalise_data_collection)]},
         fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]), group=group)
 
-    application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(_who, pattern=const.COMMAND_WHO)],
+    application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(_handle_command_who, pattern=const.COMMAND_WHO)],
                                                 states={const.SELECTING_CATEGORY: [
                                                     CallbackQueryHandler(_who_received_category)]},
                                                 fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]),

@@ -93,6 +93,9 @@ class Service:
         self._is_suspended = kwargs["is_suspended"]
         self._last_modified = kwargs["last_modified"]
 
+    def __eq__(self, other: Self):
+        return self._tg_id == other._tg_id and self._category_id == other._category_id
+
     @property
     def category(self) -> ServiceCategory:
         return ServiceCategory.get(self._category_id)

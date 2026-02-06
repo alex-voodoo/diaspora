@@ -337,8 +337,67 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                         mock_reply.reset_mock()
                         mock_stat.reset_mock()
 
-    async def test__who(self):
-        self.skipTest("Test not implemented")
+    async def test__handle_command_who(self):
+        trans = i18n.default()
+
+        chat = Chat(id=1, type=Chat.PRIVATE)
+        context = CallbackContext(application=self.application, chat_id=1, user_id=1)
+
+        # Create a query from a user that does not have a username.
+        user = User(id=1, first_name="Joe", is_bot=False)
+        message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user)
+        message.set_bot(self.application.bot)
+        update = Update(update_id=1, message=message, callback_query=test_util.MockQuery("1", user, "1", message))
+
+        load_test_categories(2)
+        state.Service.set_bot_username("bot_username")
+
+        def get_services_in_two_categories() -> Iterator[dict]:
+            yield data_row_for_service(1, 1)
+            yield data_row_for_service(1, 2)
+
+        with patch("features.services.core._who_request_category") as mock_who_request_category:
+            with patch("features.services.state._service_get_all_active", get_services_in_two_categories):
+                with patch("features.services.core.settings") as mock_settings:
+                    with patch("features.services.state.people_category_views_register") as mock_stat:
+                        mock_settings.SHOW_CATEGORIES_ALWAYS = True
+
+                        mock_who_request_category.return_value = const.SELECTING_CATEGORY
+
+                        result = await core._handle_command_who(update, context)
+
+                        self.assertEqual(result, const.SELECTING_CATEGORY)
+
+                        mock_stat.assert_called_once_with(1, -1)
+                        mock_who_request_category.assert_called()
+                        call_args = mock_who_request_category.call_args[0]
+                        self.assertEqual(call_args[0], update)
+                        self.assertEqual(call_args[1], context)
+                        self.assertDictEqual(call_args[2], core._get_all_services())
+
+                        mock_stat.reset_mock()
+                        mock_who_request_category.reset_mock()
+
+                        mock_settings.SHOW_CATEGORIES_ALWAYS = False
+                        mock_settings.MAX_MESSAGE_LENGTH = 1000
+
+                        with patch("features.services.core.reply") as mock_reply:
+                            with patch_service_get_all_by_user_return_nothing():
+                                result = await core._handle_command_who(update, context)
+
+                                self.assertEqual(result, ConversationHandler.END)
+
+                                user_list = [trans.gettext("SERVICES_DM_WHO_LIST_HEADING")]
+                                for category in state.ServiceCategory.all():
+                                    if category.id not in core._get_all_services():
+                                        continue
+                                    user_list.append("")
+                                    user_list.append(
+                                        render.category_with_services(category, core._get_all_services()[category.id]))
+                                united_message = render.append_disclaimer(trans, "\n".join(user_list))
+
+                                mock_reply.assert_called_once_with(update, united_message, keyboards.standard(user))
+
 
     async def test__handle_command_enroll(self):
         trans = i18n.default()
