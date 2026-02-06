@@ -34,3 +34,13 @@ def text_too_long(trans: gettext.GNUTranslations, text: str, limit: int) -> str:
 
     return trans.ngettext("SERVICES_DM_TEXT_TOO_LONG_S {limit} {text}", "SERVICES_DM_TEXT_TOO_LONG_P {limit} {text}",
                           limit).format(limit=limit, text=new_text)
+
+
+def categories_with_services(trans: gettext.GNUTranslations, services: dict) -> str:
+    user_list = [trans.gettext("SERVICES_DM_WHO_LIST_HEADING")]
+    for category in state.ServiceCategory.all():
+        if category.id not in services:
+            continue
+        user_list.append("")
+        user_list.append(category_with_services(category, services[category.id]))
+    return append_disclaimer(trans, "\n".join(user_list))

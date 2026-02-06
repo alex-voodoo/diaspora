@@ -368,12 +368,14 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
                         self.assertEqual(result, const.SELECTING_CATEGORY)
 
+                        categorised_services = core._get_all_services()
+
                         mock_stat.assert_called_once_with(1, -1)
                         mock_who_request_category.assert_called()
                         call_args = mock_who_request_category.call_args[0]
                         self.assertEqual(call_args[0], update)
                         self.assertEqual(call_args[1], context)
-                        self.assertDictEqual(call_args[2], core._get_all_services())
+                        self.assertDictEqual(call_args[2], categorised_services)
 
                         mock_stat.reset_mock()
                         mock_who_request_category.reset_mock()
@@ -387,17 +389,9 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
                                 self.assertEqual(result, ConversationHandler.END)
 
-                                user_list = [trans.gettext("SERVICES_DM_WHO_LIST_HEADING")]
-                                for category in state.ServiceCategory.all():
-                                    if category.id not in core._get_all_services():
-                                        continue
-                                    user_list.append("")
-                                    user_list.append(
-                                        render.category_with_services(category, core._get_all_services()[category.id]))
-                                united_message = render.append_disclaimer(trans, "\n".join(user_list))
-
-                                mock_reply.assert_called_once_with(update, united_message, keyboards.standard(user))
-
+                                mock_reply.assert_called_once_with(update,
+                                                                   render.categories_with_services(trans, categorised_services),
+                                                                   keyboards.standard(user))
 
     async def test__handle_command_enroll(self):
         trans = i18n.default()

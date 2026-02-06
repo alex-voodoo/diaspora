@@ -210,27 +210,24 @@ async def _handle_command_who(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     categorised_people = _get_all_services()
 
+    if not categorised_people:
+        await reply(update, trans.gettext("SERVICES_DM_WHO_EMPTY"), keyboards.standard(query.from_user))
+        return ConversationHandler.END
+
     state.people_category_views_register(query.from_user.id, -1)
+
+    if len(categorised_people) == 1:
+        user_list = [trans.gettext("SERVICES_DM_WHO_LIST_HEADING")]
+        user_list += [render.service_description_for_public(service) for service in categorised_people[0]]
+        united_message = render.append_disclaimer(trans, "\n".join(user_list))
+        await reply(update, united_message, keyboards.standard(query.from_user))
+        return ConversationHandler.END
 
     if settings.SHOW_CATEGORIES_ALWAYS and len(categorised_people) > 1:
         return await _who_request_category(update, context, categorised_people)
     else:
-        user_list = [trans.gettext("SERVICES_DM_WHO_LIST_HEADING")]
+        united_message = render.categories_with_services(trans, categorised_people)
 
-        if len(categorised_people) == 1:
-            user_list += [render.service_description_for_public(service) for service in categorised_people[0]]
-        else:
-            for category in state.ServiceCategory.all():
-                if category.id not in categorised_people:
-                    continue
-                user_list.append("")
-                user_list.append(render.category_with_services(category, categorised_people[category.id]))
-
-        if len(user_list) == 1:
-            await reply(update, trans.gettext("SERVICES_DM_WHO_EMPTY"), keyboards.standard(query.from_user))
-            return ConversationHandler.END
-
-        united_message = render.append_disclaimer(trans, "\n".join(user_list))
         if len(united_message) < settings.MAX_MESSAGE_LENGTH:
             await query.edit_message_reply_markup(None)
             await reply(update, united_message, keyboards.standard(query.from_user))
