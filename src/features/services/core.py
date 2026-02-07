@@ -194,7 +194,7 @@ async def _who_received_category(update: Update, context: ContextTypes.DEFAULT_T
 
     state.people_category_views_register(query.from_user.id, category_id)
 
-    message = render.category_with_services(category, categorised_people[category.id])
+    message = render.category_with_services(category, categorised_people[category.id], True)
 
     await reply(update, render.append_disclaimer(trans, message), keyboards.standard(query.from_user))
 
@@ -208,32 +208,30 @@ async def _handle_command_who(update: Update, context: ContextTypes.DEFAULT_TYPE
     query = update.callback_query
     trans = i18n.trans(query.from_user)
 
-    categorised_people = _get_all_services()
+    categorised_services = _get_all_services()
 
-    if not categorised_people:
+    if not categorised_services:
         await reply(update, trans.gettext("SERVICES_DM_WHO_EMPTY"), keyboards.standard(query.from_user))
         return ConversationHandler.END
 
     state.people_category_views_register(query.from_user.id, -1)
 
-    if len(categorised_people) == 1:
-        user_list = [trans.gettext("SERVICES_DM_WHO_LIST_HEADING")]
-        user_list += [render.service_description_for_public(service) for service in categorised_people[0]]
-        united_message = render.append_disclaimer(trans, "\n".join(user_list))
+    if len(categorised_services) == 1:
+        united_message = render.categories_with_services(trans, categorised_services)
         await reply(update, united_message, keyboards.standard(query.from_user))
         return ConversationHandler.END
 
-    if settings.SHOW_CATEGORIES_ALWAYS and len(categorised_people) > 1:
-        return await _who_request_category(update, context, categorised_people)
+    if settings.SHOW_CATEGORIES_ALWAYS:
+        return await _who_request_category(update, context, categorised_services)
     else:
-        united_message = render.categories_with_services(trans, categorised_people)
+        united_message = render.categories_with_services(trans, categorised_services)
 
         if len(united_message) < settings.MAX_MESSAGE_LENGTH:
             await query.edit_message_reply_markup(None)
             await reply(update, united_message, keyboards.standard(query.from_user))
             return ConversationHandler.END
         else:
-            return await _who_request_category(update, context, categorised_people)
+            return await _who_request_category(update, context, categorised_services)
 
 
 async def _handle_command_enroll(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:

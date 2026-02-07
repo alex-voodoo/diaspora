@@ -327,9 +327,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
                         category = state.ServiceCategory.get(selected_category_id)
 
-                        expected_text = render.append_disclaimer(trans, render.category_with_services(category,
-                                                                                                      categorised_people[
-                                                                                                          category.id]))
+                        expected_text = render.append_disclaimer(
+                            trans, render.category_with_services(category, categorised_people[category.id], True))
                         mock_reply.assert_called_once_with(update, expected_text, keyboards.standard(user))
                         mock_stat.assert_called_once_with(1, selected_category_id)
                         self.assertNotIn("who_request_category", context.user_data)
@@ -337,7 +336,9 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                         mock_reply.reset_mock()
                         mock_stat.reset_mock()
 
-    async def test__handle_command_who(self):
+    @patch_service_get_all_by_user_return_nothing()
+    @patch("features.services.core.settings")
+    async def test__handle_command_who(self, mock_settings):
         trans = i18n.default()
 
         chat = Chat(id=1, type=Chat.PRIVATE)
@@ -352,46 +353,88 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         load_test_categories(2)
         state.Service.set_bot_username("bot_username")
 
-        def get_services_in_two_categories() -> Iterator[dict]:
-            yield data_row_for_service(1, 1)
-            yield data_row_for_service(1, 2)
+        # When there are no services, nothing should be rendered.
+        def get_no_services() -> Iterator[dict]:
+            yield from ()
 
-        with patch("features.services.core._who_request_category") as mock_who_request_category:
-            with patch("features.services.state._service_get_all_active", get_services_in_two_categories):
-                with patch("features.services.core.settings") as mock_settings:
+        with patch("features.services.state._service_get_all_active", get_no_services):
+            for show_categories_always in (False, True):
+                mock_settings.SHOW_CATEGORIES_ALWAYS = show_categories_always
+
+                with patch("features.services.core._who_request_category") as mock_who_request_category:
                     with patch("features.services.state.people_category_views_register") as mock_stat:
-                        mock_settings.SHOW_CATEGORIES_ALWAYS = True
-
-                        mock_who_request_category.return_value = const.SELECTING_CATEGORY
-
-                        result = await core._handle_command_who(update, context)
-
-                        self.assertEqual(result, const.SELECTING_CATEGORY)
-
-                        categorised_services = core._get_all_services()
-
-                        mock_stat.assert_called_once_with(1, -1)
-                        mock_who_request_category.assert_called()
-                        call_args = mock_who_request_category.call_args[0]
-                        self.assertEqual(call_args[0], update)
-                        self.assertEqual(call_args[1], context)
-                        self.assertDictEqual(call_args[2], categorised_services)
-
-                        mock_stat.reset_mock()
-                        mock_who_request_category.reset_mock()
-
-                        mock_settings.SHOW_CATEGORIES_ALWAYS = False
-                        mock_settings.MAX_MESSAGE_LENGTH = 1000
-
                         with patch("features.services.core.reply") as mock_reply:
-                            with patch_service_get_all_by_user_return_nothing():
-                                result = await core._handle_command_who(update, context)
+                            self.assertEqual(await core._handle_command_who(update, context), ConversationHandler.END)
 
-                                self.assertEqual(result, ConversationHandler.END)
+                            mock_reply.assert_called_once_with(update, trans.gettext("SERVICES_DM_WHO_EMPTY"),
+                                                               keyboards.standard(user))
+                            mock_stat.assert_not_called()
+                            mock_who_request_category.assert_not_called()
 
-                                mock_reply.assert_called_once_with(update,
-                                                                   render.categories_with_services(trans, categorised_services),
-                                                                   keyboards.standard(user))
+        async def render_category_selection() -> None:
+            with patch("features.services.core._who_request_category") as _mock_who_request_category:
+                with patch("features.services.state.people_category_views_register") as _mock_stat:
+                    _mock_who_request_category.return_value = const.SELECTING_CATEGORY
+
+                    self.assertEqual(await core._handle_command_who(update, context), const.SELECTING_CATEGORY)
+
+                    _mock_stat.assert_called_once_with(1, -1)
+                    _mock_who_request_category.assert_called()
+                    call_args = _mock_who_request_category.call_args[0]
+                    self.assertEqual(call_args[0], update)
+                    self.assertEqual(call_args[1], context)
+                    self.assertDictEqual(call_args[2], categorised_services)
+
+        async def render_service_directory() -> None:
+            with patch("features.services.core._who_request_category") as _mock_who_request_category:
+                with patch("features.services.state.people_category_views_register") as _mock_stat:
+                    with patch("features.services.core.reply") as _mock_reply:
+                        self.assertEqual(await core._handle_command_who(update, context), ConversationHandler.END)
+
+                        expected_message = render.categories_with_services(trans,core._get_all_services())
+                        _mock_reply.assert_called_once_with(update, expected_message, keyboards.standard(user))
+                        _mock_stat.assert_called_once_with(1, -1)
+                        _mock_who_request_category.assert_not_called()
+
+        # When all services belong to the single category, skip category selection and show the directory immediately,
+        # no matter what the SHOW_CATEGORIES_ALWAYS setting says.
+        def get_services_in_one_category() -> Iterator[dict]:
+            for tg_id in range(1, 3):
+                yield data_row_for_service(tg_id, 1)
+
+        with patch("features.services.state._service_get_all_active", get_services_in_one_category):
+            for show_categories_always in (False, True):
+                mock_settings.SHOW_CATEGORIES_ALWAYS = show_categories_always
+
+                await render_service_directory()
+
+        # Test the most used case when there are several services in several categories.
+        def get_services_in_two_categories() -> Iterator[dict]:
+            for tg_id in range(1, 5):
+                for category_id in range(1, 3):
+                    yield data_row_for_service(tg_id, category_id)
+
+        with patch("features.services.state._service_get_all_active", get_services_in_two_categories):
+            categorised_services = core._get_all_services()
+
+            # When the directory exceeds the message length limit, category selection should be shown even if the
+            # SHOW_CATEGORIES_ALWAYS setting is False.
+            mock_settings.MAX_MESSAGE_LENGTH = 100
+
+            for show_categories_always in (False, True):
+                mock_settings.SHOW_CATEGORIES_ALWAYS = show_categories_always
+
+                await render_category_selection()
+
+            # When the limit is big enough for the entire directory, category selection should be shown only if the
+            # SHOW_CATEGORIES_ALWAYS setting is True.
+            mock_settings.MAX_MESSAGE_LENGTH = 1000
+            mock_settings.SHOW_CATEGORIES_ALWAYS = False
+
+            await render_service_directory()
+
+            mock_settings.SHOW_CATEGORIES_ALWAYS = True
+            await render_category_selection()
 
     async def test__handle_command_enroll(self):
         trans = i18n.default()

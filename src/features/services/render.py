@@ -17,8 +17,10 @@ def service_description_for_public(service: state.Service) -> str:
     return f"- @{service.tg_username} ({service.location}): <a href=\"{service.deep_link}\">{service.occupation}</a>"
 
 
-def category_with_services(category: state.ServiceCategory, services: Iterable[state.Service]) -> str:
-    return "\n".join([f"<b>{category.title}</b>", *[service_description_for_public(service) for service in services]])
+def category_with_services(category: state.ServiceCategory, services: Iterable[state.Service], show_category_title: bool) -> str:
+    if show_category_title:
+        return "\n".join([f"<b>{category.title}</b>", *[service_description_for_public(service) for service in services]])
+    return "\n".join([service_description_for_public(service) for service in services])
 
 
 def append_disclaimer(trans: gettext.GNUTranslations, message: str) -> str:
@@ -42,5 +44,5 @@ def categories_with_services(trans: gettext.GNUTranslations, services: dict) -> 
         if category.id not in services:
             continue
         user_list.append("")
-        user_list.append(category_with_services(category, services[category.id]))
+        user_list.append(category_with_services(category, services[category.id], len(services) > 1))
     return append_disclaimer(trans, "\n".join(user_list))
