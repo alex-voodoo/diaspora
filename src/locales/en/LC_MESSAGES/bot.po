@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-02-07 18:55+0100\n"
+"POT-Creation-Date: 2026-02-07 19:05+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -365,7 +365,7 @@ msgid_plural "SERVICES_DM_DATA_FIELD_LIMIT_P {limit}"
 msgstr[0] "(No more than {limit} character.)"
 msgstr[1] "(No more than {limit} characters.)"
 
-#: features/services/core.py:116 features/services/core_test.py:165
+#: features/services/core.py:116 features/services/core_test.py:166
 msgid "SERVICES_DM_HELLO_AGAIN {user_first_name}"
 msgstr "Hello {user_first_name}.  Here is your record.\n"
 
@@ -379,12 +379,12 @@ msgstr[1] "Hello {user_first_name}.  Here are your {record_count} records."
 msgid "SERVICES_DM_NO_RECORDS"
 msgstr "You have no records."
 
-#: features/services/core.py:134 features/services/core_test.py:162
+#: features/services/core.py:134 features/services/core_test.py:163
 msgid "SERVICES_DM_HELLO {bot_first_name} {main_chat_name}"
 msgstr "Hello!  I am {bot_first_name}, the bookkeeper bot of the \"{main_chat_name}\" group."
 
 #: features/services/core.py:146 features/services/core_test.py:223
-#: features/services/core_test.py:237
+#: features/services/core_test.py:236
 msgid "SERVICES_ADMIN_APPROVE_USER_DATA {category} {description} {location} {occupation} {username}"
 msgstr ""
 "User @{username} has updated their data in the category <b>{category}</b>.\n"
@@ -394,32 +394,32 @@ msgstr ""
 "\n"
 "Accept changes?"
 
-#: features/services/core.py:171 features/services/core_test.py:278
+#: features/services/core.py:171 features/services/core_test.py:276
 msgid "SERVICES_DM_WHO_CATEGORY_LIST"
 msgstr "Which one to show?"
 
-#: features/services/core.py:214 features/services/core_test.py:369
+#: features/services/core.py:214 features/services/core_test.py:367
 msgid "SERVICES_DM_WHO_EMPTY"
 msgstr "Nobody has registered themselves so far :-( ."
 
-#: features/services/core.py:247 features/services/core_test.py:457
+#: features/services/core.py:247 features/services/core_test.py:455
 msgid "SERVICES_DM_ENROLL_USERNAME_REQUIRED"
 msgstr ""
 "Your Telegram profile does not have a username.  I need it to show people a link to your profile.\n"
 "\n"
 "Please register a username for your profile and try again."
 
-#: features/services/core.py:250 features/services/core_test.py:475
-#: features/services/core_test.py:489
+#: features/services/core.py:250 features/services/core_test.py:473
+#: features/services/core_test.py:487
 msgid "SERVICES_DM_ENROLL_START"
 msgstr "Let us start!"
 
-#: features/services/core.py:258 features/services/core_test.py:490
+#: features/services/core.py:258 features/services/core_test.py:488
 msgid "SERVICES_DM_ENROLL_ASK_CATEGORY"
 msgstr "Please select a category that matches your service the best."
 
 #: features/services/core.py:265 features/services/core.py:314
-#: features/services/core_test.py:476
+#: features/services/core_test.py:474
 msgid "SERVICES_DM_ENROLL_ASK_OCCUPATION"
 msgstr "What do you do?  Please give a short and simple answer, like \"Teach how to surf\" or \"Help with the immigrations\"."
 
@@ -497,17 +497,17 @@ msgstr "Select category to delete."
 msgid "SERVICES_DM_RETIRE"
 msgstr "The record is deleted."
 
-#: features/services/core.py:496 features/services/core_test.py:537
+#: features/services/core.py:496 features/services/core_test.py:535
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Let us start again."
 
 #: features/services/core.py:519 features/services/core.py:522
-#: features/services/core_test.py:621 features/services/core_test.py:648
+#: features/services/core_test.py:619 features/services/core_test.py:646
 msgid "SERVICES_DM_SERVICE_NOT_FOUND"
 msgstr "Service not found."
 
-#: features/services/core.py:528 features/services/core_test.py:587
-#: features/services/core_test.py:635
+#: features/services/core.py:528 features/services/core_test.py:585
+#: features/services/core_test.py:633
 msgid "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}"
 msgstr ""
 "Your service in the category <b>{category_title}</b>\n"
@@ -517,7 +517,7 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/core.py:533 features/services/core_test.py:603
+#: features/services/core.py:533 features/services/core_test.py:601
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "Service by @{username} in the category <b>{category_title}</b>\n"

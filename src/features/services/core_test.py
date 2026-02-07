@@ -135,7 +135,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
             core._maybe_append_limit_warning(trans, expected_reply, next_limit)
             mock_reply.assert_called_once_with(update, "\n".join(expected_reply))
 
-    async def test_show_main_status(self):
+    @patch("features.services.core.reply")
+    async def test_show_main_status(self, mock_reply):
         def return_no_records(_where_clause: str = "", _where_params: tuple = ()):
             return []
 
@@ -171,77 +172,74 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         def return_single_category(*_args, **_kwargs) -> Iterator[dict]:
             yield data_row_for_service_category(1)
 
-        with patch("features.services.core.reply") as mock_reply:
-            with patch("features.services.state._service_select", return_no_records):
-                with patch("features.services.state._service_category_select_all", return_no_categories):
-                    await core.show_main_status(update, context)
-                    mock_reply.assert_called_once_with(update, expected_text_no_categories, keyboards.standard(user))
-                    mock_reply.reset_mock()
+        with patch("features.services.state._service_select", return_no_records):
+            with patch("features.services.state._service_category_select_all", return_no_categories):
+                await core.show_main_status(update, context)
+                mock_reply.assert_called_once_with(update, expected_text_no_categories, keyboards.standard(user))
+                mock_reply.reset_mock()
 
-                with patch("features.services.state._service_category_select_all", return_single_category):
-                    await core.show_main_status(update, context)
-                    mock_reply.assert_called_once_with(update, expected_text_no_categories, keyboards.standard(user))
-                    mock_reply.reset_mock()
+            with patch("features.services.state._service_category_select_all", return_single_category):
+                await core.show_main_status(update, context)
+                mock_reply.assert_called_once_with(update, expected_text_no_categories, keyboards.standard(user))
+                mock_reply.reset_mock()
 
-            with patch("features.services.state._service_select", return_single_record):
-                with patch("features.services.state._service_category_select_all", return_no_categories):
-                    await core.show_main_status(update, context)
-                    mock_reply.assert_called_once_with(update, expected_text_single_record, keyboards.standard(user))
-                    mock_reply.reset_mock()
+        with patch("features.services.state._service_select", return_single_record):
+            with patch("features.services.state._service_category_select_all", return_no_categories):
+                await core.show_main_status(update, context)
+                mock_reply.assert_called_once_with(update, expected_text_single_record, keyboards.standard(user))
+                mock_reply.reset_mock()
 
-                with patch("features.services.state._service_category_select_all", return_single_category):
-                    await core.show_main_status(update, context)
-                    mock_reply.assert_called_once_with(update, expected_text_single_record, keyboards.standard(user))
-                    mock_reply.reset_mock()
+            with patch("features.services.state._service_category_select_all", return_single_category):
+                await core.show_main_status(update, context)
+                mock_reply.assert_called_once_with(update, expected_text_single_record, keyboards.standard(user))
+                mock_reply.reset_mock()
 
-            with patch("features.services.state._service_select", return_multiple_records):
-                with patch("features.services.state._service_category_select_all", return_single_category):
-                    await core.show_main_status(update, context)
-                    records = return_multiple_records()
-                    expected_text = [trans.ngettext("SERVICES_DM_HELLO_AGAIN_S {user_first_name} {record_count}",
-                                                    "SERVICES_DM_HELLO_AGAIN_P {user_first_name} {record_count}",
-                                                    len(records)).format(user_first_name=user.first_name,
-                                                                         record_count=len(records))]
-                    for record in records:
-                        expected_text.append(render.service_description_for_owner(state.Service(**record)))
-                    mock_reply.assert_called_once_with(update, "\n".join(expected_text), keyboards.standard(user))
-                    mock_reply.reset_mock()
+        with patch("features.services.state._service_select", return_multiple_records):
+            with patch("features.services.state._service_category_select_all", return_single_category):
+                await core.show_main_status(update, context)
+                records = return_multiple_records()
+                expected_text = [trans.ngettext("SERVICES_DM_HELLO_AGAIN_S {user_first_name} {record_count}",
+                                                "SERVICES_DM_HELLO_AGAIN_P {user_first_name} {record_count}",
+                                                len(records)).format(user_first_name=user.first_name,
+                                                                     record_count=len(records))]
+                for record in records:
+                    expected_text.append(render.service_description_for_owner(state.Service(**record)))
+                mock_reply.assert_called_once_with(update, "\n".join(expected_text), keyboards.standard(user))
+                mock_reply.reset_mock()
 
-    async def test__moderate_new_data(self):
+    @patch("features.services.core.send")
+    @patch("features.services.core.settings")
+    async def test__moderate_new_data(self, mock_settings, mock_send):
         context = CallbackContext(application=self.application, chat_id=1, user_id=1)
 
         data = {"category_id": 4, "category_title": "Category title", "description": "Description",
                 "location": "Location", "occupation": "Occupation", "tg_id": 1, "tg_username": "username_1"}
 
-        with patch("features.services.core.send") as mock_send:
-            with patch("features.services.core.settings") as mock_settings:
-                mock_settings.DEVELOPER_CHAT_ID = 12345
-                mock_settings.ADMINISTRATORS = []
+        mock_settings.DEVELOPER_CHAT_ID = 12345
+        mock_settings.ADMINISTRATORS = []
 
-                await core._moderate_new_data(context, data)
+        await core._moderate_new_data(context, data)
 
-                mock_send.assert_called_once_with(context, mock_settings.DEVELOPER_CHAT_ID, i18n.default().gettext(
-                    "SERVICES_ADMIN_APPROVE_USER_DATA {category} {description} {location} {occupation} {"
-                    "username}").format(category=data["category_title"], description=data["description"],
-                                        location=data["location"], occupation=data["occupation"],
-                                        username=data["tg_username"]), keyboards.approve_service_change(data))
+        mock_send.assert_called_once_with(context, mock_settings.DEVELOPER_CHAT_ID, i18n.default().gettext(
+            "SERVICES_ADMIN_APPROVE_USER_DATA {category} {description} {location} {occupation} {"
+            "username}").format(category=data["category_title"], description=data["description"],
+                                location=data["location"], occupation=data["occupation"],
+                                username=data["tg_username"]), keyboards.approve_service_change(data))
+        mock_send.reset_mock()
 
-                mock_send.reset_mock()
+        mock_settings.ADMINISTRATORS = [{"id": 234, "username": "username_234"},
+                                        {"id": 567, "username": "username_567"},
+                                        {"id": 890, "username": "username_890"}]
 
-                mock_settings.ADMINISTRATORS = [{"id": 234, "username": "username_234"},
-                                                {"id": 567, "username": "username_567"},
-                                                {"id": 890, "username": "username_890"}]
+        await core._moderate_new_data(context, data)
 
-                await core._moderate_new_data(context, data)
-
-                calls = [call(context, a["id"], i18n.default().gettext(
-                    "SERVICES_ADMIN_APPROVE_USER_DATA {category} {description} {location} {occupation} {"
-                    "username}").format(category=data["category_title"], description=data["description"],
-                                        location=data["location"], occupation=data["occupation"],
-                                        username=data["tg_username"]), keyboards.approve_service_change(data)) for a in
-                         mock_settings.ADMINISTRATORS]
-
-                mock_send.assert_has_calls(calls, True)
+        calls = [call(context, a["id"], i18n.default().gettext(
+            "SERVICES_ADMIN_APPROVE_USER_DATA {category} {description} {location} {occupation} {"
+            "username}").format(category=data["category_title"], description=data["description"],
+                                location=data["location"], occupation=data["occupation"],
+                                username=data["tg_username"]), keyboards.approve_service_change(data)) for a in
+                 mock_settings.ADMINISTRATORS]
+        mock_send.assert_has_calls(calls, True)
 
     async def test__who_request_category(self):
         trans = i18n.default()
@@ -289,7 +287,10 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         await test_with_services_in_categories([3, 1, 2])
         await test_with_services_in_categories([1, 2, 0, 4, 3, 5])
 
-    async def test__who_received_category(self):
+    @patch_service_get_all_by_user_return_nothing()
+    @patch("features.services.state.people_category_views_register")
+    @patch("features.services.core.reply")
+    async def test__who_received_category(self, mock_reply, mock_stat):
         trans = i18n.default()
 
         chat = Chat(id=1, type=Chat.PRIVATE)
@@ -298,43 +299,40 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user)
         message.set_bot(self.application.bot)
 
-        with patch("features.services.state.people_category_views_register") as mock_stat:
-            with patch("features.services.core.reply") as mock_reply:
-                with patch_service_get_all_by_user_return_nothing():
-                    context = CallbackContext(application=self.application, chat_id=1, user_id=1)
-                    context.user_data["who_request_category"] = {}
+        context = CallbackContext(application=self.application, chat_id=1, user_id=1)
+        context.user_data["who_request_category"] = {}
 
-                    update = Update(update_id=1, message=message,
-                                    callback_query=test_util.MockQuery("1", user, "1", message=message, data="1"))
+        update = Update(update_id=1, message=message,
+                        callback_query=test_util.MockQuery("1", user, "1", message=message, data="1"))
 
-                    with self.assertRaises(RuntimeError):
-                        await core._who_received_category(update, context), ConversationHandler.END
+        with self.assertRaises(RuntimeError):
+            await core._who_received_category(update, context), ConversationHandler.END
 
-                    load_test_categories(2)
-                    state.Service.set_bot_username("bot_username")
+        load_test_categories(2)
+        state.Service.set_bot_username("bot_username")
 
-                    categorised_people = {1: [state.Service(**data_row_for_service(1, 1))],
-                                          2: [state.Service(**data_row_for_service(1, 2)),
-                                              state.Service(**data_row_for_service(2, 2))]}
+        categorised_people = {1: [state.Service(**data_row_for_service(1, 1))],
+                              2: [state.Service(**data_row_for_service(1, 2)),
+                                  state.Service(**data_row_for_service(2, 2))]}
 
-                    for selected_category_id in (1, 2):
-                        update = Update(update_id=1, message=message,
-                                        callback_query=test_util.MockQuery("1", user, "1", message=message,
-                                                                           data=str(selected_category_id)))
-                        context.user_data["who_request_category"] = categorised_people
+        for selected_category_id in (1, 2):
+            update = Update(update_id=1, message=message,
+                            callback_query=test_util.MockQuery("1", user, "1", message=message,
+                                                               data=str(selected_category_id)))
+            context.user_data["who_request_category"] = categorised_people
 
-                        self.assertEqual(await core._who_received_category(update, context), ConversationHandler.END)
+            self.assertEqual(await core._who_received_category(update, context), ConversationHandler.END)
 
-                        category = state.ServiceCategory.get(selected_category_id)
+            category = state.ServiceCategory.get(selected_category_id)
 
-                        expected_text = render.append_disclaimer(
-                            trans, render.category_with_services(category, categorised_people[category.id], True))
-                        mock_reply.assert_called_once_with(update, expected_text, keyboards.standard(user))
-                        mock_stat.assert_called_once_with(1, selected_category_id)
-                        self.assertNotIn("who_request_category", context.user_data)
+            expected_text = render.append_disclaimer(
+                trans, render.category_with_services(category, categorised_people[category.id], True))
+            mock_reply.assert_called_once_with(update, expected_text, keyboards.standard(user))
+            mock_stat.assert_called_once_with(1, selected_category_id)
+            self.assertNotIn("who_request_category", context.user_data)
 
-                        mock_reply.reset_mock()
-                        mock_stat.reset_mock()
+            mock_reply.reset_mock()
+            mock_stat.reset_mock()
 
     @patch_service_get_all_by_user_return_nothing()
     @patch("features.services.core.settings")
@@ -539,7 +537,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(result, ConversationHandler.END)
             self.assertFalse(bool(context.user_data))
 
-    async def test_handle_extended_start_command(self):
+    @patch("features.services.state.people_views_register")
+    async def test_handle_extended_start_command(self, mock_stat):
         trans = i18n.default()
 
         chat = Chat(id=1, type=Chat.PRIVATE)
@@ -579,71 +578,70 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         message.set_bot(self.application.bot)
         update = Update(update_id=1, message=message)
 
-        with patch("features.services.state.people_views_register") as mock_stat:
-            with patch("features.services.state._service_get", return_single_service):
-                with patch("features.services.core.reply") as mock_reply:
-                    await core.handle_extended_start_command(update, context)
+        with patch("features.services.state._service_get", return_single_service):
+            with patch("features.services.core.reply") as mock_reply:
+                await core.handle_extended_start_command(update, context)
 
-                    mock_reply.assert_called_once_with(update, trans.gettext(
-                        "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}").format(
-                        category_title=service.category.title, description=service.description,
-                        location=service.location, occupation=service.occupation))
-                    mock_stat.assert_called_once_with(user_1.id, service.tg_id, service.category.id)
+                mock_reply.assert_called_once_with(update, trans.gettext(
+                    "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}").format(
+                    category_title=service.category.title, description=service.description,
+                    location=service.location, occupation=service.occupation))
+                mock_stat.assert_called_once_with(user_1.id, service.tg_id, service.category.id)
 
-                mock_stat.reset_mock()
+            mock_stat.reset_mock()
 
-                message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user_2,
-                                  text=f"/start service_info_{service.category.id}_{service.tg_username}")
-                message.set_bot(self.application.bot)
-                update = Update(update_id=1, message=message)
+            message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user_2,
+                              text=f"/start service_info_{service.category.id}_{service.tg_username}")
+            message.set_bot(self.application.bot)
+            update = Update(update_id=1, message=message)
 
-                with patch("features.services.core.reply") as mock_reply:
-                    await core.handle_extended_start_command(update, context)
+            with patch("features.services.core.reply") as mock_reply:
+                await core.handle_extended_start_command(update, context)
 
-                    mock_reply.assert_called_once_with(update, trans.gettext(
-                        "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {"
-                        "username}").format(category_title=service.category.title, description=service.description,
-                                            location=service.location, occupation=service.occupation,
-                                            username=service.tg_username))
-                    mock_stat.assert_called_once_with(user_2.id, service.tg_id, service.category.id)
+                mock_reply.assert_called_once_with(update, trans.gettext(
+                    "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {"
+                    "username}").format(category_title=service.category.title, description=service.description,
+                                        location=service.location, occupation=service.occupation,
+                                        username=service.tg_username))
+                mock_stat.assert_called_once_with(user_2.id, service.tg_id, service.category.id)
 
-                mock_stat.reset_mock()
+            mock_stat.reset_mock()
 
-                message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user_1,
-                                  text=f"/start service_info_{suspended_service.category.id}_"
-                                       f"{suspended_service.tg_username}")
-                message.set_bot(self.application.bot)
-                update = Update(update_id=1, message=message)
+            message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user_1,
+                              text=f"/start service_info_{suspended_service.category.id}_"
+                                   f"{suspended_service.tg_username}")
+            message.set_bot(self.application.bot)
+            update = Update(update_id=1, message=message)
 
-                with patch("features.services.core.reply") as mock_reply:
-                    await core.handle_extended_start_command(update, context)
+            with patch("features.services.core.reply") as mock_reply:
+                await core.handle_extended_start_command(update, context)
 
-                    mock_reply.assert_called_once_with(update, trans.gettext("SERVICES_DM_SERVICE_NOT_FOUND"))
-                    mock_stat.assert_not_called()
+                mock_reply.assert_called_once_with(update, trans.gettext("SERVICES_DM_SERVICE_NOT_FOUND"))
+                mock_stat.assert_not_called()
 
-                mock_stat.reset_mock()
+            mock_stat.reset_mock()
 
-                message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user_2,
-                                  text=f"/start service_info_{suspended_service.category.id}_"
-                                       f"{suspended_service.tg_username}")
-                message.set_bot(self.application.bot)
-                update = Update(update_id=1, message=message)
+            message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user_2,
+                              text=f"/start service_info_{suspended_service.category.id}_"
+                                   f"{suspended_service.tg_username}")
+            message.set_bot(self.application.bot)
+            update = Update(update_id=1, message=message)
 
-                with patch("features.services.core.reply") as mock_reply:
-                    await core.handle_extended_start_command(update, context)
+            with patch("features.services.core.reply") as mock_reply:
+                await core.handle_extended_start_command(update, context)
 
-                    mock_reply.assert_called_once_with(update, trans.gettext(
-                        "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}").format(
-                        category_title=suspended_service.category.title, description=suspended_service.description,
-                        location=suspended_service.location, occupation=suspended_service.occupation,
-                        username=suspended_service.tg_username))
-                    mock_stat.assert_called_once_with(user_2.id, suspended_service.tg_id, suspended_service.category.id)
+                mock_reply.assert_called_once_with(update, trans.gettext(
+                    "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}").format(
+                    category_title=suspended_service.category.title, description=suspended_service.description,
+                    location=suspended_service.location, occupation=suspended_service.occupation,
+                    username=suspended_service.tg_username))
+                mock_stat.assert_called_once_with(user_2.id, suspended_service.tg_id, suspended_service.category.id)
 
-                mock_stat.reset_mock()
+            mock_stat.reset_mock()
 
-            with patch("features.services.state._service_get", return_no_service):
-                with patch("features.services.core.reply") as mock_reply:
-                    await core.handle_extended_start_command(update, context)
+        with patch("features.services.state._service_get", return_no_service):
+            with patch("features.services.core.reply") as mock_reply:
+                await core.handle_extended_start_command(update, context)
 
-                    mock_reply.assert_called_once_with(update, trans.gettext("SERVICES_DM_SERVICE_NOT_FOUND"))
-                    mock_stat.assert_not_called()
+                mock_reply.assert_called_once_with(update, trans.gettext("SERVICES_DM_SERVICE_NOT_FOUND"))
+                mock_stat.assert_not_called()
