@@ -369,30 +369,30 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                             mock_stat.assert_not_called()
                             mock_who_request_category.assert_not_called()
 
-        async def render_category_selection() -> None:
-            with patch("features.services.core._who_request_category") as _mock_who_request_category:
-                with patch("features.services.state.people_category_views_register") as _mock_stat:
-                    _mock_who_request_category.return_value = const.SELECTING_CATEGORY
+        @patch("features.services.core._who_request_category")
+        @patch("features.services.state.people_category_views_register")
+        async def render_category_selection(_mock_stat, _mock_who_request_category) -> None:
+            _mock_who_request_category.return_value = const.SELECTING_CATEGORY
 
-                    self.assertEqual(await core._handle_command_who(update, context), const.SELECTING_CATEGORY)
+            self.assertEqual(await core._handle_command_who(update, context), const.SELECTING_CATEGORY)
 
-                    _mock_stat.assert_called_once_with(1, -1)
-                    _mock_who_request_category.assert_called()
-                    call_args = _mock_who_request_category.call_args[0]
-                    self.assertEqual(call_args[0], update)
-                    self.assertEqual(call_args[1], context)
-                    self.assertDictEqual(call_args[2], categorised_services)
+            _mock_stat.assert_called_once_with(1, -1)
+            _mock_who_request_category.assert_called()
+            call_args = _mock_who_request_category.call_args[0]
+            self.assertEqual(call_args[0], update)
+            self.assertEqual(call_args[1], context)
+            self.assertDictEqual(call_args[2], categorised_services)
 
-        async def render_service_directory() -> None:
-            with patch("features.services.core._who_request_category") as _mock_who_request_category:
-                with patch("features.services.state.people_category_views_register") as _mock_stat:
-                    with patch("features.services.core.reply") as _mock_reply:
-                        self.assertEqual(await core._handle_command_who(update, context), ConversationHandler.END)
+        @patch("features.services.core._who_request_category")
+        @patch("features.services.state.people_category_views_register")
+        @patch("features.services.core.reply")
+        async def render_service_directory(_mock_reply, _mock_stat, _mock_who_request_category) -> None:
+            self.assertEqual(await core._handle_command_who(update, context), ConversationHandler.END)
 
-                        expected_message = render.categories_with_services(trans,core._get_all_services())
-                        _mock_reply.assert_called_once_with(update, expected_message, keyboards.standard(user))
-                        _mock_stat.assert_called_once_with(1, -1)
-                        _mock_who_request_category.assert_not_called()
+            expected_message = render.categories_with_services(trans,core._get_all_services())
+            _mock_reply.assert_called_once_with(update, expected_message, keyboards.standard(user))
+            _mock_stat.assert_called_once_with(1, -1)
+            _mock_who_request_category.assert_not_called()
 
         # When all services belong to the single category, skip category selection and show the directory immediately,
         # no matter what the SHOW_CATEGORIES_ALWAYS setting says.
@@ -434,7 +434,9 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
             mock_settings.SHOW_CATEGORIES_ALWAYS = True
             await render_category_selection()
 
-    async def test__handle_command_enroll(self):
+    @patch_service_get_all_by_user_return_nothing()
+    @patch("features.services.core.reply")
+    async def test__handle_command_enroll(self, mock_reply):
         trans = i18n.default()
 
         chat = Chat(id=1, type=Chat.PRIVATE)
@@ -447,13 +449,12 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         update = Update(update_id=1, message=message, callback_query=test_util.MockQuery("1", user, "1", message))
 
         # A user that does not have a username cannot enroll.
-        with patch("features.services.core.reply") as mock_reply:
-            with patch_service_get_all_by_user_return_nothing():
-                result = await core._handle_command_enroll(update, context)
+        result = await core._handle_command_enroll(update, context)
 
-                self.assertEqual(result, ConversationHandler.END)
-                mock_reply.assert_called_once_with(update, trans.gettext("SERVICES_DM_ENROLL_USERNAME_REQUIRED"),
-                                                   keyboards.standard(user))
+        self.assertEqual(result, ConversationHandler.END)
+        mock_reply.assert_called_once_with(update, trans.gettext("SERVICES_DM_ENROLL_USERNAME_REQUIRED"),
+                                           keyboards.standard(user))
+        mock_reply.reset_mock()
 
         # Create a query from a user that has a username.
         user = User(id=1, first_name="Joe", is_bot=False, username="username_1")
@@ -461,32 +462,29 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         message.set_bot(self.application.bot)
         update = Update(update_id=2, message=message, callback_query=test_util.MockQuery("2", user, "1", message))
 
-        with patch("features.services.core.reply") as mock_reply:
-            # When no categories are defined, all services are created in the default category.  When the user starts
-            # enrolling, they proceed to entering their occupation right away.
-            with patch_service_get_all_by_user_return_nothing():
-                result = await core._handle_command_enroll(update, context)
+        # When no categories are defined, all services are created in the default category.  When the user starts
+        # enrolling, they proceed to entering their occupation right away.
+        result = await core._handle_command_enroll(update, context)
 
-                self.assertEqual(result, const.TYPING_OCCUPATION)
-                self.assertEqual(context.user_data["category_id"], 0)
+        self.assertEqual(result, const.TYPING_OCCUPATION)
+        self.assertEqual(context.user_data["category_id"], 0)
 
-                mock_reply.assert_has_calls((call(update, trans.gettext("SERVICES_DM_ENROLL_START")),
-                                             call(update, trans.gettext("SERVICES_DM_ENROLL_ASK_OCCUPATION"))), False)
+        mock_reply.assert_has_calls((call(update, trans.gettext("SERVICES_DM_ENROLL_START")),
+                                     call(update, trans.gettext("SERVICES_DM_ENROLL_ASK_OCCUPATION"))), False)
 
-            mock_reply.reset_mock()
+        mock_reply.reset_mock()
 
-            # Load two real categories.
-            load_test_categories(2)
+        # Load two real categories.
+        load_test_categories(2)
 
-            # With some categories defined, the enrollment starts with selecting a category.
-            with patch_service_get_all_by_user_return_nothing():
-                result = await core._handle_command_enroll(update, context)
+        # With some categories defined, the enrollment starts with selecting a category.
+        result = await core._handle_command_enroll(update, context)
 
-                self.assertEqual(result, const.SELECTING_CATEGORY)
+        self.assertEqual(result, const.SELECTING_CATEGORY)
 
-                mock_reply.assert_has_calls((call(update, trans.gettext("SERVICES_DM_ENROLL_START")),
-                                             call(update, trans.gettext("SERVICES_DM_ENROLL_ASK_CATEGORY"),
-                                                  keyboards.select_category())), False)
+        mock_reply.assert_has_calls((call(update, trans.gettext("SERVICES_DM_ENROLL_START")),
+                                     call(update, trans.gettext("SERVICES_DM_ENROLL_ASK_CATEGORY"),
+                                          keyboards.select_category())), False)
 
     async def test__handle_command_update(self):
         self.skipTest("Test not implemented")
