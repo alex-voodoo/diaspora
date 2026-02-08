@@ -3,20 +3,66 @@ Persistent state of the moderation feature
 """
 
 import datetime
+import logging
 import pickle
+from typing import Self
 
 from telegram import Message
+from telegram.constants import MessageOriginType
 
+from common import db
 from common.settings import settings
 from . import const
 
 # Root dictionaries in the state
-_COMPLAINTS, _MAIN_CHAT_LOG, _POLLS, _RESTRICTIONS = "complaints", "main_chat_log", "polls", "restrictions"
+_COMPLAINTS, _POLLS, _RESTRICTIONS = "complaints", "polls", "restrictions"
 
 _STATE_FILENAME = settings.data_dir / "moderation_state.pkl"
 
 # State object.  Loaded once from the file, then used in-memory, saved to the file when changed.
 _state = {}
+
+
+class MainChatMessage:
+    def __init__(self, tg_id: int, timestamp: datetime, text: str, sender_tg_id: int, sender_name: str,
+                 sender_username: str):
+        self._tg_id = tg_id
+        self._timestamp = timestamp
+        self._text = text
+        self._sender_tg_id = sender_tg_id
+        self._sender_name = sender_name
+        self._sender_username = sender_username
+
+    @property
+    def tg_id(self):
+        return self._tg_id
+
+    @classmethod
+    def log(cls, message: Message) -> None:
+        db.sql_exec(
+            "INSERT OR REPLACE INTO moderation_main_chat_messages (tg_id, timestamp, text, sender_tg_id, sender_name, "
+            "sender_username) "
+            "VALUES(?, ?, ?, ?, ?, ?)", (
+                message.id, message.date.strftime("%Y-%m-%d %H:%M:%S"), message.text, message.from_user.id,
+                message.from_user.full_name, message.from_user.username))
+
+    @classmethod
+    def find_original(cls, forwarded_message: Message) -> Self | None:
+        if forwarded_message.forward_origin.type == MessageOriginType.USER:
+            where_clause = "sender_tg_id = ?"
+            where_params = (forwarded_message.forward_origin.sender_user.id,)
+        elif forwarded_message.forward_origin.type == MessageOriginType.HIDDEN_USER:
+            where_clause = "sender_username = ?"
+            where_params = (forwarded_message.forward_origin.sender_user_name,)
+        else:
+            raise RuntimeError(f"Unsupported forward origin: {forwarded_message.forward_origin.type}")
+
+        for row in db.sql_query(f"SELECT * FROM moderation_main_chat_messages "
+                                f"WHERE timestamp = ? AND text = ? AND {where_clause} ",
+                                (forwarded_message.forward_origin.date.strftime("%Y-%m-%d %H:%M:%S"), forwarded_message.text) + where_params):
+            original_message = MainChatMessage(**row)
+            return original_message
+        return None
 
 
 class Complaint:
@@ -102,28 +148,6 @@ class Restriction:
 def _save() -> None:
     with open(_STATE_FILENAME, "wb") as out_pickle:
         pickle.dump(_state, out_pickle, pickle.HIGHEST_PROTOCOL)
-
-
-def main_chat_log_add_or_update(message: Message) -> None:
-    """Store a new or edited message that came to the main chat"""
-
-    global _state
-
-    log = _state[_MAIN_CHAT_LOG]
-
-    log[message.id] = message
-
-    _save()
-
-
-def main_chat_log_find(text: str) -> int:
-    """Return ID of a message that contains `text`, or 0 if no such message"""
-
-    for message in _state[_MAIN_CHAT_LOG].values():
-        if message.text == text:
-            return message.id
-
-    return 0
 
 
 def complaint_get(original_message_id: int) -> Complaint:
@@ -238,8 +262,6 @@ def init() -> None:
         # First run, no problem, create an empty state.
         _state = {}
 
-    if _MAIN_CHAT_LOG not in _state or not settings.MODERATION_IS_REAL:
-        _state[_MAIN_CHAT_LOG] = dict()
     if _COMPLAINTS not in _state or not settings.MODERATION_IS_REAL:
         _state[_COMPLAINTS] = dict()
     if _POLLS not in _state or not settings.MODERATION_IS_REAL:

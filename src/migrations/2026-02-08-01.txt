@@ -1,0 +1,9 @@
+CREATE TABLE "moderation_main_chat_messages" (
+	"tg_id"	            INTEGER NOT NULL UNIQUE,
+	"timestamp"	        DATETIME NOT NULL,
+	"text"	            TEXT NOT NULL,
+	"sender_tg_id"	    INTEGER,
+	"sender_name"	    TEXT,
+	"sender_username"	TEXT,
+	PRIMARY KEY("tg_id")
+);

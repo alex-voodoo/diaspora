@@ -74,7 +74,7 @@ def _maybe_log_normal_message(update: Update) -> None:
 
     assert update.effective_chat.id == settings.MAIN_CHAT_ID
 
-    state.main_chat_log_add_or_update(update.effective_message)
+    state.MainChatMessage.log(update.effective_message)
 
 
 async def _maybe_start_complaint(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -91,22 +91,22 @@ async def _maybe_start_complaint(update: Update, context: ContextTypes.DEFAULT_T
 
     trans = i18n.trans(user)
 
-    original_message_id = state.main_chat_log_find(message.text)
-    if original_message_id == 0:
+    original_message = state.MainChatMessage.find_original(message)
+    if original_message is None:
         logging.info("Forwarded message was not found in the log, cannot accept complaint.")
         await message.reply_text(trans.gettext("DM_MODERATION_MESSAGE_NOT_FOUND"))
         return
 
     # TODO: do not let moderators send requests for moderation?
 
-    if state.complaint_get(original_message_id).has_user(user.id):
+    if state.complaint_get(original_message.tg_id).has_user(user.id):
         logging.info("This user has already complained about this message, cannot accept another complaint.")
         await message.reply_text(trans.gettext("DM_MODERATION_MESSAGE_ALREADY_COMPLAINED"))
         return
 
     await context.bot.send_message(chat_id=user.id,
                                    text=i18n.trans(user).gettext("DM_MODERATION_MESSAGE_SELECT_COMPLAINT_REASON"),
-                                   reply_markup=_get_complaint_reason_keyboard(user, original_message_id))
+                                   reply_markup=_get_complaint_reason_keyboard(user, original_message.tg_id))
 
 
 async def _accept_complaint_reason(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
