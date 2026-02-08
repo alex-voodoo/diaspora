@@ -157,3 +157,34 @@ def spam_select_all() -> Iterator:
 
         for row in c.execute("SELECT text, from_user_tg_id, trigger, timestamp, openai_confidence FROM spam"):
             yield {key: value for (key, value) in zip((i[0] for i in c.description), row)}
+
+
+def sql_exec(query: str, parameters: tuple = ()) -> None:
+    """Execute an SQL query that does not return data
+
+    @param query: SQL query with placeholders for bound parameters
+    @param parameters: data to bind
+
+    `query` and `parameters` are passed directly to `sqlite3.Cursor.execute()` method.
+
+    Commits the transaction immediately after executing the query.
+    """
+
+    with LogTime(query):
+        cursor().execute(query, parameters)
+        commit()
+
+
+def sql_query(query: str, parameters: tuple = ()) -> Iterator[dict]:
+    """Execute an SQL query that returns data
+
+    @param query: SQL query with placeholders for bound parameters
+    @param parameters: data to bind
+
+    `query` and `parameters` are passed directly to `sqlite3.Cursor.execute()` method.
+    """
+
+    with LogTime(query):
+        c = cursor()
+        for record in c.execute(query, parameters):
+            yield {key: value for (key, value) in zip((i[0] for i in c.description), record)}
