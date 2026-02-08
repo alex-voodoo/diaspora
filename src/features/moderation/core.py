@@ -74,6 +74,10 @@ def _maybe_log_normal_message(update: Update) -> None:
 
     assert update.effective_chat.id == settings.MAIN_CHAT_ID
 
+    if not update.message and not update.edited_message:
+        logging.info("Skipping an update that does not have a new or edited message.")
+        return
+
     state.MainChatMessage.log(update.effective_message)
 
 

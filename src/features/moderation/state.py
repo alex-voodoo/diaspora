@@ -49,17 +49,18 @@ class MainChatMessage:
     @classmethod
     def find_original(cls, forwarded_message: Message) -> Self | None:
         if forwarded_message.forward_origin.type == MessageOriginType.USER:
-            where_clause = "sender_tg_id = ?"
+            where_clause = "sender_tg_id=?"
             where_params = (forwarded_message.forward_origin.sender_user.id,)
         elif forwarded_message.forward_origin.type == MessageOriginType.HIDDEN_USER:
-            where_clause = "sender_username = ?"
+            where_clause = "sender_name=?"
             where_params = (forwarded_message.forward_origin.sender_user_name,)
         else:
             raise RuntimeError(f"Unsupported forward origin: {forwarded_message.forward_origin.type}")
 
         for row in db.sql_query(f"SELECT * FROM moderation_main_chat_messages "
-                                f"WHERE timestamp = ? AND text = ? AND {where_clause} ",
+                                f"WHERE timestamp=? AND text=? AND {where_clause} ",
                                 (forwarded_message.forward_origin.date.strftime("%Y-%m-%d %H:%M:%S"), forwarded_message.text) + where_params):
+            row["timestamp"] = datetime.datetime.fromisoformat(row["timestamp"])
             original_message = MainChatMessage(**row)
             return original_message
         return None
