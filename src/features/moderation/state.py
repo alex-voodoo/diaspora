@@ -3,14 +3,13 @@ Persistent state of the moderation feature
 """
 
 import datetime
-import logging
 import pickle
 from typing import Self
 
 from telegram import Message
 from telegram.constants import MessageOriginType
 
-from common import db
+from common import db, util
 from common.settings import settings
 from . import const
 
@@ -24,6 +23,8 @@ _state = {}
 
 
 class MainChatMessage:
+    _next_cleanup_timestamp = datetime.datetime.now() - datetime.timedelta(seconds=1)
+
     def __init__(self, tg_id: int, timestamp: datetime, text: str, sender_tg_id: int, sender_name: str,
                  sender_username: str):
         self._tg_id = tg_id
@@ -36,6 +37,17 @@ class MainChatMessage:
     @property
     def tg_id(self):
         return self._tg_id
+
+    @classmethod
+    def maybe_delete_old_messages(cls) -> None:
+        if datetime.datetime.now() < cls._next_cleanup_timestamp:
+            return
+
+        oldest_timestamp_str = (util.rounded_now() - datetime.timedelta(
+            hours=settings.MODERATION_MAIN_CHAT_LOG_MAX_AGE_HOURS)).strftime("%Y-%m-%d %H:%M:%S")
+        db.sql_exec("DELETE FROM moderation_main_chat_messages WHERE timestamp<?", (oldest_timestamp_str,))
+
+        cls._next_cleanup_timestamp = datetime.datetime.now() + datetime.timedelta(hours=1)
 
     @classmethod
     def log(cls, message: Message) -> None:
@@ -59,7 +71,8 @@ class MainChatMessage:
 
         for row in db.sql_query(f"SELECT * FROM moderation_main_chat_messages "
                                 f"WHERE timestamp=? AND text=? AND {where_clause} ",
-                                (forwarded_message.forward_origin.date.strftime("%Y-%m-%d %H:%M:%S"), forwarded_message.text) + where_params):
+                                (forwarded_message.forward_origin.date.strftime("%Y-%m-%d %H:%M:%S"),
+                                 forwarded_message.text) + where_params):
             row["timestamp"] = datetime.datetime.fromisoformat(row["timestamp"])
             original_message = MainChatMessage(**row)
             return original_message
@@ -252,6 +265,8 @@ def clean(original_message_id: int) -> None:
 
 def init() -> None:
     global _state
+
+    MainChatMessage.maybe_delete_old_messages()
 
     if _state:
         return

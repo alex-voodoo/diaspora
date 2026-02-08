@@ -14,6 +14,7 @@ import datetime
 
 import yaml
 
+from common import util
 
 INVALID_BOT_TOKEN = "%BOT_TOKEN%"
 
@@ -203,6 +204,8 @@ class Settings:
         self.MODERATION_ENABLED = False
         # ID of the moderators' chat.  Mandatory if the feature is enabled.  Default is 0.
         self.MODERATION_CHAT_ID = 0
+        # Maximum age of messages kept in the log of the main chat, in hours.  Default is 48.
+        self.MODERATION_MAIN_CHAT_LOG_MAX_AGE_HOURS = 48
         # Number of bots in the moderator's chat.  Makes sense for calculating the thresholds for voting.  Default is 1.
         self.MODERATION_CHAT_BOT_COUNT = 1
         # * Number of complaints required for a message to start the moderation poll.  Default is 5.
@@ -249,7 +252,7 @@ class Settings:
                 logging.warning(f"Unknown setting \"{k}\"")
 
         # TODO: Move this out of settings to some better place?
-        self._start_timestamp = datetime.datetime.now().replace(microsecond=0)
+        self._start_timestamp = util.rounded_now()
 
     @property
     def data_dir(self) -> pathlib.Path:
@@ -269,7 +272,7 @@ class Settings:
 
     @property
     def uptime(self) -> datetime.timedelta:
-        return datetime.datetime.now().replace(microsecond=0) - self._start_timestamp
+        return util.rounded_now() - self._start_timestamp
 
 
 settings = Settings()

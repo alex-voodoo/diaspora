@@ -8,16 +8,33 @@ from unittest.mock import patch
 
 from telegram import Chat, Message, MessageOriginChat, MessageOriginHiddenUser, MessageOriginUser, User
 
+from common import util
+from common.settings import settings
 from . import state
 
 
 class TestMainLogChat(unittest.TestCase):
+    @patch("common.db.sql_exec")
+    def test_maybe_delete_old_messages(self, mock_sql_exec):
+        state.MainChatMessage._next_cleanup_timestamp = datetime.datetime.now() - datetime.timedelta(seconds=1)
+
+        expected_max_age = util.rounded_now() - datetime.timedelta(hours=settings.MODERATION_MAIN_CHAT_LOG_MAX_AGE_HOURS)
+        state.MainChatMessage.maybe_delete_old_messages()
+
+        mock_sql_exec.assert_called_once()
+        max_age = datetime.datetime.fromisoformat(mock_sql_exec.call_args[0][1][0])
+        self.assertTrue(abs(max_age - expected_max_age) <= datetime.timedelta(seconds=1))
+        mock_sql_exec.reset_mock()
+
+        state.MainChatMessage.maybe_delete_old_messages()
+        mock_sql_exec.assert_not_called()
+
     @patch("common.db.sql_query")
     def test_find_original(self, mock_sql_query):
         main_chat = Chat(id=1, type=Chat.SUPERGROUP)
 
         original_user = User(id=1, first_name="Original", is_bot=False, username="sender")
-        original_message_timestamp = datetime.datetime.now().replace(microsecond=0) - datetime.timedelta(minutes=1)
+        original_message_timestamp = util.rounded_now() - datetime.timedelta(minutes=1)
         original_message_timestamp_str = original_message_timestamp.strftime("%Y-%m-%d %H:%M:%S")
         original_message = Message(message_id=1, date=original_message_timestamp, chat=main_chat,
                                    from_user=original_user, text="Original message")
