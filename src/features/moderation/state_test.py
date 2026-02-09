@@ -10,7 +10,7 @@ from telegram import Chat, Message, MessageOriginChat, MessageOriginHiddenUser, 
 
 from common import util
 from common.settings import settings
-from . import state
+from . import state, const
 
 
 class TestMainLogChat(unittest.TestCase):
@@ -18,7 +18,8 @@ class TestMainLogChat(unittest.TestCase):
     def test_maybe_delete_old_messages(self, mock_sql_exec):
         state.MainChatMessage._next_cleanup_timestamp = datetime.datetime.now() - datetime.timedelta(seconds=1)
 
-        expected_max_age = util.rounded_now() - datetime.timedelta(hours=settings.MODERATION_MAIN_CHAT_LOG_MAX_AGE_HOURS)
+        expected_max_age = util.rounded_now() - datetime.timedelta(
+            hours=settings.MODERATION_MAIN_CHAT_LOG_MAX_AGE_HOURS)
         state.MainChatMessage.maybe_delete_old_messages()
 
         mock_sql_exec.assert_called_once()
@@ -87,3 +88,64 @@ class TestMainLogChat(unittest.TestCase):
 
         with self.assertRaises(RuntimeError):
             state.MainChatMessage.find_original(forwarded_message)
+
+
+class TestRestriction(unittest.TestCase):
+    @patch("common.db.sql_query")
+    @patch("common.db.sql_exec")
+    @patch("features.moderation.state.settings")
+    def test_elevate(self, mock_settings, mock_sql_exec, mock_sql_query):
+        mock_settings.MODERATION_RESTRICTION_LADDER = [{"action": "warn", "cooldown": 60},
+                                                       {"action": "restrict", "duration": 60, "cooldown": 120},
+                                                       {"action": "ban"}]
+
+        mock_sql_query.return_value = iter(())
+
+        restriction = state.Restriction.get_or_create(1)
+
+        mock_sql_query.assert_called_once()
+
+        self.assertEqual(restriction._tg_id, 1)
+        self.assertEqual(restriction.level, -1)
+        self.assertLessEqual(restriction._until_timestamp, util.rounded_now())
+
+        def test_elevate_iteration(current_restriction: state.Restriction) -> state.Restriction:
+            new_restriction = state.Restriction.elevate(current_restriction)
+            new_level = current_restriction.level + 1
+
+            pattern = mock_settings.MODERATION_RESTRICTION_LADDER[new_level]
+
+            action = pattern["action"]
+            if action == const.ACTION_WARN:
+                duration = datetime.timedelta(minutes=pattern["cooldown"])
+            elif action == const.ACTION_RESTRICT:
+                duration = datetime.timedelta(minutes=(pattern["duration"] + pattern["cooldown"]))
+            elif action == const.ACTION_BAN:
+                duration = datetime.timedelta(days=36500)
+            else:
+                assert False
+
+            self.assertEqual(new_restriction._tg_id, 1)
+            self.assertEqual(new_restriction.level, new_level)
+            self.assertLessEqual(new_restriction._until_timestamp, util.rounded_now() + duration)
+
+            mock_sql_exec.assert_called()
+            self.assertEqual(mock_sql_exec.call_args_list[0].args[1], (new_restriction._tg_id,))
+            self.assertEqual(mock_sql_exec.call_args_list[1].args[1],
+                             (new_restriction._tg_id, new_restriction.level,
+                              util.db_format(new_restriction._until_timestamp)))
+            mock_sql_exec.reset_mock()
+
+            return new_restriction
+
+        restriction = test_elevate_iteration(restriction)
+        restriction = test_elevate_iteration(restriction)
+        restriction = test_elevate_iteration(restriction)
+
+        with self.assertRaises(RuntimeError):
+            state.Restriction.elevate(restriction)
+
+        mock_settings.MODERATION_RESTRICTION_LADDER.append({"action": "praise"})
+
+        with self.assertRaises(RuntimeError):
+            state.Restriction.elevate(restriction)

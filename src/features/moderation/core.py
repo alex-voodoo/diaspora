@@ -216,10 +216,13 @@ async def _handle_complaint_poll_outcome(poll: Poll, resolution: str, context: C
         await context.bot.stop_poll(chat_id, poll_metadata.poll_message_id)
 
     if resolution == _reject_complaint_option():
-        logging.info("Complaint was rejected")
+        logging.info("Complaint was rejected.")
         await context.bot.send_message(chat_id, text=trans.gettext("MODERATION_RESULT_REJECTED"))
     else:
-        logging.info("Complaint was accepted")
+        logging.info("Complaint was accepted.  Setting a restriction.")
+        original_message = state.MainChatMessage.get(poll_metadata.original_message_id)
+        current_restriction = state.Restriction.get_or_create(original_message.sender_tg_id)
+        state.Restriction.elevate(current_restriction)
         await context.bot.send_message(chat_id, text=trans.gettext("MODERATION_RESULT_ACCEPTED"))
 
     # TODO: the state should not be cleaned immediately.  The data should be kept within the time frame of accepting new

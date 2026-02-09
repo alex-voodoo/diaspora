@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-02-09 18:30+0100\n"
+"POT-Creation-Date: 2026-02-09 23:19+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -303,7 +303,7 @@ msgstr "Is this request legitimate?"
 msgid "MODERATION_RESULT_REJECTED"
 msgstr "The request is rejected."
 
-#: features/moderation/core.py:223
+#: features/moderation/core.py:226
 msgid "MODERATION_RESULT_ACCEPTED"
 msgstr "The request is accepted.  I so far cannot do anything with this, so please act according to the rules."
 

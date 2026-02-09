@@ -14,7 +14,7 @@ from common.settings import settings
 from . import const
 
 # Root dictionaries in the state
-_COMPLAINTS, _POLLS, _RESTRICTIONS = "complaints", "polls", "restrictions"
+_COMPLAINTS, _POLLS = "complaints", "polls"
 
 _STATE_FILENAME = settings.data_dir / "moderation_state.pkl"
 
@@ -23,6 +23,9 @@ _state = {}
 
 
 class MainChatMessage:
+    class NotFound(Exception):
+        pass
+
     _next_cleanup_timestamp = datetime.datetime.now() - datetime.timedelta(seconds=1)
 
     def __init__(self, tg_id: int, timestamp: datetime, text: str, sender_tg_id: int, sender_name: str,
@@ -47,8 +50,8 @@ class MainChatMessage:
         if datetime.datetime.now() < cls._next_cleanup_timestamp:
             return
 
-        oldest_timestamp_str = (util.rounded_now() - datetime.timedelta(
-            hours=settings.MODERATION_MAIN_CHAT_LOG_MAX_AGE_HOURS)).strftime("%Y-%m-%d %H:%M:%S")
+        oldest_timestamp_str = util.db_format(util.rounded_now() - datetime.timedelta(
+            hours=settings.MODERATION_MAIN_CHAT_LOG_MAX_AGE_HOURS))
         db.sql_exec("DELETE FROM moderation_main_chat_messages WHERE timestamp<?", (oldest_timestamp_str,))
 
         cls._next_cleanup_timestamp = datetime.datetime.now() + datetime.timedelta(hours=1)
@@ -75,12 +78,18 @@ class MainChatMessage:
 
         for row in db.sql_query(f"SELECT * FROM moderation_main_chat_messages "
                                 f"WHERE timestamp=? AND text=? AND {where_clause} ",
-                                (forwarded_message.forward_origin.date.strftime("%Y-%m-%d %H:%M:%S"),
+                                (util.db_format(forwarded_message.forward_origin.date),
                                  forwarded_message.text) + where_params):
             row["timestamp"] = datetime.datetime.fromisoformat(row["timestamp"])
             original_message = MainChatMessage(**row)
             return original_message
         return None
+
+    @classmethod
+    def get(cls, tg_id: int) -> Self:
+        for row in db.sql_query("SELECT * FROM moderation_main_chat_messages WHERE tg_id=?", (tg_id, )):
+            return MainChatMessage(**row)
+        raise MainChatMessage.NotFound
 
 
 class Complaint:
@@ -151,16 +160,54 @@ class Poll:
 
 class Restriction:
     """Explains current restriction put on a user
-
-    Restrictions are stored in the state in a dictionary where keys are Telegram IDs of the restricted users.
     """
 
-    def __init__(self, level, until_timestamp):
-        self.level = level
-        self.until_timestamp = until_timestamp
+    def __init__(self, tg_id: int, level: int, until_timestamp: datetime):
+        self._tg_id = tg_id
+        self._level = level
+        self._until_timestamp = until_timestamp
+
+    @property
+    def level(self):
+        return self._level
 
     def is_over(self) -> bool:
-        return datetime.datetime.now() > self.until_timestamp
+        return datetime.datetime.now() > self._until_timestamp
+
+    @classmethod
+    def get_or_create(cls, tg_id: int) -> Self:
+        for row in db.sql_query("SELECT * "
+                                "FROM moderation_restrictions "
+                                "WHERE tg_id=? AND until_timestamp>DATETIME('now')", (tg_id, )):
+            return Restriction(**row)
+        return Restriction(tg_id, -1, util.rounded_now())
+
+    @classmethod
+    def elevate(cls, restriction: Self) -> Self:
+        new_level = restriction.level + 1
+
+        if new_level not in range(len(settings.MODERATION_RESTRICTION_LADDER)):
+            raise RuntimeError(f"Level {new_level} is out of the configured ladder of restrictions")
+
+        pattern = settings.MODERATION_RESTRICTION_LADDER[new_level]
+        action = pattern["action"]
+        if action == const.ACTION_WARN:
+            duration = datetime.timedelta(minutes=pattern["cooldown"])
+        elif action == const.ACTION_RESTRICT:
+            duration = datetime.timedelta(minutes=(pattern["duration"] + pattern["cooldown"]))
+        elif action == const.ACTION_BAN:
+            duration = datetime.timedelta(days=36500)
+        else:
+            raise RuntimeError(f"Unknown action: {action}")
+
+        new_until_timestamp = util.rounded_now() + duration
+
+        db.sql_exec("DELETE FROM moderation_restrictions WHERE tg_id=? AND until_timestamp>DATETIME('now')",
+                    (restriction._tg_id,))
+        db.sql_exec("INSERT INTO moderation_restrictions(tg_id, level, until_timestamp) VALUES(?, ?, ?)",
+                    (restriction._tg_id, new_level, util.db_format(new_until_timestamp)))
+
+        return Restriction(restriction._tg_id, new_level, new_until_timestamp)
 
 
 def _save() -> None:
@@ -222,41 +269,6 @@ def poll_get(poll_id: str) -> Poll:
     return _state[_POLLS][poll_id]
 
 
-def restriction_add_or_elevate(user_id: int) -> Restriction:
-    """Restrict user with the given ID
-
-    Returns the new restriction that should be applied to the user.
-    """
-
-    global _state
-
-    restrictions = _state[_RESTRICTIONS]
-
-    if user_id not in restrictions or restrictions[user_id].is_over():
-        new_level = 0
-    else:
-        new_level = restrictions[user_id].level + 1
-
-    assert new_level in range(len(settings.MODERATION_RESTRICTION_LADDER))
-
-    pattern = settings.MODERATION_RESTRICTION_LADDER[new_level]
-    action = pattern["action"]
-    if action == const.ACTION_WARN:
-        duration = datetime.timedelta(minutes=pattern["cooldown"])
-    elif action == const.ACTION_RESTRICT:
-        duration = datetime.timedelta(minutes=(pattern["duration"] + pattern["cooldown"]))
-    elif action == const.ACTION_BAN:
-        duration = None
-    else:
-        raise RuntimeError(f"Unknown action: {action}")
-
-    restrictions[user_id] = Restriction(new_level, duration)
-
-    _save()
-
-    return restrictions[user_id]
-
-
 def clean(original_message_id: int) -> None:
     """Remove complaint and poll data (if any) associated with the original message with the given ID"""
 
@@ -288,5 +300,3 @@ def init() -> None:
         _state[_COMPLAINTS] = dict()
     if _POLLS not in _state or not settings.MODERATION_IS_REAL:
         _state[_POLLS] = dict()
-    if _RESTRICTIONS not in _state or not settings.MODERATION_IS_REAL:
-        _state[_RESTRICTIONS] = dict()

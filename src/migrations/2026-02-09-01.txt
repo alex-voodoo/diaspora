@@ -1,0 +1,5 @@
+CREATE TABLE "moderation_restrictions" (
+	"tg_id"	            INTEGER NOT NULL,
+	"level"             INTEGER NOT NULL,
+	"until_timestamp"	DATETIME NOT NULL
+);
