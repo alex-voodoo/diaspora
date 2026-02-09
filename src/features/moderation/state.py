@@ -38,6 +38,10 @@ class MainChatMessage:
     def tg_id(self):
         return self._tg_id
 
+    @property
+    def sender_tg_id(self):
+        return self._sender_tg_id
+
     @classmethod
     def maybe_delete_old_messages(cls) -> None:
         if datetime.datetime.now() < cls._next_cleanup_timestamp:
@@ -164,19 +168,19 @@ def _save() -> None:
         pickle.dump(_state, out_pickle, pickle.HIGHEST_PROTOCOL)
 
 
-def complaint_get(original_message_id: int) -> Complaint:
+def complaint_get(original_message: MainChatMessage) -> Complaint:
     """Get a complaint created for the original message with the given ID, create a new complaint if there is none"""
 
     global _state
 
     complaints = _state[_COMPLAINTS]
 
-    if original_message_id not in complaints:
-        complaints[original_message_id] = Complaint()
+    if original_message.tg_id not in complaints:
+        complaints[original_message.tg_id] = Complaint(original_message.sender_tg_id)
 
     _save()
 
-    return complaints[original_message_id]
+    return complaints[original_message.tg_id]
 
 
 def complaint_maybe_add(original_message_id: int, from_user_id: int, reason: int) -> Complaint:
@@ -188,7 +192,9 @@ def complaint_maybe_add(original_message_id: int, from_user_id: int, reason: int
 
     global _state
 
-    complaint = complaint_get(original_message_id)
+    complaints = _state[_COMPLAINTS]
+
+    complaint = complaints[original_message_id]
     complaint.maybe_add_reason(from_user_id, reason)
 
     _save()
@@ -256,7 +262,7 @@ def clean(original_message_id: int) -> None:
 
     global _state
 
-    complaint = complaint_get(original_message_id)
+    complaint = _state[_COMPLAINTS][original_message_id]
     _state[_POLLS].pop(complaint.poll_id)
     _state[_COMPLAINTS].pop(original_message_id)
 

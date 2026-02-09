@@ -103,7 +103,7 @@ async def _maybe_start_complaint(update: Update, context: ContextTypes.DEFAULT_T
 
     # TODO: do not let moderators send requests for moderation?
 
-    if state.complaint_get(original_message.tg_id).has_user(user.id):
+    if state.complaint_get(original_message).has_user(user.id):
         logging.info("This user has already complained about this message, cannot accept another complaint.")
         await message.reply_text(trans.gettext("DM_MODERATION_MESSAGE_ALREADY_COMPLAINED"))
         return
