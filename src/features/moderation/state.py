@@ -87,7 +87,7 @@ class MainChatMessage:
 
     @classmethod
     def get(cls, tg_id: int) -> Self:
-        for row in db.sql_query("SELECT * FROM moderation_main_chat_messages WHERE tg_id=?", (tg_id, )):
+        for row in db.sql_query("SELECT * FROM moderation_main_chat_messages WHERE tg_id=?", (tg_id,)):
             return MainChatMessage(**row)
         raise MainChatMessage.NotFound
 
@@ -162,52 +162,79 @@ class Restriction:
     """Explains current restriction put on a user
     """
 
-    def __init__(self, tg_id: int, level: int, until_timestamp: datetime):
+    def __init__(self, tg_id: int, level: int, until_timestamp: datetime.datetime,
+                 cooldown_until_timestamp: datetime.datetime):
         self._tg_id = tg_id
         self._level = level
         self._until_timestamp = until_timestamp
+        self._cooldown_until_timestamp = cooldown_until_timestamp
 
     @property
     def level(self):
         return self._level
 
-    def is_over(self) -> bool:
-        return datetime.datetime.now() > self._until_timestamp
+    @property
+    def until_timestamp(self) -> datetime.datetime:
+        return self._until_timestamp
+
+    @property
+    def cooldown_until_timestamp(self):
+        return self._cooldown_until_timestamp
 
     @classmethod
     def get_or_create(cls, tg_id: int) -> Self:
         for row in db.sql_query("SELECT * "
                                 "FROM moderation_restrictions "
-                                "WHERE tg_id=? AND until_timestamp>DATETIME('now')", (tg_id, )):
+                                "WHERE tg_id=? AND cooldown_until_timestamp>DATETIME('now')", (tg_id,)):
+            row["until_timestamp"] = datetime.datetime.fromisoformat(row["until_timestamp"])
+            row["cooldown_until_timestamp"] = datetime.datetime.fromisoformat(row["cooldown_until_timestamp"])
             return Restriction(**row)
-        return Restriction(tg_id, -1, util.rounded_now())
+        past_timestamp = util.rounded_now() - datetime.timedelta(seconds=1)
+        return Restriction(tg_id, -1, past_timestamp, past_timestamp + datetime.timedelta(days=1))
 
     @classmethod
-    def elevate(cls, restriction: Self) -> Self:
-        new_level = restriction.level + 1
+    def elevate_or_prolong(cls, restriction: Self) -> Self:
+        """Update the restriction as per the configured ladder
+
+        @param restriction: the existing restriction
+        @return: new restriction
+        """
+
+        now = util.rounded_now()
+        if now < restriction.until_timestamp:
+            raise RuntimeError("Restriction is still active, cannot elevate")
+        if now > restriction.cooldown_until_timestamp:
+            raise RuntimeError("Restriction is already gone and cooled down, cannot elevate")
+
+        new_level = restriction.level
+        if new_level < len(settings.MODERATION_RESTRICTION_LADDER) - 1:
+            new_level += 1
 
         if new_level not in range(len(settings.MODERATION_RESTRICTION_LADDER)):
-            raise RuntimeError(f"Level {new_level} is out of the configured ladder of restrictions")
+            raise RuntimeError(f"New level {new_level} is out of the configured ladder of restrictions")
 
         pattern = settings.MODERATION_RESTRICTION_LADDER[new_level]
         action = pattern["action"]
         if action == const.ACTION_WARN:
-            duration = datetime.timedelta(minutes=pattern["cooldown"])
+            new_until_timestamp = now
+            new_cooldown_until_timestamp = new_until_timestamp + datetime.timedelta(minutes=pattern["cooldown"])
         elif action == const.ACTION_RESTRICT:
-            duration = datetime.timedelta(minutes=(pattern["duration"] + pattern["cooldown"]))
+            new_until_timestamp = now + datetime.timedelta(minutes=pattern["duration"])
+            new_cooldown_until_timestamp = new_until_timestamp + datetime.timedelta(minutes=pattern["cooldown"])
         elif action == const.ACTION_BAN:
-            duration = datetime.timedelta(days=36500)
+            new_until_timestamp = now + datetime.timedelta(days=36500)
+            new_cooldown_until_timestamp = new_until_timestamp
         else:
             raise RuntimeError(f"Unknown action: {action}")
 
-        new_until_timestamp = util.rounded_now() + duration
-
-        db.sql_exec("DELETE FROM moderation_restrictions WHERE tg_id=? AND until_timestamp>DATETIME('now')",
+        db.sql_exec("DELETE FROM moderation_restrictions WHERE tg_id=? AND cooldown_until_timestamp>DATETIME('now')",
                     (restriction._tg_id,))
-        db.sql_exec("INSERT INTO moderation_restrictions(tg_id, level, until_timestamp) VALUES(?, ?, ?)",
-                    (restriction._tg_id, new_level, util.db_format(new_until_timestamp)))
+        db.sql_exec("INSERT INTO moderation_restrictions(tg_id, level, until_timestamp, cooldown_until_timestamp) "
+                    "VALUES(?, ?, ?, ?)",
+                    (restriction._tg_id, new_level, util.db_format(new_until_timestamp),
+                     util.db_format(new_cooldown_until_timestamp)))
 
-        return Restriction(restriction._tg_id, new_level, new_until_timestamp)
+        return Restriction(restriction._tg_id, new_level, new_until_timestamp, new_cooldown_until_timestamp)
 
 
 def _save() -> None:

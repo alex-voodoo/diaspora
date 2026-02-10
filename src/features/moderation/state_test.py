@@ -99,6 +99,7 @@ class TestRestriction(unittest.TestCase):
                                                        {"action": "restrict", "duration": 60, "cooldown": 120},
                                                        {"action": "ban"}]
 
+        # Create a new restriction
         mock_sql_query.return_value = iter(())
 
         restriction = state.Restriction.get_or_create(1)
@@ -107,11 +108,12 @@ class TestRestriction(unittest.TestCase):
 
         self.assertEqual(restriction._tg_id, 1)
         self.assertEqual(restriction.level, -1)
-        self.assertLessEqual(restriction._until_timestamp, util.rounded_now())
+        self.assertLess(restriction.until_timestamp, util.rounded_now())
+        self.assertGreater(restriction.cooldown_until_timestamp, util.rounded_now())
 
         def test_elevate_iteration(current_restriction: state.Restriction) -> state.Restriction:
-            new_restriction = state.Restriction.elevate(current_restriction)
-            new_level = current_restriction.level + 1
+            new_restriction = state.Restriction.elevate_or_prolong(current_restriction)
+            new_level = new_restriction.level
 
             pattern = mock_settings.MODERATION_RESTRICTION_LADDER[new_level]
 
@@ -133,19 +135,37 @@ class TestRestriction(unittest.TestCase):
             self.assertEqual(mock_sql_exec.call_args_list[0].args[1], (new_restriction._tg_id,))
             self.assertEqual(mock_sql_exec.call_args_list[1].args[1],
                              (new_restriction._tg_id, new_restriction.level,
-                              util.db_format(new_restriction._until_timestamp)))
+                              util.db_format(new_restriction._until_timestamp),
+                              util.db_format(new_restriction._cooldown_until_timestamp)))
             mock_sql_exec.reset_mock()
 
             return new_restriction
 
-        restriction = test_elevate_iteration(restriction)
-        restriction = test_elevate_iteration(restriction)
+        # The new restriction should elevate without problems.
         restriction = test_elevate_iteration(restriction)
 
+        # The level 0 restriction does not have an active period, so it is on cooldown already.
+        restriction = test_elevate_iteration(restriction)
+
+        # Level 1 has a duration, so it cannot be elevated right away.
         with self.assertRaises(RuntimeError):
-            state.Restriction.elevate(restriction)
+            restriction = test_elevate_iteration(restriction)
+        # However, with the duration passed over, there should not be a problem anymore.
+        restriction._until_timestamp = util.rounded_now() - datetime.timedelta(seconds=1)
+        restriction = test_elevate_iteration(restriction)
 
+        # We are now at level 2 that is the maximum, and should stay at this level.
+        restriction._until_timestamp = util.rounded_now() - datetime.timedelta(seconds=1)
+        prolonged_restriction = test_elevate_iteration(restriction)
+        self.assertEqual(prolonged_restriction.level, restriction.level)
+
+        # A restriction that has already cooled down cannot be elevated.
+        restriction._cooldown_until_timestamp = util.rounded_now() - datetime.timedelta(seconds=1)
+        with self.assertRaises(RuntimeError):
+            restriction = test_elevate_iteration(restriction)
+
+        # Finally, test an unsupported action in the config.
         mock_settings.MODERATION_RESTRICTION_LADDER.append({"action": "praise"})
 
         with self.assertRaises(RuntimeError):
-            state.Restriction.elevate(restriction)
+            state.Restriction.elevate_or_prolong(restriction)

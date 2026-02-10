@@ -1,0 +1,15 @@
+CREATE TABLE "new_moderation_restrictions" (
+	"tg_id"	                    INTEGER NOT NULL,
+	"level"                     INTEGER NOT NULL,
+	"until_timestamp"	        DATETIME NOT NULL,
+	"cooldown_until_timestamp"	DATETIME NOT NULL
+);
+
+INSERT INTO "new_moderation_restrictions" ("tg_id", "level", "until_timestamp", "cooldown_until_timestamp")
+SELECT "tg_id", "level", "until_timestamp", CURRENT_TIMESTAMP
+FROM "moderation_restrictions";
+
+DROP TABLE "moderation_restrictions";
+
+ALTER TABLE "new_moderation_restrictions"
+RENAME TO "moderation_restrictions";
