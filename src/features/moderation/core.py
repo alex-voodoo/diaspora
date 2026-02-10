@@ -1,7 +1,7 @@
 """
 Moderation
 """
-
+import datetime
 import gettext
 import logging
 import re
@@ -107,6 +107,13 @@ async def _maybe_start_complaint(update: Update, context: ContextTypes.DEFAULT_T
         logging.info("This user has already complained about this message, cannot accept another complaint.")
         await message.reply_text(trans.gettext("DM_MODERATION_MESSAGE_ALREADY_COMPLAINED"))
         return
+
+    existing_restriction = state.Restriction.get_most_recent(original_message.sender_tg_id)
+    if existing_restriction is not None:
+        if original_message.timestamp < existing_restriction.until_timestamp:
+            logging.info("The original message was posted before the user was restricted, cannot accept a complaint.")
+            await message.reply_text(trans.gettext("DM_MODERATION_MESSAGE_POSTED_BEFORE_MOST_RECENT_RESTRICTION"))
+            return
 
     await context.bot.send_message(chat_id=user.id,
                                    text=i18n.trans(user).gettext("DM_MODERATION_MESSAGE_SELECT_COMPLAINT_REASON"),

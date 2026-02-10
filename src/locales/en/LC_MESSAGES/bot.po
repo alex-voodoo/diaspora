@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-02-10 18:55+0100\n"
+"POT-Creation-Date: 2026-02-10 21:40+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -277,33 +277,37 @@ msgstr "The message was not found in the main group.  Perhaps it was deleted?"
 msgid "DM_MODERATION_MESSAGE_ALREADY_COMPLAINED"
 msgstr "According to my records, you have already sent a complaint to this message.  No need to repeat that."
 
-#: features/moderation/core.py:112
+#: features/moderation/core.py:115
+msgid "DM_MODERATION_MESSAGE_POSTED_BEFORE_MOST_RECENT_RESTRICTION"
+msgstr "This message was posted before its sender was punished.  I hope that they behave themselves now."
+
+#: features/moderation/core.py:119
 msgid "DM_MODERATION_MESSAGE_SELECT_COMPLAINT_REASON"
 msgstr "Please specify a reason for your complaint."
 
-#: features/moderation/core.py:128
+#: features/moderation/core.py:135
 msgid "DM_MODERATION_REQUEST_REGISTERED"
 msgstr "Your complaint is registered.  Should other users complain to the message that you forwarded, I will notify the moderators."
 
-#: features/moderation/core.py:139
+#: features/moderation/core.py:146
 msgid "MODERATION_NEW_REQUEST"
 msgstr "Users complain about a message (forwarded below) with the following reasons:"
 
-#: features/moderation/core.py:141
+#: features/moderation/core.py:148
 msgid "MODERATION_NEW_REQUEST_DETAILS_S {reason} {count}"
 msgid_plural "MODERATION_NEW_REQUEST_DETAILS_P {reason} {count}"
 msgstr[0] "{reason}: {count} complaint"
 msgstr[1] "{reason}: {count} complaints"
 
-#: features/moderation/core.py:148
+#: features/moderation/core.py:155
 msgid "MODERATION_ACCEPT_COMPLAINT_QUESTION"
 msgstr "Is this request legitimate?"
 
-#: features/moderation/core.py:220
+#: features/moderation/core.py:227
 msgid "MODERATION_RESULT_REJECTED"
 msgstr "The request is rejected."
 
-#: features/moderation/core.py:226
+#: features/moderation/core.py:233
 msgid "MODERATION_RESULT_ACCEPTED"
 msgstr "The request is accepted.  I so far cannot do anything with this, so please act according to the rules."
 

@@ -38,11 +38,15 @@ class MainChatMessage:
         self._sender_username = sender_username
 
     @property
-    def tg_id(self):
+    def tg_id(self) -> int:
         return self._tg_id
 
     @property
-    def sender_tg_id(self):
+    def timestamp(self) -> datetime.datetime:
+        return self._timestamp
+
+    @property
+    def sender_tg_id(self) -> int:
         return self._sender_tg_id
 
     @classmethod
@@ -182,15 +186,28 @@ class Restriction:
         return self._cooldown_until_timestamp
 
     @classmethod
+    def _construct_from_row(cls, row: dict) -> Self:
+        row["until_timestamp"] = datetime.datetime.fromisoformat(row["until_timestamp"])
+        row["cooldown_until_timestamp"] = datetime.datetime.fromisoformat(row["cooldown_until_timestamp"])
+        return Restriction(**row)
+
+    @classmethod
     def get_or_create(cls, tg_id: int) -> Self:
         for row in db.sql_query("SELECT * "
                                 "FROM moderation_restrictions "
                                 "WHERE tg_id=? AND cooldown_until_timestamp>DATETIME('now')", (tg_id,)):
-            row["until_timestamp"] = datetime.datetime.fromisoformat(row["until_timestamp"])
-            row["cooldown_until_timestamp"] = datetime.datetime.fromisoformat(row["cooldown_until_timestamp"])
-            return Restriction(**row)
+            return cls._construct_from_row(row)
         past_timestamp = util.rounded_now() - datetime.timedelta(seconds=1)
         return Restriction(tg_id, -1, past_timestamp, past_timestamp + datetime.timedelta(days=1))
+
+    @classmethod
+    def get_most_recent(cls, tg_id) -> Self | None:
+        for row in db.sql_query("SELECT * "
+                                "FROM moderation_restrictions "
+                                "WHERE tg_id=? "
+                                "ORDER BY cooldown_until_timestamp DESC", (tg_id,)):
+            return cls._construct_from_row(row)
+        return None
 
     @classmethod
     def elevate_or_prolong(cls, restriction: Self) -> Self:

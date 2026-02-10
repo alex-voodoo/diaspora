@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-02-10 18:55+0100\n"
+"POT-Creation-Date: 2026-02-10 21:40+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -279,34 +279,38 @@ msgstr "Сообщение не найдено в основной группе.
 msgid "DM_MODERATION_MESSAGE_ALREADY_COMPLAINED"
 msgstr "Согласно моим записям, вы уже отправили жалобу на это сообщение. Нет нужды делать это повторно."
 
-#: features/moderation/core.py:112
+#: features/moderation/core.py:115
+msgid "DM_MODERATION_MESSAGE_POSTED_BEFORE_MOST_RECENT_RESTRICTION"
+msgstr "Это сообщение было отправлено до того, как его автор получил по заслугам. Надеюсь, нарушитель встал на путь исправления."
+
+#: features/moderation/core.py:119
 msgid "DM_MODERATION_MESSAGE_SELECT_COMPLAINT_REASON"
 msgstr "Пожалуйста, укажите причину жалобы."
 
-#: features/moderation/core.py:128
+#: features/moderation/core.py:135
 msgid "DM_MODERATION_REQUEST_REGISTERED"
 msgstr "Жалоба зарегистрирована. Если на пересланное вами сообщение будут жалобы от других пользователей, я сообщу модераторам."
 
-#: features/moderation/core.py:139
+#: features/moderation/core.py:146
 msgid "MODERATION_NEW_REQUEST"
 msgstr "От пользователей поступают жалобы на сообщение (пересылаю ниже) по следующим причинам:"
 
-#: features/moderation/core.py:141
+#: features/moderation/core.py:148
 msgid "MODERATION_NEW_REQUEST_DETAILS_S {reason} {count}"
 msgid_plural "MODERATION_NEW_REQUEST_DETAILS_P {reason} {count}"
 msgstr[0] "{reason}: {count} жалоба"
 msgstr[1] "{reason}: {count} жалобы"
 msgstr[2] "{reason}: {count} жалоб"
 
-#: features/moderation/core.py:148
+#: features/moderation/core.py:155
 msgid "MODERATION_ACCEPT_COMPLAINT_QUESTION"
 msgstr "Правомерно ли обращение?"
 
-#: features/moderation/core.py:220
+#: features/moderation/core.py:227
 msgid "MODERATION_RESULT_REJECTED"
 msgstr "Обращение отклонено."
 
-#: features/moderation/core.py:226
+#: features/moderation/core.py:233
 msgid "MODERATION_RESULT_ACCEPTED"
 msgstr "Обращение принято. Я пока что ничего не умею делать, пожалуйста, примите меры согласно правилам группы."
 
