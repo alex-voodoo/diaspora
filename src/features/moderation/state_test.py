@@ -91,6 +91,76 @@ class TestMainLogChat(unittest.TestCase):
 
 
 class TestRestriction(unittest.TestCase):
+    def test__construct_from_row(self):
+        until_timestamp_str = util.db_format(util.rounded_now() - datetime.timedelta(seconds=33))
+        cooldown_until_timestamp_str = util.db_format(util.rounded_now() + datetime.timedelta(seconds=44))
+        data = {"tg_id": 11, "level": 22, "until_timestamp": until_timestamp_str,
+                "cooldown_until_timestamp": cooldown_until_timestamp_str}
+
+        restriction = state.Restriction._construct_from_row(data)
+
+        self.assertEqual(restriction._tg_id, data["tg_id"])
+        self.assertEqual(restriction.level, data["level"])
+        self.assertEqual(restriction.until_timestamp, datetime.datetime.fromisoformat(until_timestamp_str))
+        self.assertEqual(restriction.cooldown_until_timestamp,
+                         datetime.datetime.fromisoformat(cooldown_until_timestamp_str))
+
+    @patch("common.db.sql_query")
+    def test_get_current_or_create(self, mock_sql_query):
+        now = datetime.datetime.now()
+        tg_id = 12345
+
+        # When nothing is returned by a DB query, a new restriction should be returned (at level -1 and eligible for
+        # immediate elevation).
+        restriction = state.Restriction.get_current_or_create(tg_id)
+
+        self.assertEqual(restriction._tg_id, tg_id)
+        self.assertEqual(restriction.level, -1)
+        self.assertLess(restriction.until_timestamp, now)
+        self.assertGreater(restriction.cooldown_until_timestamp, now)
+
+        # When there is a record in the database, it should be returned.
+        level = 22
+        until_timestamp = util.rounded_now() - datetime.timedelta(seconds=33)
+        cooldown_until_timestamp = util.rounded_now() + datetime.timedelta(seconds=44)
+        mock_sql_query.return_value = iter(
+            ({"tg_id": tg_id, "level": level, "until_timestamp": util.db_format(until_timestamp),
+              "cooldown_until_timestamp": util.db_format(cooldown_until_timestamp)},))
+
+        restriction = state.Restriction.get_current_or_create(tg_id)
+
+        self.assertEqual(restriction._tg_id, tg_id)
+        self.assertEqual(restriction.level, level)
+        self.assertEqual(restriction.until_timestamp, until_timestamp)
+        self.assertEqual(restriction.cooldown_until_timestamp, cooldown_until_timestamp)
+
+    @patch("common.db.sql_query")
+    def test_get_most_recent(self, mock_sql_query):
+        tg_id = 12345
+
+        # When nothing is returned by a DB query, None should be returned.
+        self.assertIsNone(state.Restriction.get_most_recent(tg_id))
+
+        # When there are records in the database, the latest one should be returned.  ("The latest" is effectively the
+        # first one in the set returned by the DB, which is simulated here by the mock function returning several rows.)
+        now = datetime.datetime.now()
+        level = 22
+        until_timestamp = util.rounded_now() - datetime.timedelta(seconds=33)
+        cooldown_until_timestamp = util.rounded_now() + datetime.timedelta(seconds=44)
+        mock_sql_query.return_value = iter(
+            ({"tg_id": tg_id, "level": level, "until_timestamp": util.db_format(until_timestamp),
+              "cooldown_until_timestamp": util.db_format(cooldown_until_timestamp)},
+             {"tg_id": tg_id, "level": level + 1, "until_timestamp": util.db_format(until_timestamp),
+              "cooldown_until_timestamp": util.db_format(cooldown_until_timestamp)},
+             ))
+
+        restriction = state.Restriction.get_current_or_create(tg_id)
+
+        self.assertEqual(restriction._tg_id, tg_id)
+        self.assertEqual(restriction.level, level)
+        self.assertEqual(restriction.until_timestamp, until_timestamp)
+        self.assertEqual(restriction.cooldown_until_timestamp, cooldown_until_timestamp)
+
     @patch("common.db.sql_query")
     @patch("common.db.sql_exec")
     @patch("features.moderation.state.settings")
@@ -102,7 +172,7 @@ class TestRestriction(unittest.TestCase):
         # Create a new restriction
         mock_sql_query.return_value = iter(())
 
-        restriction = state.Restriction.get_or_create(1)
+        restriction = state.Restriction.get_current_or_create(1)
 
         mock_sql_query.assert_called_once()
 

@@ -228,7 +228,7 @@ async def _handle_complaint_poll_outcome(poll: Poll, resolution: str, context: C
     else:
         logging.info("Complaint was accepted.  Setting a restriction.")
         original_message = state.MainChatMessage.get(poll_metadata.original_message_id)
-        current_restriction = state.Restriction.get_or_create(original_message.sender_tg_id)
+        current_restriction = state.Restriction.get_current_or_create(original_message.sender_tg_id)
         state.Restriction.elevate_or_prolong(current_restriction)
         await context.bot.send_message(chat_id, text=trans.gettext("MODERATION_RESULT_ACCEPTED"))
 

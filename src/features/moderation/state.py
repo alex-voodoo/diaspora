@@ -174,7 +174,7 @@ class Restriction:
         self._cooldown_until_timestamp = cooldown_until_timestamp
 
     @property
-    def level(self):
+    def level(self) -> int:
         return self._level
 
     @property
@@ -182,7 +182,7 @@ class Restriction:
         return self._until_timestamp
 
     @property
-    def cooldown_until_timestamp(self):
+    def cooldown_until_timestamp(self) -> datetime.datetime:
         return self._cooldown_until_timestamp
 
     @classmethod
@@ -192,7 +192,7 @@ class Restriction:
         return Restriction(**row)
 
     @classmethod
-    def get_or_create(cls, tg_id: int) -> Self:
+    def get_current_or_create(cls, tg_id: int) -> Self:
         for row in db.sql_query("SELECT * "
                                 "FROM moderation_restrictions "
                                 "WHERE tg_id=? AND cooldown_until_timestamp>DATETIME('now')", (tg_id,)):
