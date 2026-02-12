@@ -1,1 +1,1 @@
-from .core import init, post_init
+from .core import init

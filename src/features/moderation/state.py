@@ -3,7 +3,7 @@ Persistent state of the moderation feature
 """
 
 import datetime
-import pickle
+from collections.abc import Iterator
 from typing import Self
 
 from telegram import Message
@@ -12,14 +12,6 @@ from telegram.constants import MessageOriginType
 from common import db, util
 from common.settings import settings
 from . import const
-
-# Root dictionaries in the state
-_COMPLAINTS, _POLLS = "complaints", "polls"
-
-_STATE_FILENAME = settings.data_dir / "moderation_state.pkl"
-
-# State object.  Loaded once from the file, then used in-memory, saved to the file when changed.
-_state = {}
 
 
 class MainChatMessage:
@@ -96,71 +88,83 @@ class MainChatMessage:
         raise MainChatMessage.NotFound
 
 
-class Complaint:
-    """Accumulates moderation requests about a single message in the main chat
+class Request:
+    @classmethod
+    def exists(cls, original_message_tg_id: int, from_user_tg_id: int) -> bool:
+        for _row in db.sql_query("SELECT * FROM moderation_requests "
+                                 "WHERE original_message_tg_id=? AND from_user_tg_id=?",
+                                 (original_message_tg_id, from_user_tg_id)):
+            return True
+        return False
 
-    Complaints are stored in the state in a dictionary where keys are IDs of the original messages.
-    """
+    @classmethod
+    def register(cls, original_message_tg_id: int, from_user_tg_id: int, reason_id: int) -> None:
+        db.sql_exec("INSERT INTO moderation_requests(original_message_tg_id, from_user_tg_id, reason_id) "
+                    "VALUES(?, ?, ?)", (original_message_tg_id, from_user_tg_id, reason_id))
 
-    def __init__(self, violator_id):
-        # Telegram ID of the original poster of the message that the complaint is raised for.
-        self._violator_id = violator_id
-        # Telegram IDs of users that complained about this message.
-        self._users = set()
-        # Reasons that users specified when sending their complaints.
-        self._reasons = dict()
-        # ID of the moderation poll created when this complaint accumulates enough requests.
-        self.poll_id = ""
-        # Whether this complaint accepts new requests.
-        self._is_open = True
+    @classmethod
+    def count(cls, original_message_tg_id: int) -> int:
+        for row in db.sql_query("SELECT COUNT(1) as request_count FROM moderation_requests "
+                                "WHERE original_message_tg_id=?", (original_message_tg_id, )):
+            return int(row["request_count"])
 
-    def has_user(self, user_id) -> bool:
-        """Return whether this complaint has a request from the given user"""
-
-        return user_id in self._users
-
-    def maybe_add_reason(self, from_user_id: int, reason: int) -> bool:
-        """Register a request from the given user, but only if there was no earlier request from that user
-
-        Returns whether the request was registered.
-        """
-
-        if self.has_user(from_user_id):
-            return False
-        self._users.add(from_user_id)
-
-        if reason not in self._reasons:
-            self._reasons[reason] = 0
-        self._reasons[reason] = self._reasons[reason] + 1
-        return True
-
-    @property
-    def count(self) -> int:
-        """Return how many requests are registered in this complaint"""
-
-        return sum(self._reasons.values())
-
-    @property
-    def reasons(self) -> dict:
-        return self._reasons
-
-    @property
-    def is_open(self) -> bool:
-        """Return whether this complaint accepts requests"""
-
-        return self._is_open
-
-    def close(self) -> None:
-        self._is_open = False
+    @classmethod
+    def get_grouped(cls, original_message_tg_id: int) -> Iterator[tuple]:
+        for row in db.sql_query("SELECT reason_id, COUNT(1) AS request_count FROM moderation_requests "
+                                "WHERE original_message_tg_id=? "
+                                "GROUP BY reason_id", (original_message_tg_id, )):
+            yield row["reason_id"], row["request_count"]
 
 
 class Poll:
     """Links together a poll, a message that the poll is contained in, and an original message that the poll is about"""
 
-    def __init__(self, original_message_id, poll_message_id):
-        self.original_message_id = original_message_id
-        self.poll_message_id = poll_message_id
+    class NotFound(Exception):
+        pass
 
+    def __init__(self, tg_id: int, original_message_tg_id: int, poll_message_tg_id: int, is_running: bool):
+        self._tg_id = tg_id
+        self._original_message_tg_id = original_message_tg_id
+        self._poll_message_tg_id = poll_message_tg_id
+        self._is_running = is_running
+
+    @property
+    def tg_id(self) -> int:
+        return self._tg_id
+
+    @property
+    def original_message_tg_id(self) -> int:
+        return self._original_message_tg_id
+
+    @property
+    def poll_message_tg_id(self) -> int:
+        return self._poll_message_tg_id
+
+    @property
+    def is_running(self) -> bool:
+        return self._is_running
+
+    def stop(self) -> None:
+        db.sql_exec("UPDATE moderation_polls SET is_running=0 WHERE tg_id=?", (self._tg_id, ))
+        self._is_running = False
+
+    @classmethod
+    def exists(cls, original_message_tg_id: int) -> bool:
+        for _row in db.sql_query("SELECT * FROM moderation_polls WHERE original_message_tg_id=?",
+                                 (original_message_tg_id, )):
+            return True
+        return False
+    @classmethod
+    def create(cls, tg_id: int, original_message_tg_id: int, poll_message_tg_id: int) -> None:
+        db.sql_exec("INSERT INTO moderation_polls(tg_id, original_message_tg_id, poll_message_tg_id) "
+                    "VALUES(?, ?, ?)", (tg_id, original_message_tg_id, poll_message_tg_id))
+
+    @classmethod
+    def get(cls, tg_id) -> Self:
+        for row in db.sql_query("SELECT * FROM moderation_polls WHERE tg_id=?", (tg_id,)):
+            row["is_running"] = bool(row["is_running"])
+            return Poll(**row)
+        raise cls.NotFound
 
 class Restriction:
     """Explains current restriction put on a user
@@ -254,93 +258,5 @@ class Restriction:
         return Restriction(restriction._tg_id, new_level, new_until_timestamp, new_cooldown_until_timestamp)
 
 
-def _save() -> None:
-    with open(_STATE_FILENAME, "wb") as out_pickle:
-        pickle.dump(_state, out_pickle, pickle.HIGHEST_PROTOCOL)
-
-
-def complaint_get(original_message: MainChatMessage) -> Complaint:
-    """Get a complaint created for the original message with the given ID, create a new complaint if there is none"""
-
-    global _state
-
-    complaints = _state[_COMPLAINTS]
-
-    if original_message.tg_id not in complaints:
-        complaints[original_message.tg_id] = Complaint(original_message.sender_tg_id)
-
-    _save()
-
-    return complaints[original_message.tg_id]
-
-
-def complaint_maybe_add(original_message_id: int, from_user_id: int, reason: int) -> Complaint:
-    """Try to register a new moderation request from a user
-
-    Forwards parameters to `Complaint.maybe_add_reason()` of a complaint created for the original message with the given
-    ID.  Returns the complaint.
-    """
-
-    global _state
-
-    complaints = _state[_COMPLAINTS]
-
-    complaint = complaints[original_message_id]
-    complaint.maybe_add_reason(from_user_id, reason)
-
-    _save()
-
-    return complaint
-
-
-def poll_register(original_message_id: int, poll_message_id: int, poll_id: str) -> None:
-    """Register a new poll for the original message with the given ID"""
-
-    global _state
-
-    polls = _state[_POLLS]
-    assert poll_id not in polls
-    polls[poll_id] = Poll(original_message_id, poll_message_id)
-
-    _state[_COMPLAINTS][original_message_id].poll_id = poll_id
-
-    _save()
-
-
-def poll_get(poll_id: str) -> Poll:
-    """Return a poll with the given ID"""
-
-    return _state[_POLLS][poll_id]
-
-
-def clean(original_message_id: int) -> None:
-    """Remove complaint and poll data (if any) associated with the original message with the given ID"""
-
-    global _state
-
-    complaint = _state[_COMPLAINTS][original_message_id]
-    _state[_POLLS].pop(complaint.poll_id)
-    _state[_COMPLAINTS].pop(original_message_id)
-
-    _save()
-
-
 def init() -> None:
-    global _state
-
     MainChatMessage.maybe_delete_old_messages()
-
-    if _state:
-        return
-
-    try:
-        with open(_STATE_FILENAME, "rb") as inp:
-            _state = pickle.load(inp)
-    except FileNotFoundError:
-        # First run, no problem, create an empty state.
-        _state = {}
-
-    if _COMPLAINTS not in _state or not settings.MODERATION_IS_REAL:
-        _state[_COMPLAINTS] = dict()
-    if _POLLS not in _state or not settings.MODERATION_IS_REAL:
-        _state[_POLLS] = dict()
