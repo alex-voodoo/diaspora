@@ -179,6 +179,17 @@ class Poll:
             return Poll(**row)
         raise cls.NotFound
 
+    @classmethod
+    def get_all_running_for(cls, user_tg_id) -> Iterator[Self]:
+        """Return all polls running for messages sent by the same user as this one"""
+
+        for row in db.sql_query(
+                "SELECT mp.* "
+                "FROM moderation_polls mp, moderation_main_chat_messages mmcm "
+                "WHERE mp.original_message_tg_id=mmcm.tg_id AND mp.is_running=1 AND mmcm.sender_tg_id=?",
+                (user_tg_id,)):
+            yield Poll(**row)
+
 
 class Restriction:
     """A restriction put on a user"""
@@ -212,7 +223,8 @@ class Restriction:
     def get_current_or_create(cls, user_tg_id: int) -> Self:
         for row in db.sql_query("SELECT * "
                                 "FROM moderation_restrictions "
-                                "WHERE user_tg_id=? AND cooldown_until_timestamp>DATETIME('now')", (user_tg_id,)):
+                                "WHERE user_tg_id=? AND cooldown_until_timestamp>?",
+                                (user_tg_id, util.db_format(util.rounded_now()))):
             return cls._construct_from_row(row)
         past_timestamp = util.rounded_now() - datetime.timedelta(seconds=1)
         return Restriction(user_tg_id, -1, past_timestamp, past_timestamp + datetime.timedelta(days=1))
@@ -262,7 +274,8 @@ class Restriction:
             raise RuntimeError(f"Unknown action: {action}")
 
         db.sql_exec("DELETE FROM moderation_restrictions "
-                    "WHERE user_tg_id=? AND cooldown_until_timestamp>DATETIME('now')", (restriction._user_tg_id,))
+                    "WHERE user_tg_id=? AND cooldown_until_timestamp>?",
+                    (restriction._user_tg_id, util.db_format(util.rounded_now())))
         db.sql_exec("INSERT INTO moderation_restrictions(user_tg_id, level, until_timestamp, cooldown_until_timestamp) "
                     "VALUES(?, ?, ?, ?)",
                     (restriction._user_tg_id, new_level, util.db_format(new_until_timestamp),

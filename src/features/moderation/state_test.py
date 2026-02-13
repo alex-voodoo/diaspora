@@ -201,7 +201,8 @@ class TestRestriction(unittest.TestCase):
             self.assertLessEqual(new_restriction._until_timestamp, util.rounded_now() + duration)
 
             mock_sql_exec.assert_called()
-            self.assertEqual(mock_sql_exec.call_args_list[0].args[1], (new_restriction._user_tg_id,))
+            self.assertEqual(mock_sql_exec.call_args_list[0].args[1],
+                             (new_restriction._user_tg_id, util.db_format(util.rounded_now())))
             self.assertEqual(mock_sql_exec.call_args_list[1].args[1],
                              (new_restriction._user_tg_id, new_restriction.level,
                               util.db_format(new_restriction._until_timestamp),

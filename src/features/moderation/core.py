@@ -2,19 +2,20 @@
 Moderation
 """
 
+import datetime
 import gettext
 import logging
 import re
 from math import ceil
 
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, Poll, User
+from telegram import ChatPermissions, InlineKeyboardButton, InlineKeyboardMarkup, Poll, Update, User
 from telegram.constants import ChatType
 from telegram.ext import Application, CallbackQueryHandler, ContextTypes, filters, MessageHandler, PollHandler
 
 from common import i18n
 from common.checks import is_member_of_main_chat
 from common.settings import settings
-from . import state
+from . import const, state
 
 (_MODERATION_REASON_FRAUD, _MODERATION_REASON_OFFENSE, _MODERATION_REASON_RACISM, _MODERATION_REASON_SPAM,
  _MODERATION_REASON_TOXIC) = range(5)
@@ -219,24 +220,64 @@ async def _handle_complaint_poll_outcome(tg_poll: Poll, resolution: str, context
 
     poll = state.Poll.get(tg_poll.id)
 
-    trans = i18n.default()
     if tg_poll.is_closed:
         logging.info(f"Poll {poll.tg_id} is already closed.")
     else:
         logging.info(f"Closing poll {poll.tg_id}.")
         await context.bot.stop_poll(chat_id, poll.poll_message_tg_id)
-        poll.stop()
-        # TODO: Stop all running polls that were created to moderate messages from the same user as this one.
+    poll.stop()
+
+    trans = i18n.default()
 
     if resolution == _reject_complaint_option():
         logging.info("Complaint was rejected.")
         await context.bot.send_message(chat_id, text=trans.gettext("MODERATION_RESULT_REJECTED"))
+        return
+
+    logging.info("Complaint was accepted.  Closing all other polls related to this user and setting a restriction.")
+
+    original_message = state.MainChatMessage.get(poll.original_message_tg_id)
+
+    for other_poll in state.Poll.get_all_running_for(original_message.sender_tg_id):
+        logging.info(f"Closing another poll {other_poll.tg_id}.")
+        await context.bot.stop_poll(chat_id, other_poll.poll_message_tg_id)
+        other_poll.stop()
+
+    restriction = state.Restriction.elevate_or_prolong(
+        state.Restriction.get_current_or_create(original_message.sender_tg_id))
+
+    def format_minutes(count: int) -> str:
+        return trans.ngettext("MINUTES_S {count}", "MINUTES_P {count}", count).format(count=count)
+
+    def append_simulation_disclaimer(message: str) -> str:
+        return "\n".join([message, "", trans.gettext("MODERATION_NOT_REAL_DISCLAIMER")])
+
+    level = settings.MODERATION_RESTRICTION_LADDER[restriction.level]
+    action = level["action"]
+    if action == const.ACTION_WARN:
+        message = trans.gettext("MODERATION_RESULT_ACCEPTED_WARN {cooldown}").format(
+            cooldown=format_minutes(level["cooldown"]))
+        public_message = trans.gettext("MODERATION_MESSAGE_WARNING")
+    elif action == const.ACTION_RESTRICT:
+        message = trans.gettext("MODERATION_RESULT_ACCEPTED_RESTRICT {cooldown} {duration}").format(
+            cooldown=format_minutes(level["cooldown"]), duration=format_minutes(level["duration"]))
+        public_message = trans.gettext("MODERATION_MESSAGE_RESTRICTION {duration}").format(
+            format_minutes(level["duration"]))
+        if settings.MODERATION_IS_REAL:
+            context.bot.restrict_chat_member(
+                settings.MAIN_CHAT_ID, original_message.sender_tg_id, ChatPermissions.no_permissions(),
+                until_date=datetime.datetime.now() + datetime.timedelta(minutes=level["duration"]))
+    elif action == const.ACTION_BAN:
+        message = trans.gettext("MODERATION_RESULT_ACCEPTED_BAN")
+        public_message = trans.gettext("MODERATION_MESSAGE_BAN")
     else:
-        logging.info("Complaint was accepted.  Setting a restriction.")
-        original_message = state.MainChatMessage.get(poll.original_message_tg_id)
-        current_restriction = state.Restriction.get_current_or_create(original_message.sender_tg_id)
-        state.Restriction.elevate_or_prolong(current_restriction)
-        await context.bot.send_message(chat_id, text=trans.gettext("MODERATION_RESULT_ACCEPTED"))
+        raise RuntimeError(f"Unknown action: {action}")
+
+    if settings.MODERATION_IS_REAL:
+        context.bot.send_message(settings.MAIN_CHAT_ID, public_message, reply_to_message_id=original_message.tg_id)
+    else:
+        message = append_simulation_disclaimer(message)
+    await context.bot.send_message(chat_id, text=message)
 
 
 async def _handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
