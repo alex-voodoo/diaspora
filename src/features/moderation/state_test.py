@@ -94,12 +94,12 @@ class TestRestriction(unittest.TestCase):
     def test__construct_from_row(self):
         until_timestamp_str = util.db_format(util.rounded_now() - datetime.timedelta(seconds=33))
         cooldown_until_timestamp_str = util.db_format(util.rounded_now() + datetime.timedelta(seconds=44))
-        data = {"tg_id": 11, "level": 22, "until_timestamp": until_timestamp_str,
+        data = {"user_tg_id": 11, "level": 22, "until_timestamp": until_timestamp_str,
                 "cooldown_until_timestamp": cooldown_until_timestamp_str}
 
         restriction = state.Restriction._construct_from_row(data)
 
-        self.assertEqual(restriction._tg_id, data["tg_id"])
+        self.assertEqual(restriction._user_tg_id, data["user_tg_id"])
         self.assertEqual(restriction.level, data["level"])
         self.assertEqual(restriction.until_timestamp, datetime.datetime.fromisoformat(until_timestamp_str))
         self.assertEqual(restriction.cooldown_until_timestamp,
@@ -108,13 +108,13 @@ class TestRestriction(unittest.TestCase):
     @patch("common.db.sql_query")
     def test_get_current_or_create(self, mock_sql_query):
         now = datetime.datetime.now()
-        tg_id = 12345
+        user_tg_id = 12345
 
         # When nothing is returned by a DB query, a new restriction should be returned (at level -1 and eligible for
         # immediate elevation).
-        restriction = state.Restriction.get_current_or_create(tg_id)
+        restriction = state.Restriction.get_current_or_create(user_tg_id)
 
-        self.assertEqual(restriction._tg_id, tg_id)
+        self.assertEqual(restriction._user_tg_id, user_tg_id)
         self.assertEqual(restriction.level, -1)
         self.assertLess(restriction.until_timestamp, now)
         self.assertGreater(restriction.cooldown_until_timestamp, now)
@@ -124,39 +124,37 @@ class TestRestriction(unittest.TestCase):
         until_timestamp = util.rounded_now() - datetime.timedelta(seconds=33)
         cooldown_until_timestamp = util.rounded_now() + datetime.timedelta(seconds=44)
         mock_sql_query.return_value = iter(
-            ({"tg_id": tg_id, "level": level, "until_timestamp": util.db_format(until_timestamp),
+            ({"user_tg_id": user_tg_id, "level": level, "until_timestamp": util.db_format(until_timestamp),
               "cooldown_until_timestamp": util.db_format(cooldown_until_timestamp)},))
 
-        restriction = state.Restriction.get_current_or_create(tg_id)
+        restriction = state.Restriction.get_current_or_create(user_tg_id)
 
-        self.assertEqual(restriction._tg_id, tg_id)
+        self.assertEqual(restriction._user_tg_id, user_tg_id)
         self.assertEqual(restriction.level, level)
         self.assertEqual(restriction.until_timestamp, until_timestamp)
         self.assertEqual(restriction.cooldown_until_timestamp, cooldown_until_timestamp)
 
     @patch("common.db.sql_query")
     def test_get_most_recent(self, mock_sql_query):
-        tg_id = 12345
+        user_tg_id = 12345
 
         # When nothing is returned by a DB query, None should be returned.
-        self.assertIsNone(state.Restriction.get_most_recent(tg_id))
+        self.assertIsNone(state.Restriction.get_most_recent(user_tg_id))
 
         # When there are records in the database, the latest one should be returned.  ("The latest" is effectively the
         # first one in the set returned by the DB, which is simulated here by the mock function returning several rows.)
-        now = datetime.datetime.now()
         level = 22
         until_timestamp = util.rounded_now() - datetime.timedelta(seconds=33)
         cooldown_until_timestamp = util.rounded_now() + datetime.timedelta(seconds=44)
         mock_sql_query.return_value = iter(
-            ({"tg_id": tg_id, "level": level, "until_timestamp": util.db_format(until_timestamp),
+            ({"user_tg_id": user_tg_id, "level": level, "until_timestamp": util.db_format(until_timestamp),
               "cooldown_until_timestamp": util.db_format(cooldown_until_timestamp)},
-             {"tg_id": tg_id, "level": level + 1, "until_timestamp": util.db_format(until_timestamp),
-              "cooldown_until_timestamp": util.db_format(cooldown_until_timestamp)},
-             ))
+             {"user_tg_id": user_tg_id, "level": level + 1, "until_timestamp": util.db_format(until_timestamp),
+              "cooldown_until_timestamp": util.db_format(cooldown_until_timestamp)},))
 
-        restriction = state.Restriction.get_current_or_create(tg_id)
+        restriction = state.Restriction.get_current_or_create(user_tg_id)
 
-        self.assertEqual(restriction._tg_id, tg_id)
+        self.assertEqual(restriction._user_tg_id, user_tg_id)
         self.assertEqual(restriction.level, level)
         self.assertEqual(restriction.until_timestamp, until_timestamp)
         self.assertEqual(restriction.cooldown_until_timestamp, cooldown_until_timestamp)
@@ -164,19 +162,20 @@ class TestRestriction(unittest.TestCase):
     @patch("common.db.sql_query")
     @patch("common.db.sql_exec")
     @patch("features.moderation.state.settings")
-    def test_elevate(self, mock_settings, mock_sql_exec, mock_sql_query):
+    def test_elevate_or_prolong(self, mock_settings, mock_sql_exec, mock_sql_query):
         mock_settings.MODERATION_RESTRICTION_LADDER = [{"action": "warn", "cooldown": 60},
                                                        {"action": "restrict", "duration": 60, "cooldown": 120},
                                                        {"action": "ban"}]
+        user_tg_id = 12345
 
         # Create a new restriction
         mock_sql_query.return_value = iter(())
 
-        restriction = state.Restriction.get_current_or_create(1)
+        restriction = state.Restriction.get_current_or_create(user_tg_id)
 
         mock_sql_query.assert_called_once()
 
-        self.assertEqual(restriction._tg_id, 1)
+        self.assertEqual(restriction._user_tg_id, user_tg_id)
         self.assertEqual(restriction.level, -1)
         self.assertLess(restriction.until_timestamp, util.rounded_now())
         self.assertGreater(restriction.cooldown_until_timestamp, util.rounded_now())
@@ -197,14 +196,14 @@ class TestRestriction(unittest.TestCase):
             else:
                 assert False
 
-            self.assertEqual(new_restriction._tg_id, 1)
+            self.assertEqual(new_restriction._user_tg_id, user_tg_id)
             self.assertEqual(new_restriction.level, new_level)
             self.assertLessEqual(new_restriction._until_timestamp, util.rounded_now() + duration)
 
             mock_sql_exec.assert_called()
-            self.assertEqual(mock_sql_exec.call_args_list[0].args[1], (new_restriction._tg_id,))
+            self.assertEqual(mock_sql_exec.call_args_list[0].args[1], (new_restriction._user_tg_id,))
             self.assertEqual(mock_sql_exec.call_args_list[1].args[1],
-                             (new_restriction._tg_id, new_restriction.level,
+                             (new_restriction._user_tg_id, new_restriction.level,
                               util.db_format(new_restriction._until_timestamp),
                               util.db_format(new_restriction._cooldown_until_timestamp)))
             mock_sql_exec.reset_mock()

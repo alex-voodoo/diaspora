@@ -6,7 +6,7 @@ import datetime
 from collections.abc import Iterator
 from typing import Self
 
-from telegram import Message
+from telegram import Message, MessageOriginHiddenUser, MessageOriginUser
 from telegram.constants import MessageOriginType
 
 from common import db, util
@@ -64,9 +64,11 @@ class MainChatMessage:
     @classmethod
     def find_original(cls, forwarded_message: Message) -> Self | None:
         if forwarded_message.forward_origin.type == MessageOriginType.USER:
+            assert isinstance(forwarded_message.forward_origin, MessageOriginUser)
             where_clause = "sender_tg_id=?"
             where_params = (forwarded_message.forward_origin.sender_user.id,)
         elif forwarded_message.forward_origin.type == MessageOriginType.HIDDEN_USER:
+            assert isinstance(forwarded_message.forward_origin, MessageOriginHiddenUser)
             where_clause = "sender_name=?"
             where_params = (forwarded_message.forward_origin.sender_user_name,)
         else:
@@ -89,8 +91,12 @@ class MainChatMessage:
 
 
 class Request:
+    """Moderation request that comes from a user"""
+
     @classmethod
     def exists(cls, original_message_tg_id: int, from_user_tg_id: int) -> bool:
+        """Return whether there is a request to moderate a message from a user"""
+
         for _row in db.sql_query("SELECT * FROM moderation_requests "
                                  "WHERE original_message_tg_id=? AND from_user_tg_id=?",
                                  (original_message_tg_id, from_user_tg_id)):
@@ -99,20 +105,26 @@ class Request:
 
     @classmethod
     def register(cls, original_message_tg_id: int, from_user_tg_id: int, reason_id: int) -> None:
+        """Register a new request to moderate a message"""
+
         db.sql_exec("INSERT INTO moderation_requests(original_message_tg_id, from_user_tg_id, reason_id) "
                     "VALUES(?, ?, ?)", (original_message_tg_id, from_user_tg_id, reason_id))
 
     @classmethod
     def count(cls, original_message_tg_id: int) -> int:
+        """Return how many requests to moderate a message has"""
+
         for row in db.sql_query("SELECT COUNT(1) as request_count FROM moderation_requests "
-                                "WHERE original_message_tg_id=?", (original_message_tg_id, )):
+                                "WHERE original_message_tg_id=?", (original_message_tg_id,)):
             return int(row["request_count"])
 
     @classmethod
     def get_grouped(cls, original_message_tg_id: int) -> Iterator[tuple]:
+        """Get all requests to moderate a message grouped and counted by reasons"""
+
         for row in db.sql_query("SELECT reason_id, COUNT(1) AS request_count FROM moderation_requests "
                                 "WHERE original_message_tg_id=? "
-                                "GROUP BY reason_id", (original_message_tg_id, )):
+                                "GROUP BY reason_id", (original_message_tg_id,)):
             yield row["reason_id"], row["request_count"]
 
 
@@ -145,15 +157,16 @@ class Poll:
         return self._is_running
 
     def stop(self) -> None:
-        db.sql_exec("UPDATE moderation_polls SET is_running=0 WHERE tg_id=?", (self._tg_id, ))
+        db.sql_exec("UPDATE moderation_polls SET is_running=0 WHERE tg_id=?", (self._tg_id,))
         self._is_running = False
 
     @classmethod
     def exists(cls, original_message_tg_id: int) -> bool:
         for _row in db.sql_query("SELECT * FROM moderation_polls WHERE original_message_tg_id=?",
-                                 (original_message_tg_id, )):
+                                 (original_message_tg_id,)):
             return True
         return False
+
     @classmethod
     def create(cls, tg_id: int, original_message_tg_id: int, poll_message_tg_id: int) -> None:
         db.sql_exec("INSERT INTO moderation_polls(tg_id, original_message_tg_id, poll_message_tg_id) "
@@ -166,13 +179,13 @@ class Poll:
             return Poll(**row)
         raise cls.NotFound
 
-class Restriction:
-    """Explains current restriction put on a user
-    """
 
-    def __init__(self, tg_id: int, level: int, until_timestamp: datetime.datetime,
+class Restriction:
+    """A restriction put on a user"""
+
+    def __init__(self, user_tg_id: int, level: int, until_timestamp: datetime.datetime,
                  cooldown_until_timestamp: datetime.datetime):
-        self._tg_id = tg_id
+        self._user_tg_id = user_tg_id
         self._level = level
         self._until_timestamp = until_timestamp
         self._cooldown_until_timestamp = cooldown_until_timestamp
@@ -196,20 +209,20 @@ class Restriction:
         return Restriction(**row)
 
     @classmethod
-    def get_current_or_create(cls, tg_id: int) -> Self:
+    def get_current_or_create(cls, user_tg_id: int) -> Self:
         for row in db.sql_query("SELECT * "
                                 "FROM moderation_restrictions "
-                                "WHERE tg_id=? AND cooldown_until_timestamp>DATETIME('now')", (tg_id,)):
+                                "WHERE user_tg_id=? AND cooldown_until_timestamp>DATETIME('now')", (user_tg_id,)):
             return cls._construct_from_row(row)
         past_timestamp = util.rounded_now() - datetime.timedelta(seconds=1)
-        return Restriction(tg_id, -1, past_timestamp, past_timestamp + datetime.timedelta(days=1))
+        return Restriction(user_tg_id, -1, past_timestamp, past_timestamp + datetime.timedelta(days=1))
 
     @classmethod
-    def get_most_recent(cls, tg_id) -> Self | None:
+    def get_most_recent(cls, user_tg_id) -> Self | None:
         for row in db.sql_query("SELECT * "
                                 "FROM moderation_restrictions "
-                                "WHERE tg_id=? "
-                                "ORDER BY cooldown_until_timestamp DESC", (tg_id,)):
+                                "WHERE user_tg_id=? "
+                                "ORDER BY cooldown_until_timestamp DESC", (user_tg_id,)):
             return cls._construct_from_row(row)
         return None
 
@@ -248,14 +261,14 @@ class Restriction:
         else:
             raise RuntimeError(f"Unknown action: {action}")
 
-        db.sql_exec("DELETE FROM moderation_restrictions WHERE tg_id=? AND cooldown_until_timestamp>DATETIME('now')",
-                    (restriction._tg_id,))
-        db.sql_exec("INSERT INTO moderation_restrictions(tg_id, level, until_timestamp, cooldown_until_timestamp) "
+        db.sql_exec("DELETE FROM moderation_restrictions "
+                    "WHERE user_tg_id=? AND cooldown_until_timestamp>DATETIME('now')", (restriction._user_tg_id,))
+        db.sql_exec("INSERT INTO moderation_restrictions(user_tg_id, level, until_timestamp, cooldown_until_timestamp) "
                     "VALUES(?, ?, ?, ?)",
-                    (restriction._tg_id, new_level, util.db_format(new_until_timestamp),
+                    (restriction._user_tg_id, new_level, util.db_format(new_until_timestamp),
                      util.db_format(new_cooldown_until_timestamp)))
 
-        return Restriction(restriction._tg_id, new_level, new_until_timestamp, new_cooldown_until_timestamp)
+        return Restriction(restriction._user_tg_id, new_level, new_until_timestamp, new_cooldown_until_timestamp)
 
 
 def init() -> None:
