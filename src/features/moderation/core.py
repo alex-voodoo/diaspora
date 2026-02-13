@@ -264,7 +264,7 @@ async def _handle_complaint_poll_outcome(tg_poll: Poll, resolution: str, context
         public_message = trans.gettext("MODERATION_MESSAGE_RESTRICTION {duration}").format(
             format_minutes(level["duration"]))
         if settings.MODERATION_IS_REAL:
-            context.bot.restrict_chat_member(
+            await context.bot.restrict_chat_member(
                 settings.MAIN_CHAT_ID, original_message.sender_tg_id, ChatPermissions.no_permissions(),
                 until_date=datetime.datetime.now() + datetime.timedelta(minutes=level["duration"]))
     elif action == const.ACTION_BAN:
@@ -274,7 +274,7 @@ async def _handle_complaint_poll_outcome(tg_poll: Poll, resolution: str, context
         raise RuntimeError(f"Unknown action: {action}")
 
     if settings.MODERATION_IS_REAL:
-        context.bot.send_message(settings.MAIN_CHAT_ID, public_message, reply_to_message_id=original_message.tg_id)
+        await context.bot.send_message(settings.MAIN_CHAT_ID, public_message, reply_to_message_id=original_message.tg_id)
     else:
         message = append_simulation_disclaimer(message)
     await context.bot.send_message(chat_id, text=message)
