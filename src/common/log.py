@@ -11,10 +11,10 @@ class LogTime:
 
     Usage:
 
-        with LogTime("<task>", logging.getLogger("<module>"):
+        with LogTime("<task description>"):
             ...
 
-    The above will send an info level event to the given logger with text: "<task> took X ms".
+    The above will send an info level event with text: "<task description> took X ms".
     """
 
     def __init__(self, name: str):
@@ -25,4 +25,4 @@ class LogTime:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         elapsed = (perf_counter() - self.started_at) * 1000
-        logging.info("{name} took {elapsed} ms".format(name=self.name, elapsed=elapsed))
+        logging.info(f"{self.name} took {elapsed:.3f} ms")
