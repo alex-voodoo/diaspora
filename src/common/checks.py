@@ -11,7 +11,7 @@ from common.settings import settings
 
 logger = logging.getLogger(__name__)
 
-async def is_member_of_main_chat(user: User, context: ContextTypes.DEFAULT_TYPE) -> bool:
+async def is_member_of_chat(chat_id: int, user: User, context: ContextTypes.DEFAULT_TYPE) -> bool:
     """Helper for handlers that require that the user would be a member of the main chat"""
 
     def should_be_blocked(chat_member: ChatMember):
@@ -21,7 +21,7 @@ async def is_member_of_main_chat(user: User, context: ContextTypes.DEFAULT_TYPE)
             return "banned"
         return None
 
-    reason = should_be_blocked(await context.bot.get_chat_member(settings.MAIN_CHAT_ID, user.id))
+    reason = should_be_blocked(await context.bot.get_chat_member(chat_id, user.id))
     if reason:
         logger.info(f"User {user.username} (Telegram ID {user.id}) is not allowed: {reason}")
         return False

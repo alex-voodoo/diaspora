@@ -12,8 +12,7 @@ from telegram import ChatPermissions, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ChatType
 from telegram.ext import Application, CallbackQueryHandler, ContextTypes, filters, MessageHandler, PollHandler
 
-from common import i18n
-from common.checks import is_member_of_main_chat
+from common import checks, i18n
 from common.settings import settings
 from . import const, state
 
@@ -84,7 +83,7 @@ async def _maybe_start_complaint(update: Update, context: ContextTypes.DEFAULT_T
 
     user = update.effective_user
 
-    if not await is_member_of_main_chat(user, context):
+    if not await checks.is_member_of_chat(settings.MAIN_CHAT_ID, user, context):
         return
 
     message = update.effective_message
@@ -99,7 +98,10 @@ async def _maybe_start_complaint(update: Update, context: ContextTypes.DEFAULT_T
         await message.reply_text(trans.gettext("DM_MODERATION_MESSAGE_NOT_FOUND"))
         return
 
-    # TODO: do not let moderators send requests for moderation?
+    if await checks.is_member_of_chat(settings.MODERATION_CHAT_ID, user, context):
+        logging.info("This user is a member of the moderators' chat, they cannot complain.")
+        await message.reply_text(trans.gettext("DM_MODERATION_MODERATORS_CANNOT_COMPLAIN"))
+        return
 
     if state.Request.exists(original_message.tg_id, user.id):
         logging.info("This user has already complained about this message, cannot accept another complaint.")

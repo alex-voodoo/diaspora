@@ -28,7 +28,7 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 from common import db, i18n
 from common.admin import get_main_keyboard
-from common.checks import is_admin, is_member_of_main_chat
+from common.checks import is_admin, is_member_of_chat
 from common.messaging_helpers import safe_delete_message, self_destructing_reply
 from common.settings import settings
 from features import antispam, glossary, moderation, services
@@ -113,7 +113,7 @@ async def handle_command_help(update: Update, context: ContextTypes.DEFAULT_TYPE
         await self_destructing_reply(update, context, trans.gettext("MESSAGE_MC_HELP"), settings.DELETE_MESSAGE_TIMEOUT)
         return
 
-    if not await is_member_of_main_chat(user, context):
+    if not await is_member_of_chat(settings.MAIN_CHAT_ID, user, context):
         return
 
     await message.reply_text(trans.gettext("MESSAGE_DM_HELP"), reply_markup=services.get_standard_keyboard(user))
@@ -143,7 +143,7 @@ async def handle_command_start(update: Update, context: ContextTypes.DEFAULT_TYP
                                                                                                 chat_id=user.id))
         return
 
-    if not await is_member_of_main_chat(user, context):
+    if not await is_member_of_chat(settings.MAIN_CHAT_ID, user, context):
         return
 
     if len(update.effective_message.text.split(" ")) == 2:

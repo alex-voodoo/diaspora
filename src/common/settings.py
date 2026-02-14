@@ -224,7 +224,7 @@ class Settings:
         # do not let their most recent restriction to cool down (see README for the detailed explanation).
         self.MODERATION_RESTRICTION_LADDER = [{"action": "warn", "cooldown": 60},
                                               {"action": "restrict", "duration": 60, "cooldown": 60},
-                                              {"action": "restrict", "duration": 1800, "cooldown": 1800},
+                                              {"action": "restrict", "duration": 180, "cooldown": 180},
                                               {"action": "ban"}]
 
         # YAML_SETTINGS
