@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-02-14 20:58+0100\n"
+"POT-Creation-Date: 2026-02-15 20:05+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -241,113 +241,113 @@ msgstr "Download glossary"
 msgid "GLOSSARY_BUTTON_UPLOAD_TERMS"
 msgstr "Upload glossary"
 
-#: features/moderation/core.py:25
-msgid "MODERATION_REASON_FRAUD"
-msgstr "Fraud"
-
-#: features/moderation/core.py:27
-msgid "MODERATION_REASON_OFFENSE"
-msgstr "Offense"
-
-#: features/moderation/core.py:29
-msgid "MODERATION_REASON_RACISM"
-msgstr "Racism"
-
-#: features/moderation/core.py:31
-msgid "MODERATION_REASON_SPAM"
-msgstr "Spam"
-
-#: features/moderation/core.py:33
-msgid "MODERATION_REASON_TOXIC"
-msgstr "Toxicity"
-
-#: features/moderation/core.py:38
+#: features/moderation/core.py:20
 msgid "MODERATION_ACCEPT_COMPLAINT_ANSWER_ACCEPT"
 msgstr "Accept"
 
-#: features/moderation/core.py:42
+#: features/moderation/core.py:24
 msgid "MODERATION_ACCEPT_COMPLAINT_ANSWER_REJECT"
 msgstr "Reject"
 
-#: features/moderation/core.py:98
+#: features/moderation/core.py:80
 msgid "DM_MODERATION_MESSAGE_NOT_FOUND"
 msgstr "The message was not found in the main group.  Perhaps it was deleted?"
 
-#: features/moderation/core.py:103
+#: features/moderation/core.py:85
 msgid "DM_MODERATION_MODERATORS_CANNOT_COMPLAIN"
 msgstr "Moderators cannot submit complains."
 
-#: features/moderation/core.py:108
+#: features/moderation/core.py:90
 msgid "DM_MODERATION_MESSAGE_ALREADY_COMPLAINED"
 msgstr "According to my records, you have already sent a complaint to this message.  No need to repeat that."
 
-#: features/moderation/core.py:113
+#: features/moderation/core.py:95
 msgid "DM_MODERATION_MESSAGE_ALREADY_PROCESSING"
 msgstr "Thank you for your help.  The moderators are already making a decision about this message."
 
-#: features/moderation/core.py:120
+#: features/moderation/core.py:102
 msgid "DM_MODERATION_MESSAGE_POSTED_BEFORE_MOST_RECENT_RESTRICTION"
 msgstr "This message was posted before its sender was punished.  I hope that they behave themselves now."
 
-#: features/moderation/core.py:124
+#: features/moderation/core.py:106
 msgid "DM_MODERATION_MESSAGE_SELECT_COMPLAINT_REASON"
 msgstr "Please specify a reason for your complaint."
 
-#: features/moderation/core.py:141
+#: features/moderation/core.py:123
 msgid "DM_MODERATION_REQUEST_REGISTERED"
 msgstr "Your complaint is registered.  Should other users complain to the message that you forwarded, I will notify the moderators."
 
-#: features/moderation/core.py:153
+#: features/moderation/core.py:135
 msgid "MODERATION_NEW_REQUEST"
 msgstr "Users complain about a message (forwarded below) with the following reasons:"
 
-#: features/moderation/core.py:155
+#: features/moderation/core.py:137
 msgid "MODERATION_NEW_REQUEST_DETAILS_S {reason} {count}"
 msgid_plural "MODERATION_NEW_REQUEST_DETAILS_P {reason} {count}"
 msgstr[0] "{reason}: {count} complaint"
 msgstr[1] "{reason}: {count} complaints"
 
-#: features/moderation/core.py:162
+#: features/moderation/core.py:144
 msgid "MODERATION_ACCEPT_COMPLAINT_QUESTION"
 msgstr "Is this request legitimate?"
 
-#: features/moderation/core.py:236
+#: features/moderation/core.py:218
 msgid "MODERATION_RESULT_REJECTED"
 msgstr "The request is rejected."
 
-#: features/moderation/core.py:252
+#: features/moderation/core.py:234
 msgid "MINUTES_S {count}"
 msgid_plural "MINUTES_P {count}"
 msgstr[0] "{count} minute"
 msgstr[1] "{count} minutes"
 
-#: features/moderation/core.py:255
+#: features/moderation/core.py:237
 msgid "MODERATION_NOT_REAL_DISCLAIMER"
 msgstr "<i>Per current settings, this is simulation.</i>"
 
-#: features/moderation/core.py:260
+#: features/moderation/core.py:242
 msgid "MODERATION_RESULT_ACCEPTED_WARN {cooldown}"
 msgstr "The request is accepted.  The user has got a warning.  Trial period for {cooldown}."
 
-#: features/moderation/core.py:262
+#: features/moderation/core.py:244
 msgid "MODERATION_MESSAGE_WARNING"
 msgstr "Several members complained at this message.  Please be a good fellow."
 
-#: features/moderation/core.py:264
+#: features/moderation/core.py:246
 msgid "MODERATION_RESULT_ACCEPTED_RESTRICT {cooldown} {duration}"
 msgstr "The request is accepted.  The user is restricted for {period}, then trial period for {cooldown}."
 
-#: features/moderation/core.py:266
+#: features/moderation/core.py:248
 msgid "MODERATION_MESSAGE_RESTRICTION {duration}"
 msgstr "Several members complained at this message.  I mute you for {duration}."
 
-#: features/moderation/core.py:273
+#: features/moderation/core.py:255
 msgid "MODERATION_RESULT_ACCEPTED_BAN"
 msgstr "The request is accepted.  Please kick the user from the group."
 
-#: features/moderation/core.py:274
+#: features/moderation/core.py:256
 msgid "MODERATION_MESSAGE_BAN"
 msgstr "Several members complained at this message.  Administrators will kick you from the group."
+
+#: features/moderation/render.py:8
+msgid "MODERATION_REASON_FRAUD"
+msgstr "Fraud"
+
+#: features/moderation/render.py:10
+msgid "MODERATION_REASON_OFFENSE"
+msgstr "Offense"
+
+#: features/moderation/render.py:12
+msgid "MODERATION_REASON_RACISM"
+msgstr "Racism"
+
+#: features/moderation/render.py:14
+msgid "MODERATION_REASON_SPAM"
+msgstr "Spam"
+
+#: features/moderation/render.py:16
+msgid "MODERATION_REASON_TOXIC"
+msgstr "Toxicity"
 
 #: features/services/admin.py:43
 msgid "SERVICES_MESSAGE_DM_ADMIN_REQUEST_DB"

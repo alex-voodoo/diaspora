@@ -3,7 +3,6 @@ Moderation
 """
 
 import datetime
-import gettext
 import logging
 import re
 from math import ceil
@@ -14,24 +13,7 @@ from telegram.ext import Application, CallbackQueryHandler, ContextTypes, filter
 
 from common import checks, i18n
 from common.settings import settings
-from . import const, state
-
-(_MODERATION_REASON_FRAUD, _MODERATION_REASON_OFFENSE, _MODERATION_REASON_RACISM, _MODERATION_REASON_SPAM,
- _MODERATION_REASON_TOXIC) = range(5)
-
-
-def _reason_to_explanation(reason: int, trans: gettext.GNUTranslations) -> str:
-    if reason == _MODERATION_REASON_FRAUD:
-        return trans.gettext("MODERATION_REASON_FRAUD")
-    if reason == _MODERATION_REASON_OFFENSE:
-        return trans.gettext("MODERATION_REASON_OFFENSE")
-    if reason == _MODERATION_REASON_RACISM:
-        return trans.gettext("MODERATION_REASON_RACISM")
-    if reason == _MODERATION_REASON_SPAM:
-        return trans.gettext("MODERATION_REASON_SPAM")
-    if reason == _MODERATION_REASON_TOXIC:
-        return trans.gettext("MODERATION_REASON_TOXIC")
-    raise RuntimeError(f"Unknown reason {reason}")
+from . import const, render, state
 
 
 def _accept_complaint_option() -> str:
@@ -60,7 +42,7 @@ def _get_complaint_reason_keyboard(user: User, original_message_id: int) -> Inli
 
     trans = i18n.trans(user)
 
-    buttons = [(InlineKeyboardButton(_reason_to_explanation(reason_id, trans),
+    buttons = [(InlineKeyboardButton(render.reason_title(trans, reason_id),
                                      callback_data=f"{original_message_id}:{user.id}:{reason_id}"),) for reason_id in
                range(5)]
     return InlineKeyboardMarkup(buttons)
@@ -154,7 +136,7 @@ async def _accept_complaint_reason(update: Update, context: ContextTypes.DEFAULT
     for reason, count in state.Request.get_grouped(original_message_id):
         moderation_request.append(trans.ngettext("MODERATION_NEW_REQUEST_DETAILS_S {reason} {count}",
                                                  "MODERATION_NEW_REQUEST_DETAILS_P {reason} {count}",
-                                                 count).format(reason=_reason_to_explanation(reason, trans),
+                                                 count).format(reason=render.reason_title(trans, reason),
                                                                count=count))
     await context.bot.send_message(chat_id, text="\n".join(moderation_request))
     await context.bot.forward_message(chat_id, settings.MAIN_CHAT_ID, message_id=original_message_id)
@@ -251,8 +233,8 @@ async def _handle_complaint_poll_outcome(tg_poll: Poll, resolution: str, context
     def format_minutes(count: int) -> str:
         return trans.ngettext("MINUTES_S {count}", "MINUTES_P {count}", count).format(count=count)
 
-    def append_simulation_disclaimer(message: str) -> str:
-        return "\n".join([message, "", trans.gettext("MODERATION_NOT_REAL_DISCLAIMER")])
+    def append_simulation_disclaimer(text: str) -> str:
+        return "\n".join([text, "", trans.gettext("MODERATION_NOT_REAL_DISCLAIMER")])
 
     level = settings.MODERATION_RESTRICTION_LADDER[restriction.level]
     action = level["action"]

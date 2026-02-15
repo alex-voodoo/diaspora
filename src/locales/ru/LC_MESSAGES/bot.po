@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-02-14 20:58+0100\n"
+"POT-Creation-Date: 2026-02-15 20:05+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -243,115 +243,115 @@ msgstr "Выгрузить глоссарий"
 msgid "GLOSSARY_BUTTON_UPLOAD_TERMS"
 msgstr "Загрузить глоссарий"
 
-#: features/moderation/core.py:25
-msgid "MODERATION_REASON_FRAUD"
-msgstr "Мошенничество"
-
-#: features/moderation/core.py:27
-msgid "MODERATION_REASON_OFFENSE"
-msgstr "Агрессия"
-
-#: features/moderation/core.py:29
-msgid "MODERATION_REASON_RACISM"
-msgstr "Расизм"
-
-#: features/moderation/core.py:31
-msgid "MODERATION_REASON_SPAM"
-msgstr "Спам"
-
-#: features/moderation/core.py:33
-msgid "MODERATION_REASON_TOXIC"
-msgstr "Токсичность"
-
-#: features/moderation/core.py:38
+#: features/moderation/core.py:20
 msgid "MODERATION_ACCEPT_COMPLAINT_ANSWER_ACCEPT"
 msgstr "Принять"
 
-#: features/moderation/core.py:42
+#: features/moderation/core.py:24
 msgid "MODERATION_ACCEPT_COMPLAINT_ANSWER_REJECT"
 msgstr "Отклонить"
 
-#: features/moderation/core.py:98
+#: features/moderation/core.py:80
 msgid "DM_MODERATION_MESSAGE_NOT_FOUND"
 msgstr "Сообщение не найдено в основной группе. Возможно, его уже удалили?"
 
-#: features/moderation/core.py:103
+#: features/moderation/core.py:85
 msgid "DM_MODERATION_MODERATORS_CANNOT_COMPLAIN"
 msgstr "Модераторы не могут подавать жалобы."
 
-#: features/moderation/core.py:108
+#: features/moderation/core.py:90
 msgid "DM_MODERATION_MESSAGE_ALREADY_COMPLAINED"
 msgstr "Согласно моим записям, вы уже отправили жалобу на это сообщение. Нет нужды делать это повторно."
 
-#: features/moderation/core.py:113
+#: features/moderation/core.py:95
 msgid "DM_MODERATION_MESSAGE_ALREADY_PROCESSING"
 msgstr "Спасибо за помощь. Модераторы уже принимают решение по этому сообщению."
 
-#: features/moderation/core.py:120
+#: features/moderation/core.py:102
 msgid "DM_MODERATION_MESSAGE_POSTED_BEFORE_MOST_RECENT_RESTRICTION"
 msgstr "Это сообщение было отправлено до того, как его автор получил по заслугам. Надеюсь, нарушитель встал на путь исправления."
 
-#: features/moderation/core.py:124
+#: features/moderation/core.py:106
 msgid "DM_MODERATION_MESSAGE_SELECT_COMPLAINT_REASON"
 msgstr "Пожалуйста, укажите причину жалобы."
 
-#: features/moderation/core.py:141
+#: features/moderation/core.py:123
 msgid "DM_MODERATION_REQUEST_REGISTERED"
 msgstr "Жалоба зарегистрирована. Если на пересланное вами сообщение будут жалобы от других пользователей, я сообщу модераторам."
 
-#: features/moderation/core.py:153
+#: features/moderation/core.py:135
 msgid "MODERATION_NEW_REQUEST"
 msgstr "От пользователей поступают жалобы на сообщение (пересылаю ниже) по следующим причинам:"
 
-#: features/moderation/core.py:155
+#: features/moderation/core.py:137
 msgid "MODERATION_NEW_REQUEST_DETAILS_S {reason} {count}"
 msgid_plural "MODERATION_NEW_REQUEST_DETAILS_P {reason} {count}"
 msgstr[0] "{reason}: {count} жалоба"
 msgstr[1] "{reason}: {count} жалобы"
 msgstr[2] "{reason}: {count} жалоб"
 
-#: features/moderation/core.py:162
+#: features/moderation/core.py:144
 msgid "MODERATION_ACCEPT_COMPLAINT_QUESTION"
 msgstr "Правомерно ли обращение?"
 
-#: features/moderation/core.py:236
+#: features/moderation/core.py:218
 msgid "MODERATION_RESULT_REJECTED"
 msgstr "Обращение отклонено."
 
-#: features/moderation/core.py:252
+#: features/moderation/core.py:234
 msgid "MINUTES_S {count}"
 msgid_plural "MINUTES_P {count}"
 msgstr[0] "{count} минута"
 msgstr[1] "{count} минуты"
 msgstr[2] "{count} минут"
 
-#: features/moderation/core.py:255
+#: features/moderation/core.py:237
 msgid "MODERATION_NOT_REAL_DISCLAIMER"
 msgstr "<i>Согласно текущим настройкам, это симуляция.</i>"
 
-#: features/moderation/core.py:260
+#: features/moderation/core.py:242
 msgid "MODERATION_RESULT_ACCEPTED_WARN {cooldown}"
 msgstr "Обращение принято. Пользователю выдано предупреждение. Испытательный период {cooldown}."
 
-#: features/moderation/core.py:262
+#: features/moderation/core.py:244
 msgid "MODERATION_MESSAGE_WARNING"
 msgstr "Несколько участников группы пожаловались на это сообщение. Пожалуйста, соблюдайте приличия."
 
-#: features/moderation/core.py:264
+#: features/moderation/core.py:246
 msgid "MODERATION_RESULT_ACCEPTED_RESTRICT {cooldown} {duration}"
 msgstr "Обращение принято. Пользователь ограничен на {duration}, после этого испытательный период {cooldown}."
 
-#: features/moderation/core.py:266
+#: features/moderation/core.py:248
 msgid "MODERATION_MESSAGE_RESTRICTION {duration}"
 msgstr "Несколько участников группы пожаловались на это сообщение. Я ограничиваю вам возможность отправлять сообщения на {duration}."
 
-#: features/moderation/core.py:273
+#: features/moderation/core.py:255
 msgid "MODERATION_RESULT_ACCEPTED_BAN"
 msgstr "Обращение принято. Пожалуйста, удалите пользователя из группы."
 
-#: features/moderation/core.py:274
+#: features/moderation/core.py:256
 msgid "MODERATION_MESSAGE_BAN"
 msgstr "Несколько участников группы пожаловались на это сообщение. Прошу администраторов удалить вас из группы."
+
+#: features/moderation/render.py:8
+msgid "MODERATION_REASON_FRAUD"
+msgstr "Мошенничество"
+
+#: features/moderation/render.py:10
+msgid "MODERATION_REASON_OFFENSE"
+msgstr "Агрессия"
+
+#: features/moderation/render.py:12
+msgid "MODERATION_REASON_RACISM"
+msgstr "Расизм"
+
+#: features/moderation/render.py:14
+msgid "MODERATION_REASON_SPAM"
+msgstr "Спам"
+
+#: features/moderation/render.py:16
+msgid "MODERATION_REASON_TOXIC"
+msgstr "Токсичность"
 
 #: features/services/admin.py:43
 msgid "SERVICES_MESSAGE_DM_ADMIN_REQUEST_DB"
