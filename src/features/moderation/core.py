@@ -7,13 +7,13 @@ import logging
 import re
 from math import ceil
 
-from telegram import ChatPermissions, InlineKeyboardButton, InlineKeyboardMarkup, Poll, Update, User
+from telegram import ChatPermissions, Poll, Update
 from telegram.constants import ChatType
 from telegram.ext import Application, CallbackQueryHandler, ContextTypes, filters, MessageHandler, PollHandler
 
 from common import checks, i18n
 from common.settings import settings
-from . import const, render, state
+from . import const, keyboards, render, state
 
 
 def _accept_complaint_option() -> str:
@@ -22,30 +22,6 @@ def _accept_complaint_option() -> str:
 
 def _reject_complaint_option() -> str:
     return i18n.default().gettext("MODERATION_ACCEPT_COMPLAINT_ANSWER_REJECT")
-
-
-def _get_complaint_reason_keyboard(user: User, original_message_id: int) -> InlineKeyboardMarkup:
-    """Build the keyboard for selecting a reason for sending a moderation request
-
-    Returns an instance of InlineKeyboardMarkup that contains a vertically aligned set of reasons:
-
-    +----------+
-    | Reason 1 |
-    +----------+
-    | Reason 2 |
-    +----------+
-    | ...      |
-    +----------+
-
-    Each button has the reason ID in its callback data.
-    """
-
-    trans = i18n.trans(user)
-
-    buttons = [(InlineKeyboardButton(render.reason_title(trans, reason_id),
-                                     callback_data=f"{original_message_id}:{user.id}:{reason_id}"),) for reason_id in
-               range(5)]
-    return InlineKeyboardMarkup(buttons)
 
 
 def _maybe_log_normal_message(update: Update) -> None:
@@ -104,7 +80,7 @@ async def _maybe_start_complaint(update: Update, context: ContextTypes.DEFAULT_T
 
     await context.bot.send_message(chat_id=user.id,
                                    text=i18n.trans(user).gettext("DM_MODERATION_MESSAGE_SELECT_COMPLAINT_REASON"),
-                                   reply_markup=_get_complaint_reason_keyboard(user, original_message.tg_id))
+                                   reply_markup=keyboards.select_complaint_reason(user, original_message.tg_id))
 
 
 async def _accept_complaint_reason(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -258,7 +234,8 @@ async def _handle_complaint_poll_outcome(tg_poll: Poll, resolution: str, context
         raise RuntimeError(f"Unknown action: {action}")
 
     if settings.MODERATION_IS_REAL:
-        await context.bot.send_message(settings.MAIN_CHAT_ID, public_message, reply_to_message_id=original_message.tg_id)
+        await context.bot.send_message(settings.MAIN_CHAT_ID, public_message,
+                                       reply_to_message_id=original_message.tg_id)
     else:
         message = append_simulation_disclaimer(message)
     await context.bot.send_message(chat_id, text=message)
