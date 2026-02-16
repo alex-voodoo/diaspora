@@ -4,6 +4,8 @@ from . import const
 
 
 def reason_title(trans: gettext.GNUTranslations, reason_id: int) -> str:
+    if reason_id == const.MODERATION_REASON_CANCEL:
+        return trans.gettext("MODERATION_REASON_CANCEL")
     if reason_id == const.MODERATION_REASON_FRAUD:
         return trans.gettext("MODERATION_REASON_FRAUD")
     if reason_id == const.MODERATION_REASON_OFFENSE:

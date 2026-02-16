@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-02-15 21:54+0100\n"
+"POT-Creation-Date: 2026-02-16 19:46+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -273,79 +273,87 @@ msgstr "This message was posted before its sender was punished.  I hope that the
 msgid "DM_MODERATION_MESSAGE_SELECT_COMPLAINT_REASON"
 msgstr "Please specify a reason for your complaint."
 
-#: features/moderation/core.py:99
+#: features/moderation/core.py:101
+msgid "DM_MODERATION_REQUEST_CANCELLED"
+msgstr "Action is cancelled."
+
+#: features/moderation/core.py:107
 msgid "DM_MODERATION_REQUEST_REGISTERED"
 msgstr "Your complaint is registered.  Should other users complain to the message that you forwarded, I will notify the moderators."
 
-#: features/moderation/core.py:111
+#: features/moderation/core.py:119
 msgid "MODERATION_NEW_REQUEST"
 msgstr "Users complain about a message (forwarded below) with the following reasons:"
 
-#: features/moderation/core.py:113
+#: features/moderation/core.py:121
 msgid "MODERATION_NEW_REQUEST_DETAILS_S {reason} {count}"
 msgid_plural "MODERATION_NEW_REQUEST_DETAILS_P {reason} {count}"
 msgstr[0] "{reason}: {count} complaint"
 msgstr[1] "{reason}: {count} complaints"
 
-#: features/moderation/core.py:120
+#: features/moderation/core.py:128
 msgid "MODERATION_ACCEPT_COMPLAINT_QUESTION"
 msgstr "Is this request legitimate?"
 
-#: features/moderation/core.py:194
+#: features/moderation/core.py:202
 msgid "MODERATION_RESULT_REJECTED"
 msgstr "The request is rejected."
 
-#: features/moderation/core.py:210
+#: features/moderation/core.py:218
 msgid "MINUTES_S {count}"
 msgid_plural "MINUTES_P {count}"
 msgstr[0] "{count} minute"
 msgstr[1] "{count} minutes"
 
-#: features/moderation/core.py:213
+#: features/moderation/core.py:221
 msgid "MODERATION_NOT_REAL_DISCLAIMER"
 msgstr "<i>Per current settings, this is simulation.</i>"
 
-#: features/moderation/core.py:218
+#: features/moderation/core.py:226
 msgid "MODERATION_RESULT_ACCEPTED_WARN {cooldown}"
 msgstr "The request is accepted.  The user has got a warning.  Trial period for {cooldown}."
 
-#: features/moderation/core.py:220
+#: features/moderation/core.py:228
 msgid "MODERATION_MESSAGE_WARNING"
 msgstr "Several members complained at this message.  Please be a good fellow."
 
-#: features/moderation/core.py:222
+#: features/moderation/core.py:230
 msgid "MODERATION_RESULT_ACCEPTED_RESTRICT {cooldown} {duration}"
 msgstr "The request is accepted.  The user is restricted for {period}, then trial period for {cooldown}."
 
-#: features/moderation/core.py:224
+#: features/moderation/core.py:232
 msgid "MODERATION_MESSAGE_RESTRICTION {duration}"
 msgstr "Several members complained at this message.  I mute you for {duration}."
 
-#: features/moderation/core.py:231
+#: features/moderation/core.py:239
 msgid "MODERATION_RESULT_ACCEPTED_BAN"
 msgstr "The request is accepted.  Please kick the user from the group."
 
-#: features/moderation/core.py:232
+#: features/moderation/core.py:240
 msgid "MODERATION_MESSAGE_BAN"
 msgstr "Several members complained at this message.  Administrators will kick you from the group."
 
 #: features/moderation/render.py:8
+msgid "MODERATION_REASON_CANCEL"
+msgstr "⨂ Cancel"
+
+#: features/moderation/render.py:10
 msgid "MODERATION_REASON_FRAUD"
 msgstr "Fraud"
 
-#: features/moderation/render.py:10
+#: features/moderation/render.py:12
 msgid "MODERATION_REASON_OFFENSE"
 msgstr "Offense"
 
-#: features/moderation/render.py:12
+#: features/moderation/render.py:14
 msgid "MODERATION_REASON_RACISM"
 msgstr "Racism"
 
-#: features/moderation/render.py:14
+#: features/moderation/render.py:16
 msgid "MODERATION_REASON_SPAM"
 msgstr "Spam"
 
-#: features/moderation/render.py:16
+#: features/moderation/render.py:18
 msgid "MODERATION_REASON_TOXIC"
 msgstr "Toxicity"
 
@@ -623,4 +631,3 @@ msgstr "Here is the directory:"
 #: features/services/state.py:185
 msgid "SERVICES_CATEGORY_LIST_TITLE"
 msgstr "List of categories"
-

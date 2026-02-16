@@ -87,12 +87,20 @@ async def _accept_complaint_reason(update: Update, context: ContextTypes.DEFAULT
     """Add one more reason to a complaint, and start a moderation poll if there are enough reasons"""
 
     query = update.callback_query
+    await query.edit_message_reply_markup(None)
 
     await query.answer()
 
-    original_message_id, from_user_id, reason_id = (int(x) for x in query.data.split(":"))
+    original_message_id, from_user_id, reason_id = keyboards.unpack_complaint_reason(query.data)
 
-    # complaint = state.complaint_maybe_add(original_message_id, from_user_id, reason_id)
+    if reason_id == const.MODERATION_REASON_CANCEL:
+        if original_message_id != 0 or from_user_id != 0:
+            raise RuntimeError("Inconsistent data in the Cancel button")
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text=i18n.trans(update.effective_user).gettext("DM_MODERATION_REQUEST_CANCELLED"))
+        return
+
     state.Request.register(original_message_id, from_user_id, reason_id)
 
     await context.bot.send_message(chat_id=update.effective_chat.id,
@@ -272,6 +280,6 @@ def init(application: Application, group):
     application.add_handler(MessageHandler(filters.TEXT & (~ filters.COMMAND), _handle_message), group=group)
 
     application.add_handler(
-        CallbackQueryHandler(_accept_complaint_reason, pattern=re.compile("^[0-9]+:[0-9]+:[0-9]+$")), group=group)
+        CallbackQueryHandler(_accept_complaint_reason, pattern=re.compile("^[0-9]+:[0-9]+:[\-0-9]+$")), group=group)
 
     application.add_handler(PollHandler(_handle_complaint_poll))
