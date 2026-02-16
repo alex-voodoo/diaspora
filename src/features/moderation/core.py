@@ -13,7 +13,7 @@ from telegram.ext import Application, CallbackQueryHandler, ContextTypes, filter
 
 from common import checks, i18n
 from common.settings import settings
-from . import const, keyboards, render, state
+from . import const, keyboards, state
 
 
 def _accept_complaint_option() -> str:
@@ -56,7 +56,7 @@ async def _maybe_start_complaint(update: Update, context: ContextTypes.DEFAULT_T
         await message.reply_text(trans.gettext("DM_MODERATION_MESSAGE_NOT_FOUND"))
         return
 
-    if await checks.is_member_of_chat(settings.MODERATION_CHAT_ID, user, context):
+    if settings.MODERATION_IS_REAL and await checks.is_member_of_chat(settings.MODERATION_CHAT_ID, user, context):
         logging.info("This user is a member of the moderators' chat, they cannot complain.")
         await message.reply_text(trans.gettext("DM_MODERATION_MODERATORS_CANNOT_COMPLAIN"))
         return
@@ -91,9 +91,9 @@ async def _accept_complaint_reason(update: Update, context: ContextTypes.DEFAULT
 
     await query.answer()
 
-    original_message_id, from_user_id, reason_id = keyboards.unpack_complaint_reason(query.data)
+    original_message_id, complaint_reason_id, from_user_id = keyboards.unpack_complaint_reason(query.data)
 
-    if reason_id == const.MODERATION_REASON_CANCEL:
+    if complaint_reason_id == const.MODERATION_REASON_CANCEL:
         if original_message_id != 0 or from_user_id != 0:
             raise RuntimeError("Inconsistent data in the Cancel button")
         await context.bot.send_message(
@@ -101,7 +101,7 @@ async def _accept_complaint_reason(update: Update, context: ContextTypes.DEFAULT
             text=i18n.trans(update.effective_user).gettext("DM_MODERATION_REQUEST_CANCELLED"))
         return
 
-    state.Request.register(original_message_id, from_user_id, reason_id)
+    state.Request.register(original_message_id, complaint_reason_id, from_user_id)
 
     await context.bot.send_message(chat_id=update.effective_chat.id,
                                    text=i18n.trans(update.effective_user).gettext("DM_MODERATION_REQUEST_REGISTERED"))
@@ -117,11 +117,11 @@ async def _accept_complaint_reason(update: Update, context: ContextTypes.DEFAULT
     chat_id = settings.MODERATION_CHAT_ID
 
     moderation_request = [trans.gettext("MODERATION_NEW_REQUEST")]
-    for reason, count in state.Request.get_grouped(original_message_id):
-        moderation_request.append(trans.ngettext("MODERATION_NEW_REQUEST_DETAILS_S {reason} {count}",
-                                                 "MODERATION_NEW_REQUEST_DETAILS_P {reason} {count}",
-                                                 count).format(reason=render.reason_title(trans, reason),
-                                                               count=count))
+    for complaint_reason_id, count in state.Request.get_grouped(original_message_id):
+        moderation_request.append(
+            trans.ngettext("MODERATION_NEW_REQUEST_DETAILS_S {reason} {count}",
+                           "MODERATION_NEW_REQUEST_DETAILS_P {reason} {count}",
+                           count).format(reason=state.ComplaintReason.get(complaint_reason_id).title, count=count))
     await context.bot.send_message(chat_id, text="\n".join(moderation_request))
     await context.bot.forward_message(chat_id, settings.MAIN_CHAT_ID, message_id=original_message_id)
     new_poll_message = await context.bot.send_poll(chat_id, is_anonymous=True,
@@ -283,3 +283,5 @@ def init(application: Application, group):
         CallbackQueryHandler(_accept_complaint_reason, pattern=re.compile("^[0-9]+:[0-9]+:[\-0-9]+$")), group=group)
 
     application.add_handler(PollHandler(_handle_complaint_poll))
+
+    state.ComplaintReason.load()

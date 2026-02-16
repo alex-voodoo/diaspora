@@ -14,6 +14,65 @@ from common.settings import settings
 from . import const
 
 
+class ComplaintReason:
+    """Wraps a moderation complaint reason database record
+
+    The class caches the entire `moderation_complaint_reasons` table and provides methods for accessing individual items
+    and the entire collection.
+
+    The storage must be initialised by calling the `load()` class method.
+    """
+
+    _reasons = {}
+    _order = []
+
+    # noinspection PyShadowingBuiltins
+    def __init__(self, id: int, title: str):
+        self._id = id
+        self._title = title
+
+    @property
+    def id(self) -> int:
+        return self._id
+
+    @property
+    def title(self) -> str:
+        return self._title
+
+    @classmethod
+    def get(cls, db_id: int) -> Self:
+        """Get a moderation complaint reason identified by `db_id`
+
+        Raises `KeyError` if no object found for the given ID.
+        """
+
+        return cls._reasons[db_id]
+
+    @classmethod
+    def load(cls) -> None:
+        """Load all service category records from the DB and store them in a class attribute"""
+
+        cls._reasons = {}
+
+        for row in db.sql_query("SELECT * FROM moderation_complaint_reasons"):
+            cls._reasons[row["id"]] = ComplaintReason(**row)
+
+        cls._order = [c.id for c in sorted(cls._reasons.values(), key=lambda v: v.title)]
+
+    @classmethod
+    def count(cls) -> int:
+        """Return number of reasons"""
+
+        return len(cls._reasons)
+
+    @classmethod
+    def all(cls) -> Iterator[Self]:
+        """Return all reasons sorted alphabetically by title"""
+
+        for db_id in cls._order:
+            yield cls.get(db_id)
+
+
 class MainChatMessage:
     class NotFound(Exception):
         pass
@@ -104,11 +163,11 @@ class Request:
         return False
 
     @classmethod
-    def register(cls, original_message_tg_id: int, from_user_tg_id: int, reason_id: int) -> None:
+    def register(cls, original_message_tg_id: int, complaint_reason_id: int, from_user_tg_id: int) -> None:
         """Register a new request to moderate a message"""
 
-        db.sql_exec("INSERT INTO moderation_requests(original_message_tg_id, from_user_tg_id, reason_id) "
-                    "VALUES(?, ?, ?)", (original_message_tg_id, from_user_tg_id, reason_id))
+        db.sql_exec("INSERT INTO moderation_requests(original_message_tg_id, complaint_reason_id, from_user_tg_id) "
+                    "VALUES(?, ?, ?)", (original_message_tg_id, complaint_reason_id, from_user_tg_id))
 
     @classmethod
     def count(cls, original_message_tg_id: int) -> int:
@@ -122,10 +181,10 @@ class Request:
     def get_grouped(cls, original_message_tg_id: int) -> Iterator[tuple]:
         """Get all requests to moderate a message grouped and counted by reasons"""
 
-        for row in db.sql_query("SELECT reason_id, COUNT(1) AS request_count FROM moderation_requests "
+        for row in db.sql_query("SELECT complaint_reason_id, COUNT(1) AS request_count FROM moderation_requests "
                                 "WHERE original_message_tg_id=? "
-                                "GROUP BY reason_id", (original_message_tg_id,)):
-            yield row["reason_id"], row["request_count"]
+                                "GROUP BY complaint_reason_id", (original_message_tg_id,)):
+            yield row["complaint_reason_id"], row["request_count"]
 
 
 class Poll:

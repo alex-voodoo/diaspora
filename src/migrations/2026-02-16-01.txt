@@ -1,0 +1,20 @@
+CREATE TABLE "moderation_complaint_reasons" (
+    "id"	INTEGER,
+    "title"	TEXT UNIQUE,
+    PRIMARY KEY("id" AUTOINCREMENT)
+);
+
+DROP TABLE "moderation_requests";
+
+CREATE TABLE "moderation_requests" (
+    "original_message_tg_id"    INTEGER NOT NULL,
+    "complaint_reason_id"       INTEGER NOT NULL,
+    "from_user_tg_id"           INTEGER NOT NULL,
+    UNIQUE("original_message_tg_id", "from_user_tg_id"),
+    FOREIGN KEY ("original_message_tg_id")
+        REFERENCES "moderation_main_chat_messages" ("tg_id")
+        ON DELETE CASCADE,
+    FOREIGN KEY ("complaint_reason_id")
+        REFERENCES "moderation_complaint_reasons" ("id")
+        ON DELETE CASCADE
+);

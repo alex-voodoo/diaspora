@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-02-16 19:46+0100\n"
+"POT-Creation-Date: 2026-02-16 20:37+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -285,7 +285,7 @@ msgstr "Your complaint is registered.  Should other users complain to the messag
 msgid "MODERATION_NEW_REQUEST"
 msgstr "Users complain about a message (forwarded below) with the following reasons:"
 
-#: features/moderation/core.py:121
+#: features/moderation/core.py:122
 msgid "MODERATION_NEW_REQUEST_DETAILS_S {reason} {count}"
 msgid_plural "MODERATION_NEW_REQUEST_DETAILS_P {reason} {count}"
 msgstr[0] "{reason}: {count} complaint"
@@ -333,29 +333,9 @@ msgstr "The request is accepted.  Please kick the user from the group."
 msgid "MODERATION_MESSAGE_BAN"
 msgstr "Several members complained at this message.  Administrators will kick you from the group."
 
-#: features/moderation/render.py:8
+#: features/moderation/keyboards.py:29
 msgid "MODERATION_REASON_CANCEL"
 msgstr "⨂ Cancel"
-
-#: features/moderation/render.py:10
-msgid "MODERATION_REASON_FRAUD"
-msgstr "Fraud"
-
-#: features/moderation/render.py:12
-msgid "MODERATION_REASON_OFFENSE"
-msgstr "Offense"
-
-#: features/moderation/render.py:14
-msgid "MODERATION_REASON_RACISM"
-msgstr "Racism"
-
-#: features/moderation/render.py:16
-msgid "MODERATION_REASON_SPAM"
-msgstr "Spam"
-
-#: features/moderation/render.py:18
-msgid "MODERATION_REASON_TOXIC"
-msgstr "Toxicity"
 
 #: features/services/admin.py:43
 msgid "SERVICES_MESSAGE_DM_ADMIN_REQUEST_DB"
@@ -631,3 +611,4 @@ msgstr "Here is the directory:"
 #: features/services/state.py:185
 msgid "SERVICES_CATEGORY_LIST_TITLE"
 msgstr "List of categories"
+

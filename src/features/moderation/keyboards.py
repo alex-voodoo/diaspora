@@ -1,7 +1,7 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, User
 
 from common import i18n
-from features.moderation import const, render
+from features.moderation import const, state
 
 
 def select_complaint_reason(user: User, original_message_id: int) -> InlineKeyboardMarkup:
@@ -24,11 +24,10 @@ def select_complaint_reason(user: User, original_message_id: int) -> InlineKeybo
 
     trans = i18n.trans(user)
 
-    buttons = [(InlineKeyboardButton(render.reason_title(trans, reason_id),
-                                     callback_data=f"{original_message_id}:{user.id}:{reason_id}"),) for reason_id in
-               range(const.MODERATION_REASON_COUNT)]
-    buttons.append((InlineKeyboardButton(render.reason_title(trans, const.MODERATION_REASON_CANCEL),
-                                         callback_data=f"0:0:{const.MODERATION_REASON_CANCEL}"),))
+    buttons = [(InlineKeyboardButton(reason.title, callback_data=f"{original_message_id}:{reason.id}:{user.id}"),)
+               for reason in state.ComplaintReason.all()]
+    buttons.append((InlineKeyboardButton(trans.gettext("MODERATION_REASON_CANCEL"),
+                                         callback_data=f"0:{const.MODERATION_REASON_CANCEL}:0"),))
     return InlineKeyboardMarkup(buttons)
 
 
@@ -36,10 +35,10 @@ def unpack_complaint_reason(query_data: str) -> tuple[int, int, int]:
     """Unpack data sent in a callback query by pressing a button in a keyboard created by `select_complain_reason()`
 
     @param query_data: string attached to a button
-    @return: tuple that consists three items: ID of the original message, ID of the user that pressed the button, and
-    ID of the complaint reason.  The latter may be `const.MODERATION_REASON_CANCEL`, in that case two other IDs will be
-    equal to zero.
+    @return: tuple that consists three items: ID of the original message, ID of the complaint reason, and ID of the user
+    that pressed the button.  The complaint reason may be `const.MODERATION_REASON_CANCEL`, in that case two other IDs
+    will be equal to zero.
     """
 
-    original_message_id, from_user_id, reason_id = (int(x) for x in query_data.split(":"))
-    return original_message_id, from_user_id, reason_id
+    original_message_id, complaint_reason_id, from_user_id = (int(x) for x in query_data.split(":"))
+    return original_message_id, complaint_reason_id, from_user_id
