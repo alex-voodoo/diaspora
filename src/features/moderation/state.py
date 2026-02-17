@@ -114,10 +114,10 @@ class MainChatMessage:
     @classmethod
     def log(cls, message: Message) -> None:
         db.sql_exec(
-            "INSERT OR REPLACE INTO moderation_main_chat_messages (tg_id, timestamp, text, sender_tg_id, sender_name, "
-            "sender_username) "
+            "INSERT OR REPLACE INTO moderation_main_chat_messages "
+            "(tg_id, timestamp, text, sender_tg_id, sender_name, sender_username) "
             "VALUES(?, ?, ?, ?, ?, ?)", (
-                message.id, message.date.strftime("%Y-%m-%d %H:%M:%S"), message.text, message.from_user.id,
+                message.id, message.date.strftime("%Y-%m-%d %H:%M:%S"), cls._text_from_message(message), message.from_user.id,
                 message.from_user.full_name, message.from_user.username))
 
     @classmethod
@@ -136,7 +136,7 @@ class MainChatMessage:
         for row in db.sql_query(f"SELECT * FROM moderation_main_chat_messages "
                                 f"WHERE timestamp=? AND text=? AND {where_clause} ",
                                 (util.db_format(forwarded_message.forward_origin.date),
-                                 forwarded_message.text) + where_params):
+                                 cls._text_from_message(forwarded_message)) + where_params):
             row["timestamp"] = datetime.datetime.fromisoformat(row["timestamp"])
             original_message = MainChatMessage(**row)
             return original_message
@@ -147,6 +147,13 @@ class MainChatMessage:
         for row in db.sql_query("SELECT * FROM moderation_main_chat_messages WHERE tg_id=?", (tg_id,)):
             return MainChatMessage(**row)
         raise MainChatMessage.NotFound
+
+    @classmethod
+    def _text_from_message(cls, message: Message) -> str:
+        if message.text:
+            return message.text
+        if message.photo:
+            return ",".join(sorted(ps.file_unique_id for ps in message.photo))
 
 
 class Request:

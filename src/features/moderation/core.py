@@ -277,10 +277,11 @@ def init(application: Application, group):
     state.init()
 
     # TODO: handle images
-    application.add_handler(MessageHandler(filters.TEXT & (~ filters.COMMAND), _handle_message), group=group)
+    application.add_handler(
+        MessageHandler((filters.TEXT | filters.PHOTO) & (~ filters.COMMAND), _handle_message), group=group)
 
     application.add_handler(
-        CallbackQueryHandler(_accept_complaint_reason, pattern=re.compile("^[0-9]+:[0-9]+:[\-0-9]+$")), group=group)
+        CallbackQueryHandler(_accept_complaint_reason, pattern=re.compile("^[0-9]+:[\-0-9]+:[0-9]+$")), group=group)
 
     application.add_handler(PollHandler(_handle_complaint_poll))
 
