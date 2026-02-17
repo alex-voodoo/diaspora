@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-02-16 20:37+0100\n"
+"POT-Creation-Date: 2026-02-17 22:27+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -20,11 +20,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.16.0\n"
 
-#: bot.py:52
+#: bot.py:53
 msgid "MESSAGE_MC_LET_US_TALK_PRIVATE"
 msgstr "Let's talk private!"
 
-#: bot.py:67
+#: bot.py:68
 msgid "MESSAGE_MC_GREETING_M {user_first_name} {bot_first_name}"
 msgstr ""
 "Welcome, {user_first_name}!\n"
@@ -35,7 +35,7 @@ msgstr ""
 "\n"
 "<em>I will delete this message in five minutes.</em>"
 
-#: bot.py:69
+#: bot.py:70
 msgid "MESSAGE_MC_GREETING_F {user_first_name} {bot_first_name}"
 msgstr ""
 "Welcome, {user_first_name}!\n"
@@ -46,11 +46,11 @@ msgstr ""
 "\n"
 "<em>I will delete this message in five minutes.</em>"
 
-#: bot.py:101
+#: bot.py:102
 msgid "MESSAGE_MC_SPEAK_DEFAULT_LANGUAGE"
 msgstr "❗ Please follow the rules of this group and write in English, so that every other member would understand you."
 
-#: bot.py:113
+#: bot.py:114
 msgid "MESSAGE_MC_HELP"
 msgstr ""
 "I keep records of users who would like to offer something to others, and provide that information to everyone in this chat.\n"
@@ -59,7 +59,7 @@ msgstr ""
 "\n"
 "<em>Soon I will delete this message to keep this chat clean.</em>"
 
-#: bot.py:119
+#: bot.py:120
 msgid "MESSAGE_DM_HELP"
 msgstr ""
 "I keep records of users of the chat who would like to offer something to others, and provide that information to everyone in the chat.\n"
@@ -68,15 +68,15 @@ msgstr ""
 "\n"
 "Use the buttons below to see the records, to add yourself or update your data, and to remove your record (of course if you have one)."
 
-#: bot.py:134
+#: bot.py:135
 msgid "MESSAGE_ADMIN_MAIN_CHAT_ID {title} {id}"
 msgstr "The ID of the \"{title}\" group is {id}"
 
-#: bot.py:171
+#: bot.py:172
 msgid "MESSAGE_DM_ADMIN {since} {uptime}"
 msgstr "Online since {since} ({uptime})."
 
-#: bot.py:199
+#: bot.py:200
 msgid "ERROR_REPORT_BODY {error_uuid} {traceback} {update} {chat_data} {user_data}"
 msgstr ""
 "Error UUID {error_uuid}\n"
@@ -95,23 +95,23 @@ msgstr ""
 "\n"
 "context.user_data = {user_data}"
 
-#: bot.py:206
+#: bot.py:207
 msgid "ERROR_REPORT_CAPTION {error_uuid}"
 msgstr "Report for error <code>{error_uuid}</code>"
 
-#: bot.py:216
+#: bot.py:219
 msgid "MESSAGE_DM_INTERNAL_ERROR {error_uuid}"
 msgstr "Something went wrong (in me).  The error is registered with code <code>{error_uuid}</code>.  I will notify my administrator."
 
-#: bot.py:227
+#: bot.py:230
 msgid "COMMAND_DESCRIPTION_START"
 msgstr "Main menu"
 
-#: bot.py:228
+#: bot.py:231
 msgid "COMMAND_DESCRIPTION_ADMIN"
 msgstr "Administrator's menu"
 
-#: bot.py:239
+#: bot.py:242
 msgid "MESSAGE_ADMIN_HELLO_ON_STARTUP"
 msgstr "I am online."
 

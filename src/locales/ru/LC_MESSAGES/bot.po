@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-02-16 20:37+0100\n"
+"POT-Creation-Date: 2026-02-17 22:27+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -20,11 +20,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.16.0\n"
 
-#: bot.py:52
+#: bot.py:53
 msgid "MESSAGE_MC_LET_US_TALK_PRIVATE"
 msgstr "Напишите мне личное сообщение"
 
-#: bot.py:67
+#: bot.py:68
 msgid "MESSAGE_MC_GREETING_M {user_first_name} {bot_first_name}"
 msgstr ""
 "Добро пожаловать, {user_first_name}!\n"
@@ -35,7 +35,7 @@ msgstr ""
 "\n"
 "<em>Я удалю это сообщение через пять минут.</em>"
 
-#: bot.py:69
+#: bot.py:70
 msgid "MESSAGE_MC_GREETING_F {user_first_name} {bot_first_name}"
 msgstr ""
 "Добро пожаловать, {user_first_name}!\n"
@@ -46,11 +46,11 @@ msgstr ""
 "\n"
 "<em>Я удалю это сообщение через пять минут.</em>"
 
-#: bot.py:101
+#: bot.py:102
 msgid "MESSAGE_MC_SPEAK_DEFAULT_LANGUAGE"
 msgstr "❗ Пожалуйста, следуйте правилам группы и пишите по-русски, чтобы вас понимали все участники."
 
-#: bot.py:113
+#: bot.py:114
 msgid "MESSAGE_MC_HELP"
 msgstr ""
 "Я записываю пользователей, которые предлагают услуги, и показываю их список всем участникам чата.\n"
@@ -59,7 +59,7 @@ msgstr ""
 "\n"
 "<em>Я скоро удалю это сообщение, чтобы не засорять чат.</em>"
 
-#: bot.py:119
+#: bot.py:120
 msgid "MESSAGE_DM_HELP"
 msgstr ""
 "Я записываю пользователей, которые предлагают услуги, и показываю их список всем участникам чата.\n"
@@ -68,15 +68,15 @@ msgstr ""
 "\n"
 "С помощью кнопок ниже можно посмотреть список контактов, добавиться в него, изменить или удалить свою запись."
 
-#: bot.py:134
+#: bot.py:135
 msgid "MESSAGE_ADMIN_MAIN_CHAT_ID {title} {id}"
 msgstr "ID группы «{title}»: {id}"
 
-#: bot.py:171
+#: bot.py:172
 msgid "MESSAGE_DM_ADMIN {since} {uptime}"
 msgstr "На связи с {since} ({uptime})"
 
-#: bot.py:199
+#: bot.py:200
 msgid "ERROR_REPORT_BODY {error_uuid} {traceback} {update} {chat_data} {user_data}"
 msgstr ""
 "UUID ошибки {error_uuid}\n"
@@ -95,23 +95,23 @@ msgstr ""
 "\n"
 "context.user_data = {user_data}"
 
-#: bot.py:206
+#: bot.py:207
 msgid "ERROR_REPORT_CAPTION {error_uuid}"
 msgstr "Отчёт об ошибке <code>{error_uuid}</code>"
 
-#: bot.py:216
+#: bot.py:219
 msgid "MESSAGE_DM_INTERNAL_ERROR {error_uuid}"
 msgstr "Что-то сломалось (во мне). Ошибка зарегистрирована с кодом <code>{error_uuid}</code>. Я сообщу моему администратору."
 
-#: bot.py:227
+#: bot.py:230
 msgid "COMMAND_DESCRIPTION_START"
 msgstr "Главное меню"
 
-#: bot.py:228
+#: bot.py:231
 msgid "COMMAND_DESCRIPTION_ADMIN"
 msgstr "Меню администратора"
 
-#: bot.py:239
+#: bot.py:242
 msgid "MESSAGE_ADMIN_HELLO_ON_STARTUP"
 msgstr "Я на связи."
 

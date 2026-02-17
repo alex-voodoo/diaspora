@@ -39,7 +39,7 @@ COMMAND_START, COMMAND_HELP, COMMAND_ADMIN = ("start", "help", "admin")
 message_languages: deque
 
 
-async def talking_private(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+async def talking_private(update: Update, context: ContextTypes.DEFAULT_TYPE, reply_to_message: bool = True) -> bool:
     """Helper for handlers that require private conversation
 
     Most features of the bot should not be accessed from the main chat, instead users should talk to the bot directly
@@ -49,8 +49,9 @@ async def talking_private(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     """
 
     if not update.effective_chat or update.effective_chat.type != ChatType.PRIVATE:
-        await self_destructing_reply(update, context, i18n.trans(update.effective_message.from_user).gettext(
-            "MESSAGE_MC_LET_US_TALK_PRIVATE"), settings.DELETE_MESSAGE_TIMEOUT)
+        if reply_to_message:
+            await self_destructing_reply(update, context, i18n.trans(update.effective_message.from_user).gettext(
+                "MESSAGE_MC_LET_US_TALK_PRIVATE"), settings.DELETE_MESSAGE_TIMEOUT, False)
         return False
     return True
 
@@ -209,7 +210,9 @@ async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> No
 
     # Optionally, respond to the user whose message caused the error, if that message was sent in private (do not
     # make noise in the group).
-    if not isinstance(update, Update) or not update.effective_message or not await talking_private(update, context):
+    if (not isinstance(update, Update)
+            or not update.effective_message
+            or not await talking_private(update, context, False)):
         return
 
     await update.effective_message.reply_text(
