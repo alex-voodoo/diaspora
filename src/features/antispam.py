@@ -16,6 +16,7 @@ from telegram.ext import Application, CallbackQueryHandler, ConversationHandler,
 
 from common import db, i18n
 from common.admin import get_main_keyboard, register_buttons, save_file_with_backup
+from common.bot import reply, send
 from common.checks import is_admin
 from common.messaging_helpers import delete_message, safe_delete_message
 from common.settings import settings
@@ -200,8 +201,7 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     except Exception as e:
         logger.error("Exception while trying to detect spam:", exc_info=e)
 
-        await context.bot.send_message(chat_id=settings.DEVELOPER_CHAT_ID,
-                                       text=f"Exception caught while analysing spam: {str(e)}")
+        await send(context, settings.DEVELOPER_CHAT_ID, f"Exception caught while analysing spam: {str(e)}")
         return
 
     await safe_delete_message(context, message.id, message.chat.id)
@@ -211,13 +211,12 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     else:
         delete_notice = i18n.default().gettext("ANTISPAM_MESSAGE_MC_SPAM_DETECTED_F {username}")
 
-    posted_message = await context.bot.send_message(settings.MAIN_CHAT_ID,
-                                                    delete_notice.format(username=message.from_user.full_name),
-                                                    disable_notification=True)
+    posted_message = await send(context, settings.MAIN_CHAT_ID, delete_notice.format(
+        username=message.from_user.full_name), disable_notification=True)
     context.job_queue.run_once(delete_message, 15, data=(posted_message, False))
 
 
-async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> [None, int]:
+async def handle_query_admin(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> [None, int]:
     query = update.callback_query
     user = query.from_user
 
@@ -236,11 +235,11 @@ async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE)
     elif query.data == ADMIN_DOWNLOAD_KEYWORDS:
         await user.send_document(get_keywords(), filename=KEYWORDS_FILENAME, reply_markup=None)
     elif query.data == ADMIN_UPLOAD_KEYWORDS:
-        await query.message.reply_text(trans.gettext("ANTISPAM_MESSAGE_DM_ADMIN_REQUEST_KEYWORDS"))
+        await reply(update, trans.gettext("ANTISPAM_MESSAGE_DM_ADMIN_REQUEST_KEYWORDS"))
 
         return ADMIN_UPLOADING_KEYWORDS
     elif query.data == ADMIN_UPLOAD_OPENAI:
-        await query.message.reply_text(trans.gettext("ANTISPAM_MESSAGE_DM_ADMIN_REQUEST_OPENAI"))
+        await reply(update, trans.gettext("ANTISPAM_MESSAGE_DM_ADMIN_REQUEST_OPENAI"))
 
         return ADMIN_UPLOADING_OPENAI
 
@@ -323,7 +322,7 @@ def init(application: Application, group):
     application.add_handler(MessageHandler(filters.TEXT & (~ filters.COMMAND), detect_spam), group=group)
 
 
-def post_init(application: Application, group):
+def post_init(_application: Application, _group: int):
     """Post-init"""
 
     if not settings.ANTISPAM_ENABLED:

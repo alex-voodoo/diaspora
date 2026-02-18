@@ -27,9 +27,9 @@ async def restrict_chat_member(context: ContextTypes.DEFAULT_TYPE, chat_id: int,
 
 
 async def send(context: ContextTypes.DEFAULT_TYPE, chat_id: int, text: str, reply_markup: InlineKeyboardMarkup = None,
-               reply_to_message_id: int = None) -> None:
+               reply_to_message_id: int = None, disable_notification: bool = False) -> None:
     await context.bot.send_message(chat_id=chat_id, text=text, reply_markup=reply_markup,
-                                   reply_to_message_id=reply_to_message_id)
+                                   reply_to_message_id=reply_to_message_id, disable_notification=disable_notification)
 
 
 async def send_poll(context: ContextTypes.DEFAULT_TYPE, chat_id: int, question: str,

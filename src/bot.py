@@ -18,6 +18,8 @@ from telegram import BotCommand, LinkPreviewOptions, MenuButtonCommands, Update
 from telegram.constants import ParseMode, ChatType
 from telegram.ext import Application, CommandHandler, ContextTypes, Defaults, filters, MessageHandler
 
+from common.bot import send
+
 # Configure logging before importing settings and other project modules to have messages that may be rendered during
 # initialisation logged correctly.
 # Set higher logging level for httpx to avoid all GET and POST requests being logged.
@@ -98,8 +100,7 @@ async def detect_language(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     if settings.DEFAULT_LANGUAGE not in message_languages:
         message_languages = deque()
-        await context.bot.send_message(chat_id=settings.MAIN_CHAT_ID,
-                                       text=i18n.default().gettext("MESSAGE_MC_SPEAK_DEFAULT_LANGUAGE"))
+        await send(context, settings.MAIN_CHAT_ID, i18n.default().gettext("MESSAGE_MC_SPEAK_DEFAULT_LANGUAGE"))
 
 
 async def handle_command_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -131,9 +132,9 @@ async def handle_command_start(update: Update, context: ContextTypes.DEFAULT_TYP
             username=user.username, chat_name=message.chat.title, chat_id=message.chat.id))
 
         await safe_delete_message(context, message.id, message.chat.id)
-        await context.bot.send_message(chat_id=settings.DEVELOPER_CHAT_ID,
-                                       text=i18n.trans(user).gettext("MESSAGE_ADMIN_MAIN_CHAT_ID {title} {id}").format(
-                                           title=message.chat.title, id=str(message.chat.id)))
+        await send(context, settings.DEVELOPER_CHAT_ID,
+                   i18n.trans(user).gettext("MESSAGE_ADMIN_MAIN_CHAT_ID {title} {id}").format(
+                       title=message.chat.title, id=str(message.chat.id)))
         return
 
     if not await talking_private(update, context):
@@ -168,10 +169,8 @@ async def handle_command_admin(update: Update, context: ContextTypes.DEFAULT_TYP
     if not await talking_private(update, context):
         await safe_delete_message(context, message.id, message.chat.id)
 
-    await context.bot.send_message(chat_id=user.id,
-                                   text=i18n.trans(user).gettext("MESSAGE_DM_ADMIN {since} {uptime}").format(
-                                       since=settings.start_timestamp, uptime=settings.uptime),
-                                   reply_markup=get_main_keyboard())
+    await send(context, user.id, text=i18n.trans(user).gettext("MESSAGE_DM_ADMIN {since} {uptime}").format(
+        since=settings.start_timestamp, uptime=settings.uptime), reply_markup=get_main_keyboard())
 
 
 async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -234,8 +233,8 @@ async def post_init(application: Application) -> None:
         await bot.set_chat_menu_button(administrator["id"], MenuButtonCommands())
 
     services.post_init(application)
-    antispam.post_init(application, group=1)
-    glossary.post_init(application, group=4)
+    antispam.post_init(application, 1)
+    glossary.post_init(application, 4)
 
     if settings.DEVELOPER_CHAT_ID:
         await bot.send_message(chat_id=settings.DEVELOPER_CHAT_ID,
@@ -275,9 +274,9 @@ def main() -> None:
 
         application.add_handler(MessageHandler(filters.TEXT & (~ filters.COMMAND), detect_language), group=3)
 
-    antispam.init(application, group=1)
-    glossary.init(application, group=4)
-    moderation.init(application, group=6)
+    antispam.init(application, 1)
+    glossary.init(application, 4)
+    moderation.init(application, 6)
 
     application.add_error_handler(handle_error)
 
