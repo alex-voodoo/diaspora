@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-02-17 22:27+0100\n"
+"POT-Creation-Date: 2026-02-18 19:58+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -243,31 +243,31 @@ msgstr "Выгрузить глоссарий"
 msgid "GLOSSARY_BUTTON_UPLOAD_TERMS"
 msgstr "Загрузить глоссарий"
 
-#: features/moderation/core.py:20
+#: features/moderation/core.py:21
 msgid "MODERATION_ACCEPT_COMPLAINT_ANSWER_ACCEPT"
 msgstr "Принять"
 
-#: features/moderation/core.py:24
+#: features/moderation/core.py:25
 msgid "MODERATION_ACCEPT_COMPLAINT_ANSWER_REJECT"
 msgstr "Отклонить"
 
-#: features/moderation/core.py:56
+#: features/moderation/core.py:57
 msgid "DM_MODERATION_MESSAGE_NOT_FOUND"
 msgstr "Сообщение не найдено в основной группе. Возможно, его уже удалили?"
 
-#: features/moderation/core.py:61
+#: features/moderation/core.py:62
 msgid "DM_MODERATION_MODERATORS_CANNOT_COMPLAIN"
 msgstr "Модераторы не могут подавать жалобы."
 
-#: features/moderation/core.py:66
+#: features/moderation/core.py:67
 msgid "DM_MODERATION_MESSAGE_ALREADY_COMPLAINED"
 msgstr "Согласно моим записям, вы уже отправили жалобу на это сообщение. Нет нужды делать это повторно."
 
-#: features/moderation/core.py:71
+#: features/moderation/core.py:72
 msgid "DM_MODERATION_MESSAGE_ALREADY_PROCESSING"
 msgstr "Спасибо за помощь. Модераторы уже принимают решение по этому сообщению."
 
-#: features/moderation/core.py:78
+#: features/moderation/core.py:79
 msgid "DM_MODERATION_MESSAGE_POSTED_BEFORE_MOST_RECENT_RESTRICTION"
 msgstr "Это сообщение было отправлено до того, как его автор получил по заслугам. Надеюсь, нарушитель встал на путь исправления."
 
@@ -275,65 +275,65 @@ msgstr "Это сообщение было отправлено до того, �
 msgid "DM_MODERATION_MESSAGE_SELECT_COMPLAINT_REASON"
 msgstr "Пожалуйста, укажите причину жалобы."
 
-#: features/moderation/core.py:101
+#: features/moderation/core.py:100
 msgid "DM_MODERATION_REQUEST_CANCELLED"
 msgstr "Действие отменено."
 
-#: features/moderation/core.py:107
+#: features/moderation/core.py:106
 msgid "DM_MODERATION_REQUEST_REGISTERED"
 msgstr "Жалоба зарегистрирована. Если на пересланное вами сообщение будут жалобы от других пользователей, я сообщу модераторам."
 
-#: features/moderation/core.py:119
+#: features/moderation/core.py:118
 msgid "MODERATION_NEW_REQUEST"
 msgstr "От пользователей поступают жалобы на сообщение (пересылаю ниже) по следующим причинам:"
 
-#: features/moderation/core.py:122
+#: features/moderation/core.py:121
 msgid "MODERATION_NEW_REQUEST_DETAILS_S {reason} {count}"
 msgid_plural "MODERATION_NEW_REQUEST_DETAILS_P {reason} {count}"
 msgstr[0] "{reason}: {count} жалоба"
 msgstr[1] "{reason}: {count} жалобы"
 msgstr[2] "{reason}: {count} жалоб"
 
-#: features/moderation/core.py:128
+#: features/moderation/core.py:126
 msgid "MODERATION_ACCEPT_COMPLAINT_QUESTION"
 msgstr "Правомерно ли обращение?"
 
-#: features/moderation/core.py:202
+#: features/moderation/core.py:200
 msgid "MODERATION_RESULT_REJECTED"
 msgstr "Обращение отклонено."
 
-#: features/moderation/core.py:218
+#: features/moderation/core.py:216
 msgid "MINUTES_S {count}"
 msgid_plural "MINUTES_P {count}"
 msgstr[0] "{count} минута"
 msgstr[1] "{count} минуты"
 msgstr[2] "{count} минут"
 
-#: features/moderation/core.py:221
+#: features/moderation/core.py:219
 msgid "MODERATION_NOT_REAL_DISCLAIMER"
 msgstr "<i>Согласно текущим настройкам, это симуляция.</i>"
 
-#: features/moderation/core.py:226
+#: features/moderation/core.py:224
 msgid "MODERATION_RESULT_ACCEPTED_WARN {cooldown}"
 msgstr "Обращение принято. Пользователю выдано предупреждение. Испытательный период {cooldown}."
 
-#: features/moderation/core.py:228
+#: features/moderation/core.py:226
 msgid "MODERATION_MESSAGE_WARNING"
 msgstr "Несколько участников группы пожаловались на это сообщение. Пожалуйста, соблюдайте приличия."
 
-#: features/moderation/core.py:230
+#: features/moderation/core.py:228
 msgid "MODERATION_RESULT_ACCEPTED_RESTRICT {cooldown} {duration}"
 msgstr "Обращение принято. Пользователь ограничен на {duration}, после этого испытательный период {cooldown}."
 
-#: features/moderation/core.py:232
+#: features/moderation/core.py:230
 msgid "MODERATION_MESSAGE_RESTRICTION {duration}"
 msgstr "Несколько участников группы пожаловались на это сообщение. Я ограничиваю вам возможность отправлять сообщения на {duration}."
 
-#: features/moderation/core.py:239
+#: features/moderation/core.py:236
 msgid "MODERATION_RESULT_ACCEPTED_BAN"
 msgstr "Обращение принято. Пожалуйста, удалите пользователя из группы."
 
-#: features/moderation/core.py:240
+#: features/moderation/core.py:237
 msgid "MODERATION_MESSAGE_BAN"
 msgstr "Несколько участников группы пожаловались на это сообщение. Прошу администраторов удалить вас из группы."
 
@@ -341,87 +341,87 @@ msgstr "Несколько участников группы пожаловал�
 msgid "MODERATION_REASON_CANCEL"
 msgstr "⨂ Отмена"
 
-#: features/services/admin.py:43
+#: features/services/admin.py:44
 msgid "SERVICES_MESSAGE_DM_ADMIN_REQUEST_DB"
 msgstr "Ожидаю JSON-файл."
 
-#: features/services/admin.py:72
+#: features/services/admin.py:73
 msgid "SERVICES_MESSAGE_DM_ADMIN_DB_IMPORTED"
 msgstr "Принято."
 
-#: features/services/admin.py:75
+#: features/services/admin.py:76
 msgid "SERVICES_MESSAGE_DM_ADMIN_INVALID_JSON"
 msgstr "Неверный формат файла."
 
-#: features/services/admin.py:78
+#: features/services/admin.py:79
 msgid "ADMIN_MESSAGE_DM_INTERNAL_ERROR"
 msgstr "Произошла внутренняя ошибка. Подробности должны быть в журнале."
 
-#: features/services/admin.py:89
+#: features/services/admin.py:90
 msgid "SERVICES_VIEW_COUNT_S {count}"
 msgid_plural "SERVICES_VIEW_COUNT_P {count}"
 msgstr[0] "{count} просмотр"
 msgstr[1] "{count} просмотра"
 msgstr[2] "{count} просмотров"
 
-#: features/services/admin.py:92
+#: features/services/admin.py:94
 msgid "SERVICES_VIEWER_COUNT_S {count}"
 msgid_plural "SERVICES_VIEWER_COUNT_P {count}"
 msgstr[0] "{count} пользователь"
 msgstr[1] "{count} пользователя"
 msgstr[2] "{count} пользователей"
 
-#: features/services/admin.py:102
+#: features/services/admin.py:105
 msgid "ADMIN_MESSAGE_DM_STATS_EMPTY"
 msgstr "Статистики пока нет."
 
-#: features/services/admin.py:105
+#: features/services/admin.py:108
 msgid "SERVICES_MESSAGE_DM_ADMIN_STATS_HEADER {from_date}"
 msgstr "<b>Просмотры категорий за период с {from_date}</b>"
 
-#: features/services/admin.py:119
+#: features/services/admin.py:122
 msgid "SERVICES_MESSAGE_DM_ADMIN_STATS_FOOTER_ADMINISTRATORS_EXCLUDED"
 msgstr "Активность администраторов исключена из статистики."
 
-#: features/services/admin.py:133
+#: features/services/admin.py:136
 msgid "SERVICES_ADMIN_BUTTON_EXPORT_DB"
 msgstr "Выгрузить книгу услуг"
 
-#: features/services/admin.py:135
+#: features/services/admin.py:138
 msgid "SERVICES_ADMIN_BUTTON_IMPORT_DB"
 msgstr "Загрузить книгу услуг"
 
-#: features/services/admin.py:137
+#: features/services/admin.py:140
 msgid "SERVICES_ADMIN_BUTTON_STATS"
 msgstr "Статистика книги услуг"
 
-#: features/services/core.py:38 features/services/core_test.py:35
+#: features/services/core.py:39 features/services/core_test.py:35
 msgid "SERVICES_DM_DATA_FIELD_LIMIT_S {limit}"
 msgid_plural "SERVICES_DM_DATA_FIELD_LIMIT_P {limit}"
 msgstr[0] "(Не более {limit} символа.)"
 msgstr[1] "(Не более {limit} символов.)"
 msgstr[2] "(Не более {limit} символов.)"
 
-#: features/services/core.py:116 features/services/core_test.py:166
+#: features/services/core.py:117 features/services/core_test.py:166
 msgid "SERVICES_DM_HELLO_AGAIN {user_first_name}"
 msgstr "Здравствуйте, {user_first_name}. Вот ваша запись.\n"
 
-#: features/services/core.py:120 features/services/core_test.py:203
+#: features/services/core.py:121 features/services/core_test.py:203
 msgid "SERVICES_DM_HELLO_AGAIN_S {user_first_name} {record_count}"
 msgid_plural "SERVICES_DM_HELLO_AGAIN_P {user_first_name} {record_count}"
 msgstr[0] "Здравствуйте, {user_first_name}. Вот ваша {record_count} запись.\n"
 msgstr[1] "Здравствуйте, {user_first_name}. Вот ваши {record_count} записи.\n"
 msgstr[2] "Здравствуйте, {user_first_name}. Вот ваши {record_count} записей.\n"
 
-#: features/services/core.py:130
+#: features/services/core.py:131
 msgid "SERVICES_DM_NO_RECORDS"
 msgstr "У вас нет записей."
 
-#: features/services/core.py:134 features/services/core_test.py:163
+#: features/services/core.py:135 features/services/core_test.py:163
 msgid "SERVICES_DM_HELLO {bot_first_name} {main_chat_name}"
 msgstr "Здравствуйте, я бот {bot_first_name} — хранитель полезных контактов группы «{main_chat_name}». Подскажу, кто будет полезен вам, или помогу найти клиентов."
 
-#: features/services/core.py:146 features/services/core_test.py:223
+#: features/services/core.py:147 features/services/core_test.py:223
 #: features/services/core_test.py:236
 msgid "SERVICES_ADMIN_APPROVE_USER_DATA {category} {description} {location} {occupation} {username}"
 msgstr ""
@@ -432,119 +432,119 @@ msgstr ""
 "\n"
 "Принять изменения?"
 
-#: features/services/core.py:171 features/services/core_test.py:276
+#: features/services/core.py:172 features/services/core_test.py:276
 msgid "SERVICES_DM_WHO_CATEGORY_LIST"
 msgstr "Какую категорию показать?"
 
-#: features/services/core.py:214 features/services/core_test.py:367
+#: features/services/core.py:215 features/services/core_test.py:367
 msgid "SERVICES_DM_WHO_EMPTY"
 msgstr "Пока никто не записался, будьте первым!"
 
-#: features/services/core.py:247 features/services/core_test.py:455
+#: features/services/core.py:248 features/services/core_test.py:455
 msgid "SERVICES_DM_ENROLL_USERNAME_REQUIRED"
 msgstr ""
 "В вашем профиле Телеграм не задано имя пользователя. Добавьте его в настройках, чтобы другие участники могли написать вам, не зная вашего номера.\n"
 "\n"
 "После этого я смогу добавить вас в список."
 
-#: features/services/core.py:250 features/services/core_test.py:472
+#: features/services/core.py:251 features/services/core_test.py:472
 #: features/services/core_test.py:485
 msgid "SERVICES_DM_ENROLL_START"
 msgstr "Давайте знакомиться!"
 
-#: features/services/core.py:258 features/services/core_test.py:486
+#: features/services/core.py:259 features/services/core_test.py:486
 msgid "SERVICES_DM_ENROLL_ASK_CATEGORY"
 msgstr "Выберите категорию, к которой можно отнести вашу услугу."
 
-#: features/services/core.py:265 features/services/core.py:314
+#: features/services/core.py:266 features/services/core.py:315
 #: features/services/core_test.py:473
 msgid "SERVICES_DM_ENROLL_ASK_OCCUPATION"
 msgstr "Сформулируйте коротко, кто вы или что вы делаете. Например, «Парикмахер», «Няня», «Учу сёрфингу», «Помогаю с уборкой»."
 
-#: features/services/core.py:278
+#: features/services/core.py:279
 msgid "SERVICES_DM_SELECT_CATEGORY_FOR_UPDATE"
 msgstr "Выберите категорию для редактирования."
 
-#: features/services/core.py:309
+#: features/services/core.py:310
 msgid "SERVICES_DM_UPDATE_OCCUPATION {title} {current_value}"
 msgstr ""
 "Введите новое краткое описание вашей услуги в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:333 features/services/core_test.py:49
+#: features/services/core.py:334 features/services/core_test.py:49
 #: features/services/core_test.py:107
 msgid "SERVICES_DM_ENROLL_ASK_DESCRIPTION"
 msgstr "Опишите вашу услугу подробно."
 
-#: features/services/core.py:334 features/services/core_test.py:50
+#: features/services/core.py:335 features/services/core_test.py:50
 #: features/services/core_test.py:108
 msgid "SERVICES_DM_UPDATE_DESCRIPTION {title} {current_value}"
 msgstr ""
 "Введите новое подробное описание вашей услуги в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:351
+#: features/services/core.py:352
 msgid "SERVICES_DM_ENROLL_ASK_LOCATION"
 msgstr ""
 "Где вы оказываете услуги?\n"
 "\n"
 "Укажите город по-русски: Сантьяго, Корунья, Виго и др. Если городов несколько, пишите «Галисия»."
 
-#: features/services/core.py:352
+#: features/services/core.py:353
 msgid "SERVICES_DM_UPDATE_LOCATION {title} {current_value}"
 msgstr ""
 "Введите новое описание места, где вы оказываете услугу в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:367
+#: features/services/core.py:368
 msgid "SERVICES_DM_ENROLL_CONFIRM_LEGALITY"
 msgstr ""
 "И последнее: подтвердите, что не нарушаете местные законы и правила.\n"
 "\n"
 "Ваша услуга легальна?"
 
-#: features/services/core.py:401
+#: features/services/core.py:402
 msgid "SERVICES_DM_ENROLL_COMPLETED"
 msgstr "Готово, вы добавлены в список!"
 
-#: features/services/core.py:403
+#: features/services/core.py:404
 msgid "SERVICES_DM_ENROLL_COMPLETED_POST_MODERATION"
 msgstr "Готово, вы добавлены в список! Обратите внимание, модераторы могут скрыть вашу запись, если она нарушает правила группы."
 
-#: features/services/core.py:405
+#: features/services/core.py:406
 msgid "SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION"
 msgstr "Готово! Я добавлю вас в список после проверки модераторами."
 
-#: features/services/core.py:417
+#: features/services/core.py:418
 msgid "SERVICES_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"
 msgstr "Извините, я не могу добавлять нелегальные услуги."
 
-#: features/services/core.py:442
+#: features/services/core.py:443
 msgid "SERVICES_ADMIN_USER_RECORD_APPROVED"
 msgstr "Одобрено."
 
-#: features/services/core.py:452
+#: features/services/core.py:453
 msgid "SERVICES_ADMIN_USER_RECORD_SUSPENDED"
 msgstr "Запись скрыта."
 
-#: features/services/core.py:467
+#: features/services/core.py:468
 msgid "SERVICES_DM_SELECT_CATEGORY_FOR_RETIRE"
 msgstr "Выберите категорию для удаления."
 
-#: features/services/core.py:482
+#: features/services/core.py:483
 msgid "SERVICES_DM_RETIRE"
 msgstr "Запись удалена."
 
-#: features/services/core.py:496 features/services/core_test.py:533
+#: features/services/core.py:497 features/services/core_test.py:533
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Начнём сначала."
 
-#: features/services/core.py:519 features/services/core.py:522
+#: features/services/core.py:520 features/services/core.py:523
 #: features/services/core_test.py:617 features/services/core_test.py:644
 msgid "SERVICES_DM_SERVICE_NOT_FOUND"
 msgstr "Услуга не найдена."
 
-#: features/services/core.py:528 features/services/core_test.py:583
+#: features/services/core.py:529 features/services/core_test.py:583
 #: features/services/core_test.py:631
 msgid "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}"
 msgstr ""
@@ -555,7 +555,7 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/core.py:533 features/services/core_test.py:599
+#: features/services/core.py:534 features/services/core_test.py:599
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "Услуга @{username} в категории <b>{category_title}</b>\n"

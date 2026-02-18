@@ -1,0 +1,11 @@
+DROP TABLE "moderation_polls";
+
+CREATE TABLE "moderation_polls" (
+    "tg_id"                     TEXT UNIQUE NOT NULL,
+    "original_message_tg_id"    INTEGER UNIQUE NOT NULL,
+    "poll_message_tg_id"        INTEGER UNIQUE NOT NULL,
+    "is_running"                INTEGER NOT NULL DEFAULT 1,
+    FOREIGN KEY ("original_message_tg_id")
+        REFERENCES "moderation_main_chat_messages" ("tg_id")
+        ON DELETE CASCADE
+);

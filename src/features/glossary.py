@@ -16,9 +16,10 @@ from telegram.ext import Application, CallbackQueryHandler, ContextTypes, Conver
 
 from common import i18n, settings
 from common.admin import register_buttons, save_file_with_backup
+from common.bot import reply
 from common.checks import is_admin
 from common.log import LogTime
-from common.messaging_helpers import reply, self_destructing_reaction, self_destructing_reply
+from common.messaging_helpers import self_destructing_reaction, self_destructing_reply
 from common.settings import settings
 
 TERMS_FILENAME = "glossary_terms.csv"
@@ -27,7 +28,6 @@ TERMS_FILE_PATH = settings.data_dir / TERMS_FILENAME
 # Admin keyboard commands
 ADMIN_DOWNLOAD_TERMS, ADMIN_UPLOAD_TERMS = "glossary-download-terms", "glossary-upload-terms"
 ADMIN_UPLOADING_TERMS = 1
-
 
 # Glossary data.  List of dictionary items with the following fields:
 # - regex: regular expression that should capture the trigger in a message in any form, including misspellings

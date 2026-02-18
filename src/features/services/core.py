@@ -12,7 +12,7 @@ from telegram import Update
 from telegram.ext import Application, CallbackQueryHandler, ContextTypes, ConversationHandler, filters, MessageHandler
 
 from common import i18n
-from common.messaging_helpers import reply, send
+from common.bot import reply, send
 from common.settings import settings
 from . import admin, const, keyboards, render, state
 
@@ -25,6 +25,7 @@ def _get_all_services() -> dict:
         result[service.category.id].append(service)
 
     return result
+
 
 def _maybe_append_limit_warning(trans: gettext.GNUTranslations, message: list, limit: int) -> None:
     """Perform one repeating part of conversation logic where a value is checked against length limit
@@ -558,11 +559,12 @@ def init(application: Application, group: int) -> None:
                 const.CONFIRMING_LEGALITY: [CallbackQueryHandler(_verify_legality_and_finalise_data_collection)]},
         fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]), group=group)
 
-    application.add_handler(ConversationHandler(entry_points=[CallbackQueryHandler(_handle_command_who, pattern=const.COMMAND_WHO)],
-                                                states={const.SELECTING_CATEGORY: [
-                                                    CallbackQueryHandler(_who_received_category)]},
-                                                fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]),
-                            group=group)
+    application.add_handler(
+        ConversationHandler(entry_points=[CallbackQueryHandler(_handle_command_who, pattern=const.COMMAND_WHO)],
+                            states={const.SELECTING_CATEGORY: [
+                                CallbackQueryHandler(_who_received_category)]},
+                            fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]),
+        group=group)
 
     application.add_handler(
         ConversationHandler(entry_points=[CallbackQueryHandler(_handle_command_retire, pattern=const.COMMAND_RETIRE)],

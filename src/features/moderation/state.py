@@ -117,7 +117,8 @@ class MainChatMessage:
             "INSERT OR REPLACE INTO moderation_main_chat_messages "
             "(tg_id, timestamp, text, sender_tg_id, sender_name, sender_username) "
             "VALUES(?, ?, ?, ?, ?, ?)", (
-                message.id, message.date.strftime("%Y-%m-%d %H:%M:%S"), cls._text_from_message(message), message.from_user.id,
+                message.id, message.date.strftime("%Y-%m-%d %H:%M:%S"), cls._text_from_message(message),
+                message.from_user.id,
                 message.from_user.full_name, message.from_user.username))
 
     @classmethod
@@ -200,14 +201,14 @@ class Poll:
     class NotFound(Exception):
         pass
 
-    def __init__(self, tg_id: int, original_message_tg_id: int, poll_message_tg_id: int, is_running: bool):
+    def __init__(self, tg_id: str, original_message_tg_id: int, poll_message_tg_id: int, is_running: bool):
         self._tg_id = tg_id
         self._original_message_tg_id = original_message_tg_id
         self._poll_message_tg_id = poll_message_tg_id
         self._is_running = is_running
 
     @property
-    def tg_id(self) -> int:
+    def tg_id(self) -> str:
         return self._tg_id
 
     @property
@@ -234,19 +235,19 @@ class Poll:
         return False
 
     @classmethod
-    def create(cls, tg_id: int, original_message_tg_id: int, poll_message_tg_id: int) -> None:
+    def create(cls, tg_id: str, original_message_tg_id: int, poll_message_tg_id: int) -> None:
         db.sql_exec("INSERT INTO moderation_polls(tg_id, original_message_tg_id, poll_message_tg_id) "
                     "VALUES(?, ?, ?)", (tg_id, original_message_tg_id, poll_message_tg_id))
 
     @classmethod
-    def get(cls, tg_id) -> Self:
+    def get(cls, tg_id: str) -> Self:
         for row in db.sql_query("SELECT * FROM moderation_polls WHERE tg_id=?", (tg_id,)):
             row["is_running"] = bool(row["is_running"])
             return Poll(**row)
         raise cls.NotFound
 
     @classmethod
-    def get_all_running_for(cls, user_tg_id) -> Iterator[Self]:
+    def get_all_running_for(cls, user_tg_id: int) -> Iterator[Self]:
         """Return all polls running for messages sent by the same user as this one"""
 
         for row in db.sql_query(

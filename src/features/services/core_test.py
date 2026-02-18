@@ -16,7 +16,7 @@ from .test_util import *
 class TestCore(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.application = Application.builder().token(settings.BOT_TOKEN).build()
-        self.application.bot = test_util.MockBot(token=settings.BOT_TOKEN)
+        self.application.bot = test_util.MockBot()
 
     def tearDown(self):
         load_test_categories(0)

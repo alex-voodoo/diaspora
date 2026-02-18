@@ -6,6 +6,8 @@ from unittest.mock import MagicMock
 
 from telegram import Bot, CallbackQuery, Chat, User
 
+from common.settings import settings
+
 
 class AsyncMock(MagicMock):
     async def __call__(self, *args, **kwargs):
@@ -13,8 +15,9 @@ class AsyncMock(MagicMock):
 
 
 class MockBot(Bot):
-    def __init__(self, token: str):
-        super().__init__(token)
+    def __init__(self):
+        # TODO: Mock this better so that it would not create a real bot
+        super().__init__(settings.BOT_TOKEN)
 
     @property
     def username(self) -> str:
@@ -25,7 +28,7 @@ class MockBot(Bot):
         return "Bot"
 
     async def get_chat(self, *args, **kwargs):
-        return Chat(1, type=Chat.GROUP, title="Main Chat")
+        return Chat(int(kwargs["chat_id"]) if "chat_id" in kwargs else 1, type=Chat.GROUP, title="Main Chat")
 
 
 class MockQuery(CallbackQuery):

@@ -7,11 +7,12 @@ import logging
 import re
 from math import ceil
 
-from telegram import ChatPermissions, Poll, Update
+from telegram import Poll, Update
 from telegram.constants import ChatType
 from telegram.ext import Application, CallbackQueryHandler, ContextTypes, filters, MessageHandler, PollHandler
 
 from common import checks, i18n
+from common.bot import forward_message, reply, send, send_poll, stop_poll, get_chat_member_count, restrict_chat_member
 from common.settings import settings
 from . import const, keyboards, state
 
@@ -24,7 +25,7 @@ def _reject_complaint_option() -> str:
     return i18n.default().gettext("MODERATION_ACCEPT_COMPLAINT_ANSWER_REJECT")
 
 
-def _maybe_log_normal_message(update: Update) -> None:
+def _maybe_log_message(update: Update) -> None:
     """Record a normal message or an edit that happened in the main chat"""
 
     assert update.effective_chat.id == settings.MAIN_CHAT_ID
@@ -53,34 +54,33 @@ async def _maybe_start_complaint(update: Update, context: ContextTypes.DEFAULT_T
     original_message = state.MainChatMessage.find_original(message)
     if original_message is None:
         logging.info("Forwarded message was not found in the log, cannot accept complaint.")
-        await message.reply_text(trans.gettext("DM_MODERATION_MESSAGE_NOT_FOUND"))
+        await reply(update, trans.gettext("DM_MODERATION_MESSAGE_NOT_FOUND"))
         return
 
     if settings.MODERATION_IS_REAL and await checks.is_member_of_chat(settings.MODERATION_CHAT_ID, user, context):
         logging.info("This user is a member of the moderators' chat, they cannot complain.")
-        await message.reply_text(trans.gettext("DM_MODERATION_MODERATORS_CANNOT_COMPLAIN"))
+        await reply(update, trans.gettext("DM_MODERATION_MODERATORS_CANNOT_COMPLAIN"))
         return
 
     if state.Request.exists(original_message.tg_id, user.id):
         logging.info("This user has already complained about this message, cannot accept another complaint.")
-        await message.reply_text(trans.gettext("DM_MODERATION_MESSAGE_ALREADY_COMPLAINED"))
+        await reply(update, trans.gettext("DM_MODERATION_MESSAGE_ALREADY_COMPLAINED"))
         return
 
     if state.Poll.exists(original_message.tg_id):
         logging.info("There is already a moderation poll about this message, cannot accept another complaint.")
-        await message.reply_text(trans.gettext("DM_MODERATION_MESSAGE_ALREADY_PROCESSING"))
+        await reply(update, trans.gettext("DM_MODERATION_MESSAGE_ALREADY_PROCESSING"))
         return
 
     existing_restriction = state.Restriction.get_most_recent(original_message.sender_tg_id)
     if existing_restriction is not None:
         if original_message.timestamp < existing_restriction.until_timestamp:
             logging.info("The original message was posted before the user was restricted, cannot accept a complaint.")
-            await message.reply_text(trans.gettext("DM_MODERATION_MESSAGE_POSTED_BEFORE_MOST_RECENT_RESTRICTION"))
+            await reply(update, trans.gettext("DM_MODERATION_MESSAGE_POSTED_BEFORE_MOST_RECENT_RESTRICTION"))
             return
 
-    await context.bot.send_message(chat_id=user.id,
-                                   text=i18n.trans(user).gettext("DM_MODERATION_MESSAGE_SELECT_COMPLAINT_REASON"),
-                                   reply_markup=keyboards.select_complaint_reason(user, original_message.tg_id))
+    await send(context, user.id, i18n.trans(user).gettext("DM_MODERATION_MESSAGE_SELECT_COMPLAINT_REASON"),
+               keyboards.select_complaint_reason(user, original_message.tg_id))
 
 
 async def _accept_complaint_reason(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -96,15 +96,14 @@ async def _accept_complaint_reason(update: Update, context: ContextTypes.DEFAULT
     if complaint_reason_id == const.MODERATION_REASON_CANCEL:
         if original_message_id != 0 or from_user_id != 0:
             raise RuntimeError("Inconsistent data in the Cancel button")
-        await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=i18n.trans(update.effective_user).gettext("DM_MODERATION_REQUEST_CANCELLED"))
+        await send(context, update.effective_chat.id,
+                   i18n.trans(update.effective_user).gettext("DM_MODERATION_REQUEST_CANCELLED"))
         return
 
     state.Request.register(original_message_id, complaint_reason_id, from_user_id)
 
-    await context.bot.send_message(chat_id=update.effective_chat.id,
-                                   text=i18n.trans(update.effective_user).gettext("DM_MODERATION_REQUEST_REGISTERED"))
+    await send(context, update.effective_chat.id,
+               i18n.trans(update.effective_user).gettext("DM_MODERATION_REQUEST_REGISTERED"))
 
     request_count = state.Request.count(original_message_id)
     if request_count < settings.MODERATION_COMPLAINT_THRESHOLD:
@@ -122,11 +121,10 @@ async def _accept_complaint_reason(update: Update, context: ContextTypes.DEFAULT
             trans.ngettext("MODERATION_NEW_REQUEST_DETAILS_S {reason} {count}",
                            "MODERATION_NEW_REQUEST_DETAILS_P {reason} {count}",
                            count).format(reason=state.ComplaintReason.get(complaint_reason_id).title, count=count))
-    await context.bot.send_message(chat_id, text="\n".join(moderation_request))
-    await context.bot.forward_message(chat_id, settings.MAIN_CHAT_ID, message_id=original_message_id)
-    new_poll_message = await context.bot.send_poll(chat_id, is_anonymous=True,
-                                                   question=trans.gettext("MODERATION_ACCEPT_COMPLAINT_QUESTION"),
-                                                   options=(_accept_complaint_option(), _reject_complaint_option()))
+    await send(context, chat_id, "\n".join(moderation_request))
+    await forward_message(context, chat_id, settings.MAIN_CHAT_ID, message_id=original_message_id)
+    new_poll_message = await send_poll(context, chat_id, trans.gettext("MODERATION_ACCEPT_COMPLAINT_QUESTION"),
+                                       (_accept_complaint_option(), _reject_complaint_option()))
 
     state.Poll.create(new_poll_message.poll.id, original_message_id, new_poll_message.id)
 
@@ -142,7 +140,7 @@ async def _handle_complaint_poll(update: Update, context: ContextTypes.DEFAULT_T
 
     chat_id = settings.MODERATION_CHAT_ID
     # TODO: move setting the moderator count to init()?  Maybe add handler for people joining the group and recalculate?
-    moderator_count = await context.bot.get_chat_member_count(chat_id) - settings.MODERATION_CHAT_BOT_COUNT
+    moderator_count = await get_chat_member_count(context, chat_id) - settings.MODERATION_CHAT_BOT_COUNT
     poll = update.poll
 
     if poll.is_closed:
@@ -192,14 +190,14 @@ async def _handle_complaint_poll_outcome(tg_poll: Poll, resolution: str, context
         logging.info(f"Poll {poll.tg_id} is already closed.")
     else:
         logging.info(f"Closing poll {poll.tg_id}.")
-        await context.bot.stop_poll(chat_id, poll.poll_message_tg_id)
+        await stop_poll(context, chat_id, poll.poll_message_tg_id)
     poll.stop()
 
     trans = i18n.default()
 
     if resolution == _reject_complaint_option():
         logging.info("Complaint was rejected.")
-        await context.bot.send_message(chat_id, text=trans.gettext("MODERATION_RESULT_REJECTED"))
+        await send(context, chat_id, text=trans.gettext("MODERATION_RESULT_REJECTED"))
         return
 
     logging.info("Complaint was accepted.  Closing all other polls related to this user and setting a restriction.")
@@ -208,7 +206,7 @@ async def _handle_complaint_poll_outcome(tg_poll: Poll, resolution: str, context
 
     for other_poll in state.Poll.get_all_running_for(original_message.sender_tg_id):
         logging.info(f"Closing another poll {other_poll.tg_id}.")
-        await context.bot.stop_poll(chat_id, other_poll.poll_message_tg_id)
+        await stop_poll(context, chat_id, other_poll.poll_message_tg_id)
         other_poll.stop()
 
     restriction = state.Restriction.elevate_or_prolong(
@@ -232,9 +230,8 @@ async def _handle_complaint_poll_outcome(tg_poll: Poll, resolution: str, context
         public_message = trans.gettext("MODERATION_MESSAGE_RESTRICTION {duration}").format(
             format_minutes(level["duration"]))
         if settings.MODERATION_IS_REAL:
-            await context.bot.restrict_chat_member(
-                settings.MAIN_CHAT_ID, original_message.sender_tg_id, ChatPermissions.no_permissions(),
-                until_date=datetime.datetime.now() + datetime.timedelta(minutes=level["duration"]))
+            await restrict_chat_member(context, settings.MAIN_CHAT_ID, original_message.sender_tg_id,
+                                       datetime.datetime.now() + datetime.timedelta(minutes=level["duration"]))
     elif action == const.ACTION_BAN:
         message = trans.gettext("MODERATION_RESULT_ACCEPTED_BAN")
         public_message = trans.gettext("MODERATION_MESSAGE_BAN")
@@ -242,11 +239,10 @@ async def _handle_complaint_poll_outcome(tg_poll: Poll, resolution: str, context
         raise RuntimeError(f"Unknown action: {action}")
 
     if settings.MODERATION_IS_REAL:
-        await context.bot.send_message(settings.MAIN_CHAT_ID, public_message,
-                                       reply_to_message_id=original_message.tg_id)
+        await send(context, settings.MAIN_CHAT_ID, public_message, reply_to_message_id=original_message.tg_id)
     else:
         message = append_simulation_disclaimer(message)
-    await context.bot.send_message(chat_id, text=message)
+    await send(context, chat_id, message)
 
 
 async def _handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -259,7 +255,7 @@ async def _handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         return
 
     if chat.id == settings.MAIN_CHAT_ID:
-        _maybe_log_normal_message(update)
+        _maybe_log_message(update)
     elif chat.type == ChatType.PRIVATE and update.effective_message.forward_origin is not None:
         await _maybe_start_complaint(update, context)
     elif chat.id == settings.MODERATION_CHAT_ID:
@@ -281,7 +277,7 @@ def init(application: Application, group):
         MessageHandler((filters.TEXT | filters.PHOTO) & (~ filters.COMMAND), _handle_message), group=group)
 
     application.add_handler(
-        CallbackQueryHandler(_accept_complaint_reason, pattern=re.compile("^[0-9]+:[\-0-9]+:[0-9]+$")), group=group)
+        CallbackQueryHandler(_accept_complaint_reason, pattern=re.compile("^[0-9]+:[-0-9]+:[0-9]+$")), group=group)
 
     application.add_handler(PollHandler(_handle_complaint_poll))
 

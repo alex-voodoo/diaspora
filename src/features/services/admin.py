@@ -1,6 +1,7 @@
 """
 Admin functions of the Services feature
 """
+
 import datetime
 import io
 import json
@@ -13,8 +14,8 @@ from telegram.ext import Application, CallbackQueryHandler, ContextTypes, Conver
 
 from common import i18n
 from common.admin import get_main_keyboard, register_buttons, has_attachment
+from common.bot import reply
 from common.checks import is_admin
-from common.messaging_helpers import reply
 from common.settings import settings
 from . import state
 
@@ -86,10 +87,12 @@ async def _show_stats(update: Update) -> None:
     from_date = datetime.datetime.now() - datetime.timedelta(days=_STATS_PERIOD_DAYS)
 
     def get_view_count_text(count: int) -> str:
-        return trans.ngettext("SERVICES_VIEW_COUNT_S {count}", "SERVICES_VIEW_COUNT_P {count}", count).format(count=count)
+        return trans.ngettext("SERVICES_VIEW_COUNT_S {count}", "SERVICES_VIEW_COUNT_P {count}", count).format(
+            count=count)
 
     def get_viewer_count_text(count: int) -> str:
-        return trans.ngettext("SERVICES_VIEWER_COUNT_S {count}", "SERVICES_VIEWER_COUNT_P {count}", count).format(count=count)
+        return trans.ngettext("SERVICES_VIEWER_COUNT_S {count}", "SERVICES_VIEWER_COUNT_P {count}", count).format(
+            count=count)
 
     def get_stat_line(category_title: str, view_count: int, viewer_count: int) -> str:
         return f"<b>{category_title}:</b> {get_view_count_text(view_count)}, {get_viewer_count_text(viewer_count)}"
