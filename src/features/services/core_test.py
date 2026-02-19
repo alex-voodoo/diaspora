@@ -21,6 +21,14 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     def tearDown(self):
         load_test_categories(0)
 
+    def _chat_user_context(self, username=None) -> tuple[Chat, User, CallbackContext]:
+        """Create a set of objects needed in many test cases"""
+
+        chat = Chat(id=12345, type=Chat.PRIVATE)
+        user = User(id=67890, first_name="Joe", is_bot=False, username=username)
+
+        return chat, user, CallbackContext(application=self.application, chat_id=chat.id, user_id=user.id)
+
     def test__maybe_append_limit_warning(self):
         trans = i18n.default()
         initial_message = ["hello", "world"]
@@ -52,11 +60,12 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         current_text = "hello"
         new_current_text_long = "01234567890123456789"
 
-        message = Message(message_id=1, date=datetime.datetime.now(), chat=Chat(id=1, type=Chat.PRIVATE),
-                          text=new_current_text_long)
+        chat, user, context = self._chat_user_context()
+
+        message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, text=new_current_text_long)
         message.set_bot(self.application.bot)
         update = Update(update_id=1, message=message)
-        context = CallbackContext(application=self.application, chat_id=1, user_id=1)
+
         context.user_data["current"] = current_text
 
         request_next_data_field = test_util.AsyncMock()
@@ -76,11 +85,10 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         request_next_data_field.reset_mock()
 
         new_current_text_short = "world"
-        message = Message(message_id=2, date=datetime.datetime.now(), chat=Chat(id=1, type=Chat.PRIVATE),
-                          text=new_current_text_short)
+        message = Message(message_id=2, date=datetime.datetime.now(), chat=chat, text=new_current_text_short)
         message.set_bot(self.application.bot)
         update = Update(update_id=2, message=message)
-        context = CallbackContext(application=self.application, chat_id=1, user_id=1)
+
         context.user_data["current"] = current_text
 
         with patch("features.services.core.reply") as mock_reply:
@@ -107,11 +115,12 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         next_data_field_insert_text = trans.gettext("SERVICES_DM_ENROLL_ASK_DESCRIPTION")
         next_data_field_update_text = trans.gettext("SERVICES_DM_UPDATE_DESCRIPTION {title} {current_value}")
 
-        message = Message(message_id=1, date=datetime.datetime.now(), chat=Chat(id=1, type=Chat.PRIVATE),
-                          text="nothing")
+        chat, user, context = self._chat_user_context()
+
+        message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, text="nothing")
         message.set_bot(self.application.bot)
         update = Update(update_id=1, message=message)
-        context = CallbackContext(application=self.application, chat_id=1, user_id=1)
+
         context.user_data["next"] = current_next_text
 
         with patch("features.services.core.reply") as mock_reply:
@@ -150,14 +159,14 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
         state.Service.set_bot_username("bot_username")
 
-        user = User(id=1, first_name="Joe", is_bot=False, username="joe_username")
-        message = Message(message_id=1, date=datetime.datetime.now(), chat=Chat(id=1, type=Chat.PRIVATE),
-                          text="nothing", from_user=user)
+        chat, user, context = self._chat_user_context()
+
+        message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, text="nothing", from_user=user)
         message.set_bot(self.application.bot)
         update = Update(update_id=1, message=message)
-        context = CallbackContext(application=self.application, chat_id=1, user_id=1)
-        chat = await context.bot.get_chat(1)
-        chat_title = chat.title
+
+        main_chat = await context.bot.get_chat(1)
+        chat_title = main_chat.title
 
         trans = i18n.default()
         expected_text_no_categories = trans.gettext("SERVICES_DM_HELLO {bot_first_name} {main_chat_name}").format(
@@ -244,11 +253,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     async def test__who_request_category(self):
         trans = i18n.default()
 
-        chat = Chat(id=1, type=Chat.PRIVATE)
-        context = CallbackContext(application=self.application, chat_id=1, user_id=1)
+        chat, user, context = self._chat_user_context()
 
-        # Create a query from a user that does not have a username.
-        user = User(id=1, first_name="Joe", is_bot=False)
         message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user)
         message.set_bot(self.application.bot)
         update = Update(update_id=1, message=message, callback_query=test_util.MockQuery("1", user, "1", message))
@@ -293,13 +299,11 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     async def test__who_received_category(self, mock_reply, mock_stat):
         trans = i18n.default()
 
-        chat = Chat(id=1, type=Chat.PRIVATE)
+        chat, user, context = self._chat_user_context()
 
-        user = User(id=1, first_name="Joe", is_bot=False)
         message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user)
         message.set_bot(self.application.bot)
 
-        context = CallbackContext(application=self.application, chat_id=1, user_id=1)
         context.user_data["who_request_category"] = {}
 
         update = Update(update_id=1, message=message,
@@ -328,7 +332,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
             expected_text = render.append_disclaimer(
                 trans, render.category_with_services(category, categorised_people[category.id], True))
             mock_reply.assert_called_once_with(update, expected_text, keyboards.standard(user))
-            mock_stat.assert_called_once_with(1, selected_category_id)
+            mock_stat.assert_called_once_with(user.id, selected_category_id)
             self.assertNotIn("who_request_category", context.user_data)
 
             mock_reply.reset_mock()
@@ -339,11 +343,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     async def test__handle_command_who(self, mock_settings):
         trans = i18n.default()
 
-        chat = Chat(id=1, type=Chat.PRIVATE)
-        context = CallbackContext(application=self.application, chat_id=1, user_id=1)
+        chat, user, context = self._chat_user_context()
 
-        # Create a query from a user that does not have a username.
-        user = User(id=1, first_name="Joe", is_bot=False)
         message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user)
         message.set_bot(self.application.bot)
         update = Update(update_id=1, message=message, callback_query=test_util.MockQuery("1", user, "1", message))
@@ -376,7 +377,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
             self.assertEqual(await core._handle_command_who(update, context), const.SELECTING_CATEGORY)
 
-            _mock_stat.assert_called_once_with(1, -1)
+            _mock_stat.assert_called_once_with(user.id, -1)
             _mock_who_request_category.assert_called()
             call_args = _mock_who_request_category.call_args[0]
             self.assertEqual(call_args[0], update)
@@ -391,7 +392,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
             expected_message = render.categories_with_services(trans,core._get_all_services())
             _mock_reply.assert_called_once_with(update, expected_message, keyboards.standard(user))
-            _mock_stat.assert_called_once_with(1, -1)
+            _mock_stat.assert_called_once_with(user.id, -1)
             _mock_who_request_category.assert_not_called()
 
         # When all services belong to the single category, skip category selection and show the directory immediately,
@@ -439,11 +440,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     async def test__handle_command_enroll(self, mock_reply):
         trans = i18n.default()
 
-        chat = Chat(id=1, type=Chat.PRIVATE)
-        context = CallbackContext(application=self.application, chat_id=1, user_id=1)
+        chat, user, context = self._chat_user_context()
 
-        # Create a query from a user that does not have a username.
-        user = User(id=1, first_name="Joe", is_bot=False)
         message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user)
         message.set_bot(self.application.bot)
         update = Update(update_id=1, message=message, callback_query=test_util.MockQuery("1", user, "1", message))
@@ -490,10 +488,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     async def test__handle_command_update(self, mock_reply):
         trans = i18n.default()
 
-        chat = Chat(id=1, type=Chat.PRIVATE)
-        context = CallbackContext(application=self.application, chat_id=1, user_id=1)
+        chat, user, context = self._chat_user_context()
 
-        user = User(id=1, first_name="Joe", is_bot=False, username="username_1")
         message = Message(message_id=2, date=datetime.datetime.now(), chat=chat, from_user=user)
         message.set_bot(self.application.bot)
         mock_query = test_util.MockQuery("2", user, "1", message)
@@ -544,9 +540,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     async def test__abort_conversation(self):
         trans = i18n.default()
 
-        chat = Chat(id=1, type=Chat.PRIVATE)
-        context = CallbackContext(application=self.application, chat_id=1, user_id=1)
-        user = User(id=1, first_name="Joe", is_bot=False)
+        chat, user, context = self._chat_user_context()
+
         message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user)
         update = Update(update_id=1, message=message)
 
@@ -567,8 +562,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     async def test_handle_extended_start_command(self, mock_stat):
         trans = i18n.default()
 
-        chat = Chat(id=1, type=Chat.PRIVATE)
-        context = CallbackContext(application=self.application, chat_id=1, user_id=1)
+        chat, user, context = self._chat_user_context()
+
         user_1 = User(id=1, first_name="Joe", is_bot=False)
         user_2 = User(id=2, first_name="Rob", is_bot=False)
         service = state.Service(**data_row_for_service(1, 1))
