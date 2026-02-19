@@ -29,21 +29,6 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
         return chat, user, CallbackContext(application=self.application, chat_id=chat.id, user_id=user.id)
 
-    def test__maybe_append_limit_warning(self):
-        trans = i18n.default()
-        initial_message = ["hello", "world"]
-        message = initial_message.copy()
-        core._maybe_append_limit_warning(trans, message, 0)
-        self.assertListEqual(message, initial_message)
-
-        for limit in range(1, 100):
-            message = initial_message.copy()
-            core._maybe_append_limit_warning(trans, message, limit)
-            self.assertListEqual(message[:-1], initial_message)
-            self.assertEqual(message[-1], trans.ngettext("SERVICES_DM_DATA_FIELD_LIMIT_S {limit}",
-                                                         "SERVICES_DM_DATA_FIELD_LIMIT_P {limit}", limit).format(
-                limit=limit))
-
     async def test__verify_limit_then_retry_or_proceed(self):
         trans = i18n.default()
 
@@ -128,7 +113,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                                                 next_data_field_insert_text, next_data_field_update_text)
 
             expected_reply = [next_data_field_insert_text, ]
-            core._maybe_append_limit_warning(trans, expected_reply, next_limit)
+            if next_limit > 0:
+                expected_reply.append(render.data_field_limit(trans, next_limit))
 
             mock_reply.assert_called_once_with(update, "\n".join(expected_reply))
 
@@ -141,7 +127,9 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
             expected_reply = [
                 next_data_field_update_text.format(title=category_title, current_value=current_next_text), ]
-            core._maybe_append_limit_warning(trans, expected_reply, next_limit)
+            if next_limit > 0:
+                expected_reply.append(render.data_field_limit(trans, next_limit))
+
             mock_reply.assert_called_once_with(update, "\n".join(expected_reply))
 
     @patch("features.services.core.reply")

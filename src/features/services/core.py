@@ -27,19 +27,6 @@ def _get_all_services() -> dict:
     return result
 
 
-def _maybe_append_limit_warning(trans: gettext.GNUTranslations, message: list, limit: int) -> None:
-    """Perform one repeating part of conversation logic where a value is checked against length limit
-
-    If `limit` is non-zero, appends a line that says that there is a limit.
-    """
-
-    if limit == 0:
-        return
-
-    message.append(trans.ngettext("SERVICES_DM_DATA_FIELD_LIMIT_S {limit}", "SERVICES_DM_DATA_FIELD_LIMIT_P {limit}",
-                                  limit).format(limit=limit))
-
-
 async def _verify_limit_then_retry_or_proceed(update: Update, context: ContextTypes.DEFAULT_TYPE, current_stage_id: int,
                                               current_limit: int, current_data_field_key: str, next_stage_id: int,
                                               next_limit: int, next_data_field_key: str,
@@ -93,7 +80,9 @@ async def _request_next_data_field(update: Update, context: ContextTypes.DEFAULT
     else:
         lines.append(next_data_field_insert_text)
 
-    _maybe_append_limit_warning(trans, lines, next_limit)
+    if next_limit > 0:
+        lines.append(render.data_field_limit(trans, next_limit))
+
     await reply(update, "\n".join(lines))
 
 
@@ -314,7 +303,9 @@ async def _accept_category_and_request_occupation(update: Update, context: Conte
 
         lines.append(trans.gettext("SERVICES_DM_ENROLL_ASK_OCCUPATION"))
 
-    _maybe_append_limit_warning(trans, lines, settings.SERVICES_OCCUPATION_MAX_LENGTH)
+    if settings.SERVICES_OCCUPATION_MAX_LENGTH > 0:
+        lines.append(render.data_field_limit(trans, settings.SERVICES_OCCUPATION_MAX_LENGTH))
+
     await reply(update, "\n".join(lines))
     return const.TYPING_OCCUPATION
 
