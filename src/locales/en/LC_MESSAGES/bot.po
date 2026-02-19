@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-02-18 22:00+0100\n"
+"POT-Creation-Date: 2026-02-19 18:18+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -453,7 +453,7 @@ msgstr "Please select a category that matches your service the best."
 msgid "SERVICES_DM_ENROLL_ASK_OCCUPATION"
 msgstr "What do you do?  Please give a short and simple answer, like \"Teach how to surf\" or \"Help with the immigrations\"."
 
-#: features/services/core.py:279
+#: features/services/core.py:279 features/services/core_test.py:517
 msgid "SERVICES_DM_SELECT_CATEGORY_FOR_UPDATE"
 msgstr "Select a category to update."
 
@@ -527,17 +527,17 @@ msgstr "Select category to delete."
 msgid "SERVICES_DM_RETIRE"
 msgstr "The record is deleted."
 
-#: features/services/core.py:497 features/services/core_test.py:533
+#: features/services/core.py:497 features/services/core_test.py:561
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Let us start again."
 
 #: features/services/core.py:520 features/services/core.py:523
-#: features/services/core_test.py:617 features/services/core_test.py:644
+#: features/services/core_test.py:645 features/services/core_test.py:672
 msgid "SERVICES_DM_SERVICE_NOT_FOUND"
 msgstr "Service not found."
 
-#: features/services/core.py:529 features/services/core_test.py:583
-#: features/services/core_test.py:631
+#: features/services/core.py:529 features/services/core_test.py:611
+#: features/services/core_test.py:659
 msgid "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}"
 msgstr ""
 "Your service in the category <b>{category_title}</b>\n"
@@ -547,7 +547,7 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/core.py:534 features/services/core_test.py:599
+#: features/services/core.py:534 features/services/core_test.py:627
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "Service by @{username} in the category <b>{category_title}</b>\n"

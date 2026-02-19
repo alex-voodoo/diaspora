@@ -35,8 +35,12 @@ class MockQuery(CallbackQuery):
     def __init__(self, _id: str, from_user: User, chat_instance: str, *args, **kwargs):
         super().__init__(_id, from_user, chat_instance, *args, **kwargs)
 
+        self._edit_message_reply_markup_called = False
+        self._edit_message_reply_markup_called_with = None
+
     async def answer(self, *args, **kwargs):
         pass
 
-    async def edit_message_reply_markup(self, *args, **kwargs):
-        pass
+    async def edit_message_reply_markup(self, reply_markup=None, *args, **kwargs):
+        self._edit_message_reply_markup_called = True
+        self._edit_message_reply_markup_called_with = reply_markup

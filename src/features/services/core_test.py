@@ -486,8 +486,36 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                                      call(update, trans.gettext("SERVICES_DM_ENROLL_ASK_CATEGORY"),
                                           keyboards.select_category())), False)
 
-    async def test__handle_command_update(self):
-        self.skipTest("Test not implemented")
+    @patch("features.services.core.reply")
+    async def test__handle_command_update(self, mock_reply):
+        trans = i18n.default()
+
+        chat = Chat(id=1, type=Chat.PRIVATE)
+        context = CallbackContext(application=self.application, chat_id=1, user_id=1)
+
+        user = User(id=1, first_name="Joe", is_bot=False, username="username_1")
+        message = Message(message_id=2, date=datetime.datetime.now(), chat=chat, from_user=user)
+        message.set_bot(self.application.bot)
+        mock_query = test_util.MockQuery("2", user, "1", message)
+        update = Update(update_id=2, message=message, callback_query=mock_query)
+
+        load_test_categories(2)
+        def return_two_categories(tg_id: int) -> Iterator[dict]:
+            yield data_row_for_service(tg_id, 1)
+            yield data_row_for_service(tg_id, 2)
+
+        with patch("features.services.state._service_get_all_by_user", return_two_categories):
+            self.assertFalse(mock_query._edit_message_reply_markup_called)
+
+            self.assertEqual(await core._handle_command_update(update, context), const.SELECTING_CATEGORY)
+
+            self.assertIn("mode", context.user_data)
+            self.assertEqual(context.user_data["mode"], "update")
+
+            self.assertTrue(mock_query._edit_message_reply_markup_called)
+            self.assertIsNone(mock_query._edit_message_reply_markup_called_with)
+            mock_reply.assert_called_once_with(update, trans.gettext("SERVICES_DM_SELECT_CATEGORY_FOR_UPDATE"),
+                    keyboards.select_category([s.category for s in state.Service.get_all_by_user(user.id)]))
 
     async def test__accept_category_and_request_occupation(self):
         self.skipTest("Test not implemented")
