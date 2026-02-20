@@ -17,17 +17,26 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.application = Application.builder().token(settings.BOT_TOKEN).build()
         self.application.bot = test_util.MockBot()
+        self._next_update_id = 3000
+        self._next_message_id = 6000
 
     def tearDown(self):
         load_test_categories(0)
 
-    def _chat_user_context(self, username=None) -> tuple[Chat, User, CallbackContext]:
+    def _create_chat_user_context(self, username=None) -> tuple[Chat, User, CallbackContext]:
         """Create a set of objects needed in many test cases"""
 
         chat = Chat(id=12345, type=Chat.PRIVATE)
         user = User(id=67890, first_name="Joe", is_bot=False, username=username)
 
         return chat, user, CallbackContext(application=self.application, chat_id=chat.id, user_id=user.id)
+
+    def _create_update_with_message(self, chat: Chat, text: str = None, from_user: User = None) -> Update:
+        self._next_update_id += 1
+        self._next_message_id += 1
+        return Update(self._next_update_id,
+                      message=Message(
+                          self._next_message_id, datetime.datetime.now(), chat, text=text, from_user=from_user))
 
     async def test__verify_limit_then_retry_or_proceed(self):
         trans = i18n.default()
@@ -45,11 +54,9 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         current_text = "hello"
         new_current_text_long = "01234567890123456789"
 
-        chat, user, context = self._chat_user_context()
+        chat, user, context = self._create_chat_user_context()
 
-        message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, text=new_current_text_long)
-        message.set_bot(self.application.bot)
-        update = Update(update_id=1, message=message)
+        update = self._create_update_with_message(chat, new_current_text_long)
 
         context.user_data["current"] = current_text
 
@@ -69,10 +76,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
         request_next_data_field.reset_mock()
 
-        new_current_text_short = "world"
-        message = Message(message_id=2, date=datetime.datetime.now(), chat=chat, text=new_current_text_short)
-        message.set_bot(self.application.bot)
-        update = Update(update_id=2, message=message)
+        update = self._create_update_with_message(chat, "world")
 
         context.user_data["current"] = current_text
 
@@ -100,11 +104,9 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         next_data_field_insert_text = trans.gettext("SERVICES_DM_ENROLL_ASK_DESCRIPTION")
         next_data_field_update_text = trans.gettext("SERVICES_DM_UPDATE_DESCRIPTION {title} {current_value}")
 
-        chat, user, context = self._chat_user_context()
+        chat, user, context = self._create_chat_user_context()
 
-        message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, text="nothing")
-        message.set_bot(self.application.bot)
-        update = Update(update_id=1, message=message)
+        update = self._create_update_with_message(chat, "nothing")
 
         context.user_data["next"] = current_next_text
 
@@ -147,11 +149,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
         state.Service.set_bot_username("bot_username")
 
-        chat, user, context = self._chat_user_context()
-
-        message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, text="nothing", from_user=user)
-        message.set_bot(self.application.bot)
-        update = Update(update_id=1, message=message)
+        chat, user, context = self._create_chat_user_context()
+        update = self._create_update_with_message(chat, from_user=user)
 
         main_chat = await context.bot.get_chat(1)
         chat_title = main_chat.title
@@ -241,10 +240,9 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     async def test__who_request_category(self):
         trans = i18n.default()
 
-        chat, user, context = self._chat_user_context()
+        chat, user, context = self._create_chat_user_context()
 
         message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user)
-        message.set_bot(self.application.bot)
         update = Update(update_id=1, message=message, callback_query=test_util.MockQuery("1", user, "1", message))
 
         # _who_request_category() must not be called with an empty set of people.
@@ -287,10 +285,9 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     async def test__who_received_category(self, mock_reply, mock_stat):
         trans = i18n.default()
 
-        chat, user, context = self._chat_user_context()
+        chat, user, context = self._create_chat_user_context()
 
         message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user)
-        message.set_bot(self.application.bot)
 
         context.user_data["who_request_category"] = {}
 
@@ -331,10 +328,9 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     async def test__handle_command_who(self, mock_settings):
         trans = i18n.default()
 
-        chat, user, context = self._chat_user_context()
+        chat, user, context = self._create_chat_user_context()
 
         message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user)
-        message.set_bot(self.application.bot)
         update = Update(update_id=1, message=message, callback_query=test_util.MockQuery("1", user, "1", message))
 
         load_test_categories(2)
@@ -428,10 +424,9 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     async def test__handle_command_enroll(self, mock_reply):
         trans = i18n.default()
 
-        chat, user, context = self._chat_user_context()
+        chat, user, context = self._create_chat_user_context()
 
         message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user)
-        message.set_bot(self.application.bot)
         update = Update(update_id=1, message=message, callback_query=test_util.MockQuery("1", user, "1", message))
 
         # A user that does not have a username cannot enroll.
@@ -445,7 +440,6 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         # Create a query from a user that has a username.
         user = User(id=1, first_name="Joe", is_bot=False, username="username_1")
         message = Message(message_id=2, date=datetime.datetime.now(), chat=chat, from_user=user)
-        message.set_bot(self.application.bot)
         update = Update(update_id=2, message=message, callback_query=test_util.MockQuery("2", user, "1", message))
 
         # When no categories are defined, all services are created in the default category.  When the user starts
@@ -478,10 +472,9 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     async def test__handle_command_update(self, mock_reply):
         trans = i18n.default()
 
-        chat, user, context = self._chat_user_context()
+        chat, user, context = self._create_chat_user_context()
 
         message = Message(message_id=2, date=datetime.datetime.now(), chat=chat, from_user=user)
-        message.set_bot(self.application.bot)
         mock_query = test_util.MockQuery("2", user, "1", message)
         update = Update(update_id=2, message=message, callback_query=mock_query)
 
@@ -510,13 +503,12 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     async def test__accept_category_and_request_occupation(self, mock_settings, mock_reply):
         trans = i18n.default()
 
-        chat, user, context = self._chat_user_context()
+        chat, user, context = self._create_chat_user_context()
         selected_category_id = 1
 
         load_test_categories(2)
 
         message = Message(message_id=2, date=datetime.datetime.now(), chat=chat, from_user=user)
-        message.set_bot(self.application.bot)
         mock_query = test_util.MockQuery("2", user, "1", message, data=selected_category_id)
         update = Update(update_id=2, message=message, callback_query=mock_query)
 
@@ -602,10 +594,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     async def test__abort_conversation(self):
         trans = i18n.default()
 
-        chat, user, context = self._chat_user_context()
-
-        message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user)
-        update = Update(update_id=1, message=message)
+        chat, user, context = self._create_chat_user_context()
+        update = self._create_update_with_message(chat)
 
         with patch("features.services.core.show_main_status") as mock_show_main_status:
             context.user_data["hello"] = "world"
@@ -624,7 +614,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     async def test_handle_extended_start_command(self, mock_stat):
         trans = i18n.default()
 
-        chat, user, context = self._chat_user_context()
+        chat, user, context = self._create_chat_user_context()
 
         user_1 = User(id=1, first_name="Joe", is_bot=False)
         user_2 = User(id=2, first_name="Rob", is_bot=False)
@@ -646,9 +636,9 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         state.Service.set_bot_username("bot_username")
 
         # Create a message that does not have valid text.
-        message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user_1, text="hello")
-        message.set_bot(self.application.bot)
-        update = Update(update_id=1, message=message)
+        update = Update(update_id=1,
+                        message=Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user_1,
+                                        text="hello"))
 
         with patch("features.services.core.reply") as mock_reply:
             with self.assertRaises(RuntimeError):
@@ -656,10 +646,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
             mock_reply.assert_not_called()
 
-        message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user_1,
-                          text=f"/start service_info_{service.category.id}_{service.tg_username}")
-        message.set_bot(self.application.bot)
-        update = Update(update_id=1, message=message)
+        update = self._create_update_with_message(
+            chat, text=f"/start service_info_{service.category.id}_{service.tg_username}", from_user=user_1)
 
         with patch("features.services.state._service_get", return_single_service):
             with patch("features.services.core.reply") as mock_reply:
@@ -673,10 +661,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
             mock_stat.reset_mock()
 
-            message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user_2,
-                              text=f"/start service_info_{service.category.id}_{service.tg_username}")
-            message.set_bot(self.application.bot)
-            update = Update(update_id=1, message=message)
+            update = self._create_update_with_message(
+                chat, text=f"/start service_info_{service.category.id}_{service.tg_username}", from_user=user_2)
 
             with patch("features.services.core.reply") as mock_reply:
                 await core.handle_extended_start_command(update, context)
@@ -690,11 +676,9 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
             mock_stat.reset_mock()
 
-            message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user_1,
-                              text=f"/start service_info_{suspended_service.category.id}_"
-                                   f"{suspended_service.tg_username}")
-            message.set_bot(self.application.bot)
-            update = Update(update_id=1, message=message)
+            update = self._create_update_with_message(
+                chat, text=f"/start service_info_{suspended_service.category.id}_{suspended_service.tg_username}",
+                from_user=user_1)
 
             with patch("features.services.core.reply") as mock_reply:
                 await core.handle_extended_start_command(update, context)
@@ -704,11 +688,9 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
             mock_stat.reset_mock()
 
-            message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user_2,
-                              text=f"/start service_info_{suspended_service.category.id}_"
-                                   f"{suspended_service.tg_username}")
-            message.set_bot(self.application.bot)
-            update = Update(update_id=1, message=message)
+            update = self._create_update_with_message(
+                chat, text=f"/start service_info_{suspended_service.category.id}_{suspended_service.tg_username}",
+                from_user=user_2)
 
             with patch("features.services.core.reply") as mock_reply:
                 await core.handle_extended_start_command(update, context)
