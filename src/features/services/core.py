@@ -252,7 +252,7 @@ async def _handle_command_enroll(update: Update, context: ContextTypes.DEFAULT_T
         user_data = context.user_data
         user_data["category_id"] = 0
 
-        await reply(update, trans.gettext("SERVICES_DM_ENROLL_ASK_OCCUPATION"))
+        await reply(update, render.occupation_request_new_with_limit(trans, settings.SERVICES_OCCUPATION_MAX_LENGTH))
 
         return const.TYPING_OCCUPATION
 
@@ -296,17 +296,14 @@ async def _accept_category_and_request_occupation(update: Update, context: Conte
         user_data["occupation"] = service.occupation
         user_data["description"] = service.description
 
-        lines.append(trans.gettext("SERVICES_DM_UPDATE_OCCUPATION {title} {current_value}").format(
-            title=user_data["category_title"], current_value=user_data["occupation"]))
+        text = render.occupation_request_update_with_limit(trans, user_data["category_title"], user_data["occupation"],
+                                                           settings.SERVICES_OCCUPATION_MAX_LENGTH)
     else:
         user_data["category_title"] = state.ServiceCategory.get(category_id).title
 
-        lines.append(trans.gettext("SERVICES_DM_ENROLL_ASK_OCCUPATION"))
+        text = render.occupation_request_new_with_limit(trans, settings.SERVICES_OCCUPATION_MAX_LENGTH)
 
-    if settings.SERVICES_OCCUPATION_MAX_LENGTH > 0:
-        lines.append(render.data_field_limit(trans, settings.SERVICES_OCCUPATION_MAX_LENGTH))
-
-    await reply(update, "\n".join(lines))
+    await reply(update, text)
     return const.TYPING_OCCUPATION
 
 

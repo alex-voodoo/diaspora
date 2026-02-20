@@ -53,3 +53,19 @@ def categories_with_services(trans: gettext.GNUTranslations, services: dict) -> 
         user_list.append("")
         user_list.append(category_with_services(category, services[category.id], len(services) > 1))
     return append_disclaimer(trans, "\n".join(user_list))
+
+
+def occupation_request_new_with_limit(trans: gettext.GNUTranslations, limit: int) -> str:
+    lines = [trans.gettext("SERVICES_DM_ENROLL_ASK_OCCUPATION")]
+    if limit > 0:
+        lines.append(data_field_limit(trans, limit))
+    return "\n".join(lines)
+
+
+def occupation_request_update_with_limit(trans: gettext.GNUTranslations, category_title: str, current_value: str,
+                                         limit: int) -> str:
+    lines = ([trans.gettext("SERVICES_DM_UPDATE_OCCUPATION {title} {current_value}").format(
+        title=category_title, current_value=current_value)])
+    if limit > 0:
+        lines.append(data_field_limit(trans, limit))
+    return "\n".join(lines)

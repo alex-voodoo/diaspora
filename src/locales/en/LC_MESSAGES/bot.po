@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-02-19 20:55+0100\n"
+"POT-Creation-Date: 2026-02-20 19:35+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -433,105 +433,94 @@ msgstr ""
 "\n"
 "Please register a username for your profile and try again."
 
-#: features/services/core.py:240 features/services/core_test.py:458
-#: features/services/core_test.py:471
+#: features/services/core.py:240 features/services/core_test.py:459
+#: features/services/core_test.py:473
 msgid "SERVICES_DM_ENROLL_START"
 msgstr "Let us start!"
 
-#: features/services/core.py:248 features/services/core_test.py:472
+#: features/services/core.py:248 features/services/core_test.py:474
 msgid "SERVICES_DM_ENROLL_ASK_CATEGORY"
 msgstr "Please select a category that matches your service the best."
 
-#: features/services/core.py:255 features/services/core.py:304
-#: features/services/core_test.py:459
-msgid "SERVICES_DM_ENROLL_ASK_OCCUPATION"
-msgstr "What do you do?  Please give a short and simple answer, like \"Teach how to surf\" or \"Help with the immigrations\"."
-
-#: features/services/core.py:268 features/services/core_test.py:501
+#: features/services/core.py:268 features/services/core_test.py:504
 msgid "SERVICES_DM_SELECT_CATEGORY_FOR_UPDATE"
 msgstr "Select a category to update."
 
-#: features/services/core.py:299
-msgid "SERVICES_DM_UPDATE_OCCUPATION {title} {current_value}"
-msgstr ""
-"Enter a new brief description for your service in the \"{title}\" group.  The current one is:\n"
-"<b>{current_value}</b>"
-
-#: features/services/core.py:325 features/services/core_test.py:42
+#: features/services/core.py:322 features/services/core_test.py:42
 #: features/services/core_test.py:100
 msgid "SERVICES_DM_ENROLL_ASK_DESCRIPTION"
 msgstr "Provide a detailed description of your service."
 
-#: features/services/core.py:326 features/services/core_test.py:43
+#: features/services/core.py:323 features/services/core_test.py:43
 #: features/services/core_test.py:101
 msgid "SERVICES_DM_UPDATE_DESCRIPTION {title} {current_value}"
 msgstr ""
 "Enter a new detailed description for your service in the \"{title}\" group.  The current one is:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:343
+#: features/services/core.py:340
 msgid "SERVICES_DM_ENROLL_ASK_LOCATION"
 msgstr ""
 "Where are you based?\n"
 "\n"
 "Just the name of the place is enough, like \"A Coruña\""
 
-#: features/services/core.py:344
+#: features/services/core.py:341
 msgid "SERVICES_DM_UPDATE_LOCATION {title} {current_value}"
 msgstr ""
 "Enter a new location for your service in the \"{title}\" group.  The current one is:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:359
+#: features/services/core.py:356
 msgid "SERVICES_DM_ENROLL_CONFIRM_LEGALITY"
 msgstr ""
 "Finally, please confirm that what you do is legal and does not violate any laws or local regulations.\n"
 "\n"
 "Is your service legal?"
 
-#: features/services/core.py:393
+#: features/services/core.py:390
 msgid "SERVICES_DM_ENROLL_COMPLETED"
 msgstr "We are done, you are now registered!"
 
-#: features/services/core.py:395
+#: features/services/core.py:392
 msgid "SERVICES_DM_ENROLL_COMPLETED_POST_MODERATION"
 msgstr "We are done, you are now registered!  Please note that moderators may hide your record if it violates rules of the group."
 
-#: features/services/core.py:397
+#: features/services/core.py:394
 msgid "SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION"
 msgstr "We are done!  I will add your record to the list after the moderators approve it."
 
-#: features/services/core.py:409
+#: features/services/core.py:406
 msgid "SERVICES_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"
 msgstr "I am sorry.  I cannot register services that do not comply with the laws and local regulations."
 
-#: features/services/core.py:434
+#: features/services/core.py:431
 msgid "SERVICES_ADMIN_USER_RECORD_APPROVED"
 msgstr "Approved."
 
-#: features/services/core.py:444
+#: features/services/core.py:441
 msgid "SERVICES_ADMIN_USER_RECORD_SUSPENDED"
 msgstr "The record is hidden."
 
-#: features/services/core.py:459
+#: features/services/core.py:456
 msgid "SERVICES_DM_SELECT_CATEGORY_FOR_RETIRE"
 msgstr "Select category to delete."
 
-#: features/services/core.py:474
+#: features/services/core.py:471
 msgid "SERVICES_DM_RETIRE"
 msgstr "The record is deleted."
 
-#: features/services/core.py:488 features/services/core_test.py:544
+#: features/services/core.py:485 features/services/core_test.py:618
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Let us start again."
 
-#: features/services/core.py:511 features/services/core.py:514
-#: features/services/core_test.py:628 features/services/core_test.py:655
+#: features/services/core.py:508 features/services/core.py:511
+#: features/services/core_test.py:702 features/services/core_test.py:729
 msgid "SERVICES_DM_SERVICE_NOT_FOUND"
 msgstr "Service not found."
 
-#: features/services/core.py:520 features/services/core_test.py:594
-#: features/services/core_test.py:642
+#: features/services/core.py:517 features/services/core_test.py:668
+#: features/services/core_test.py:716
 msgid "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}"
 msgstr ""
 "Your service in the category <b>{category_title}</b>\n"
@@ -541,7 +530,7 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/core.py:525 features/services/core_test.py:610
+#: features/services/core.py:522 features/services/core_test.py:684
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "Service by @{username} in the category <b>{category_title}</b>\n"
@@ -607,6 +596,16 @@ msgstr[1] "(No more than {limit} characters.)"
 #: features/services/render.py:49
 msgid "SERVICES_DM_WHO_LIST_HEADING"
 msgstr "Here is the directory:"
+
+#: features/services/render.py:59
+msgid "SERVICES_DM_ENROLL_ASK_OCCUPATION"
+msgstr "What do you do?  Please give a short and simple answer, like \"Teach how to surf\" or \"Help with the immigrations\"."
+
+#: features/services/render.py:67
+msgid "SERVICES_DM_UPDATE_OCCUPATION {title} {current_value}"
+msgstr ""
+"Enter a new brief description for your service in the \"{title}\" group.  The current one is:\n"
+"<b>{current_value}</b>"
 
 #: features/services/state.py:185
 msgid "SERVICES_CATEGORY_LIST_TITLE"

@@ -378,7 +378,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         async def render_service_directory(_mock_reply, _mock_stat, _mock_who_request_category) -> None:
             self.assertEqual(await core._handle_command_who(update, context), ConversationHandler.END)
 
-            expected_message = render.categories_with_services(trans,core._get_all_services())
+            expected_message = render.categories_with_services(trans, core._get_all_services())
             _mock_reply.assert_called_once_with(update, expected_message, keyboards.standard(user))
             _mock_stat.assert_called_once_with(user.id, -1)
             _mock_who_request_category.assert_not_called()
@@ -455,8 +455,10 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result, const.TYPING_OCCUPATION)
         self.assertEqual(context.user_data["category_id"], 0)
 
-        mock_reply.assert_has_calls((call(update, trans.gettext("SERVICES_DM_ENROLL_START")),
-                                     call(update, trans.gettext("SERVICES_DM_ENROLL_ASK_OCCUPATION"))), False)
+        mock_reply.assert_has_calls(
+            (call(update, trans.gettext("SERVICES_DM_ENROLL_START")),
+             call(update, render.occupation_request_new_with_limit(trans, settings.SERVICES_OCCUPATION_MAX_LENGTH))),
+            False)
 
         mock_reply.reset_mock()
 
@@ -484,6 +486,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         update = Update(update_id=2, message=message, callback_query=mock_query)
 
         load_test_categories(2)
+
         def return_two_categories(tg_id: int) -> Iterator[dict]:
             yield data_row_for_service(tg_id, 1)
             yield data_row_for_service(tg_id, 2)
@@ -499,10 +502,81 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(mock_query._edit_message_reply_markup_called)
             self.assertIsNone(mock_query._edit_message_reply_markup_called_with)
             mock_reply.assert_called_once_with(update, trans.gettext("SERVICES_DM_SELECT_CATEGORY_FOR_UPDATE"),
-                    keyboards.select_category([s.category for s in state.Service.get_all_by_user(user.id)]))
+                                               keyboards.select_category(
+                                                   [s.category for s in state.Service.get_all_by_user(user.id)]))
 
-    async def test__accept_category_and_request_occupation(self):
-        self.skipTest("Test not implemented")
+    @patch("features.services.core.reply")
+    @patch("features.services.core.settings")
+    async def test__accept_category_and_request_occupation(self, mock_settings, mock_reply):
+        trans = i18n.default()
+
+        chat, user, context = self._chat_user_context()
+        selected_category_id = 1
+
+        load_test_categories(2)
+
+        message = Message(message_id=2, date=datetime.datetime.now(), chat=chat, from_user=user)
+        message.set_bot(self.application.bot)
+        mock_query = test_util.MockQuery("2", user, "1", message, data=selected_category_id)
+        update = Update(update_id=2, message=message, callback_query=mock_query)
+
+        def return_two_categories(tg_id: int) -> Iterator[dict]:
+            yield data_row_for_service(tg_id, 1)
+            yield data_row_for_service(tg_id, 2)
+
+        with patch("features.services.state._service_get_all_by_user", return_two_categories):
+            async def test_request_new_occupation():
+                context.user_data.clear()
+                self.assertEqual(await core._accept_category_and_request_occupation(update, context),
+                                 const.TYPING_OCCUPATION)
+                self.assertEqual(context.user_data["category_id"], selected_category_id)
+                mock_reply.assert_called_once_with(update, render.occupation_request_new_with_limit(
+                    trans, mock_settings.SERVICES_OCCUPATION_MAX_LENGTH))
+                mock_reply.reset_mock()
+
+            mock_settings.SERVICES_OCCUPATION_MAX_LENGTH = 0
+
+            await test_request_new_occupation()
+
+            mock_settings.SERVICES_OCCUPATION_MAX_LENGTH = 100
+
+            await test_request_new_occupation()
+
+            def return_service(category_id: int, tg_id: int) -> Iterator[dict]:
+                yield data_row_for_service(tg_id, category_id)
+
+            with patch("features.services.state._service_get", return_service):
+                async def test_request_updated_occupation():
+                    context.user_data.clear()
+                    context.user_data["mode"] = "update"
+
+                    self.assertEqual(await core._accept_category_and_request_occupation(update, context),
+                                     const.TYPING_OCCUPATION)
+                    self.assertEqual(context.user_data["category_id"], selected_category_id)
+
+                    service = state.Service.get(user.id, selected_category_id)
+                    self.assertEqual(context.user_data["category_title"], service.category.title)
+                    self.assertEqual(context.user_data["location"], service.location)
+                    self.assertEqual(context.user_data["occupation"], service.occupation)
+                    self.assertEqual(context.user_data["description"], service.description)
+
+                    self.assertEqual(context.user_data["category_title"],
+                                     state.ServiceCategory.get(selected_category_id).title)
+                    mock_reply.assert_called_once_with(update, render.occupation_request_update_with_limit(
+                        trans, service.category.title, service.occupation,
+                        mock_settings.SERVICES_OCCUPATION_MAX_LENGTH))
+                    mock_reply.reset_mock()
+
+                context.user_data.clear()
+                context.user_data["mode"] = "update"
+
+                mock_settings.SERVICES_OCCUPATION_MAX_LENGTH = 0
+
+                await test_request_updated_occupation()
+
+                mock_settings.SERVICES_OCCUPATION_MAX_LENGTH = 100
+
+                await test_request_updated_occupation()
 
     async def test__verify_occupation_and_request_description(self):
         self.skipTest("Test not implemented")
