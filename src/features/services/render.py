@@ -71,5 +71,9 @@ def occupation_request_update_with_limit(trans: gettext.GNUTranslations, categor
     return "\n".join(lines)
 
 
+def select_category_to_retire(trans: gettext.GNUTranslations) -> str:
+    return trans.gettext("SERVICES_DM_SELECT_CATEGORY_FOR_RETIRE")
+
+
 def retired_confirmation(trans: gettext.GNUTranslations) -> str:
     return trans.gettext("SERVICES_DM_RETIRE")

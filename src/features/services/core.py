@@ -452,8 +452,7 @@ async def _handle_command_retire(update: Update, _context: ContextTypes.DEFAULT_
 
     await query.edit_message_reply_markup(None)
 
-    trans = i18n.trans(query.from_user)
-    await reply(update, trans.gettext("SERVICES_DM_SELECT_CATEGORY_FOR_RETIRE"),
+    await reply(update, render.select_category_to_retire(i18n.trans(query.from_user)),
                 keyboards.select_category([s.category for s in state.Service.get_all_by_user(query.from_user.id)]))
 
     return const.SELECTING_CATEGORY
