@@ -69,3 +69,7 @@ def occupation_request_update_with_limit(trans: gettext.GNUTranslations, categor
     if limit > 0:
         lines.append(data_field_limit(trans, limit))
     return "\n".join(lines)
+
+
+def retired_confirmation(trans: gettext.GNUTranslations) -> str:
+    return trans.gettext("SERVICES_DM_RETIRE")

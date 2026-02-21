@@ -468,7 +468,7 @@ async def _retire_received_category(update: Update, context: ContextTypes.DEFAUL
 
     state.Service.delete(query.from_user.id, int(query.data))
 
-    await show_main_status(update, context, i18n.trans(query.from_user).gettext("SERVICES_DM_RETIRE"))
+    await show_main_status(update, context, render.retired_confirmation(i18n.trans(query.from_user)))
 
     return ConversationHandler.END
 

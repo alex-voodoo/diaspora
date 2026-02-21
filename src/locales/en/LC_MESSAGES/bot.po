@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-02-20 22:10+0100\n"
+"POT-Creation-Date: 2026-02-21 21:14+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -506,21 +506,17 @@ msgstr "The record is hidden."
 msgid "SERVICES_DM_SELECT_CATEGORY_FOR_RETIRE"
 msgstr "Select category to delete."
 
-#: features/services/core.py:471
-msgid "SERVICES_DM_RETIRE"
-msgstr "The record is deleted."
-
-#: features/services/core.py:485 features/services/core_test.py:608
+#: features/services/core.py:485 features/services/core_test.py:624
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Let us start again."
 
 #: features/services/core.py:508 features/services/core.py:511
-#: features/services/core_test.py:686 features/services/core_test.py:711
+#: features/services/core_test.py:702 features/services/core_test.py:727
 msgid "SERVICES_DM_SERVICE_NOT_FOUND"
 msgstr "Service not found."
 
-#: features/services/core.py:517 features/services/core_test.py:656
-#: features/services/core_test.py:698
+#: features/services/core.py:517 features/services/core_test.py:672
+#: features/services/core_test.py:714
 msgid "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}"
 msgstr ""
 "Your service in the category <b>{category_title}</b>\n"
@@ -530,7 +526,7 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/core.py:522 features/services/core_test.py:670
+#: features/services/core.py:522 features/services/core_test.py:686
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "Service by @{username} in the category <b>{category_title}</b>\n"
@@ -606,6 +602,10 @@ msgid "SERVICES_DM_UPDATE_OCCUPATION {title} {current_value}"
 msgstr ""
 "Enter a new brief description for your service in the \"{title}\" group.  The current one is:\n"
 "<b>{current_value}</b>"
+
+#: features/services/render.py:75
+msgid "SERVICES_DM_RETIRE"
+msgstr "The record is deleted."
 
 #: features/services/state.py:185
 msgid "SERVICES_CATEGORY_LIST_TITLE"

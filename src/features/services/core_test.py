@@ -589,7 +589,23 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         self.skipTest("Test not implemented")
 
     async def test__retire_received_category(self):
-        self.skipTest("Test not implemented")
+        trans = i18n.default()
+
+        chat, user, context = self._create_chat_user_context()
+        selected_category_id = 1
+
+        load_test_categories(2)
+
+        message = Message(message_id=2, date=datetime.datetime.now(), chat=chat, from_user=user)
+        mock_query = test_util.MockQuery("2", user, "1", message, data=selected_category_id)
+        update = Update(update_id=2, message=message, callback_query=mock_query)
+
+        with patch("features.services.state.Service") as mock_service_class:
+            with patch("features.services.core.show_main_status") as mock_show_main_status:
+                self.assertEqual(await core._retire_received_category(update, context), ConversationHandler.END)
+
+                mock_service_class.delete.assert_called_once_with(user.id, selected_category_id)
+                mock_show_main_status.assert_called_once_with(update, context, render.retired_confirmation(trans))
 
     async def test__abort_conversation(self):
         trans = i18n.default()
