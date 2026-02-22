@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-02-21 21:56+0100\n"
+"POT-Creation-Date: 2026-02-22 12:32+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -494,25 +494,17 @@ msgstr "We are done!  I will add your record to the list after the moderators ap
 msgid "SERVICES_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"
 msgstr "I am sorry.  I cannot register services that do not comply with the laws and local regulations."
 
-#: features/services/core.py:431
-msgid "SERVICES_ADMIN_USER_RECORD_APPROVED"
-msgstr "Approved."
-
-#: features/services/core.py:441
-msgid "SERVICES_ADMIN_USER_RECORD_SUSPENDED"
-msgstr "The record is hidden."
-
-#: features/services/core.py:484 features/services/core_test.py:648
+#: features/services/core.py:484 features/services/core_test.py:686
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Let us start again."
 
 #: features/services/core.py:507 features/services/core.py:510
-#: features/services/core_test.py:726 features/services/core_test.py:751
+#: features/services/core_test.py:764 features/services/core_test.py:789
 msgid "SERVICES_DM_SERVICE_NOT_FOUND"
 msgstr "Service not found."
 
-#: features/services/core.py:516 features/services/core_test.py:696
-#: features/services/core_test.py:738
+#: features/services/core.py:516 features/services/core_test.py:734
+#: features/services/core_test.py:776
 msgid "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}"
 msgstr ""
 "Your service in the category <b>{category_title}</b>\n"
@@ -522,7 +514,7 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/core.py:521 features/services/core_test.py:710
+#: features/services/core.py:521 features/services/core_test.py:748
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "Service by @{username} in the category <b>{category_title}</b>\n"
@@ -606,6 +598,14 @@ msgstr "Select category to delete."
 #: features/services/render.py:79
 msgid "SERVICES_DM_RETIRE"
 msgstr "The record is deleted."
+
+#: features/services/render.py:83
+msgid "SERVICES_ADMIN_USER_RECORD_APPROVED"
+msgstr "Approved."
+
+#: features/services/render.py:87
+msgid "SERVICES_ADMIN_USER_RECORD_SUSPENDED"
+msgstr "The record is hidden."
 
 #: features/services/state.py:185
 msgid "SERVICES_CATEGORY_LIST_TITLE"

@@ -582,8 +582,46 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     async def test__verify_legality_and_finalise_data_collection(self):
         self.skipTest(f"Test not implemented")
 
-    async def test__confirm_user_data(self):
-        self.skipTest("Test not implemented")
+    @patch("features.services.core.reply")
+    @patch("features.services.core.settings")
+    async def test__confirm_user_data(self, mock_settings, mock_reply):
+        trans = i18n.default()
+
+        category_id = 0
+
+        chat, user, context = self._create_chat_user_context()
+
+        async def test_call(command: int, expected_is_suspended: bool) -> None:
+            with patch("features.services.state.Service") as mock_service_class:
+                message = Message(message_id=2, date=datetime.datetime.now(), chat=chat, from_user=user)
+                mock_query = test_util.MockQuery("2", user, str(chat.id), message,
+                                                 data=f"{command}:{user.id}:{category_id}")
+                update = Update(update_id=2, message=message, callback_query=mock_query)
+
+                self.assertEqual(await core._confirm_user_data(update, context), ConversationHandler.END)
+
+                if mock_settings.SERVICES_MODERATION_IS_LAZY == expected_is_suspended:
+                    mock_service_class.set_is_suspended.assert_called_once_with(
+                        user.id, category_id, expected_is_suspended)
+                else:
+                    mock_service_class.set_is_suspended.assert_not_called()
+
+                if expected_is_suspended:
+                    mock_reply.assert_called_once_with(update, render.admin_user_record_suspended(trans))
+                else:
+                    mock_reply.assert_called_once_with(update, render.admin_user_record_approved(trans))
+
+                mock_reply.reset_mock()
+
+        mock_settings.SERVICES_MODERATION_IS_LAZY = False
+
+        await test_call(const.MODERATOR_APPROVE, False)
+        await test_call(const.MODERATOR_DECLINE, True)
+
+        mock_settings.SERVICES_MODERATION_IS_LAZY = True
+
+        await test_call(const.MODERATOR_APPROVE, False)
+        await test_call(const.MODERATOR_DECLINE, True)
 
     async def test__handle_command_retire(self):
         trans = i18n.default()

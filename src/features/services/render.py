@@ -77,3 +77,11 @@ def select_category_to_retire(trans: gettext.GNUTranslations) -> str:
 
 def retired_confirmation(trans: gettext.GNUTranslations) -> str:
     return trans.gettext("SERVICES_DM_RETIRE")
+
+
+def admin_user_record_approved(trans: gettext.GNUTranslations) -> str:
+    return trans.gettext("SERVICES_ADMIN_USER_RECORD_APPROVED")
+
+
+def admin_user_record_suspended(trans: gettext.GNUTranslations) -> str:
+    return trans.gettext("SERVICES_ADMIN_USER_RECORD_SUSPENDED")

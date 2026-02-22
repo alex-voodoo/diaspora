@@ -428,7 +428,7 @@ async def _confirm_user_data(update: Update, _context: ContextTypes.DEFAULT_TYPE
             state.Service.set_is_suspended(tg_id, category_id, False)
 
         await query.edit_message_reply_markup(None)
-        await reply(update, trans.gettext("SERVICES_ADMIN_USER_RECORD_APPROVED"))
+        await reply(update, render.admin_user_record_approved(trans))
     elif command == const.MODERATOR_DECLINE:
         logging.info(
             "Moderator ID {moderator_id} declines new data from user ID {user_id} in category {category_id}".format(
@@ -438,7 +438,7 @@ async def _confirm_user_data(update: Update, _context: ContextTypes.DEFAULT_TYPE
             state.Service.set_is_suspended(tg_id, category_id, True)
 
         await query.edit_message_reply_markup(None)
-        await reply(update, trans.gettext("SERVICES_ADMIN_USER_RECORD_SUSPENDED"))
+        await reply(update, render.admin_user_record_suspended(trans))
     else:
         logging.error("Unexpected query data: '{}'".format(query.data))
 
