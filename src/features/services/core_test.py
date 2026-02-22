@@ -582,24 +582,26 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     async def test__verify_legality_and_finalise_data_collection(self):
         self.skipTest(f"Test not implemented")
 
-    @patch("features.services.core.reply")
     @patch("features.services.core.settings")
-    async def test__confirm_user_data(self, mock_settings, mock_reply):
-        trans = i18n.default()
+    async def test__confirm_user_data(self, mock_settings):
+        @patch("features.services.core.reply")
+        async def test_call(command: int, expected_is_suspended: bool, mock_reply) -> None:
+            trans = i18n.default()
+            chat, user, context = self._create_chat_user_context()
+            category_id = 0
 
-        category_id = 0
+            message = Message(message_id=2, date=datetime.datetime.now(), chat=chat, from_user=user)
+            mock_query = test_util.MockQuery("2", user, str(chat.id), message,
+                                             data=f"{command}:{user.id}:{category_id}")
+            update = Update(update_id=2, message=message, callback_query=mock_query)
 
-        chat, user, context = self._create_chat_user_context()
-
-        async def test_call(command: int, expected_is_suspended: bool) -> None:
             with patch("features.services.state.Service") as mock_service_class:
-                message = Message(message_id=2, date=datetime.datetime.now(), chat=chat, from_user=user)
-                mock_query = test_util.MockQuery("2", user, str(chat.id), message,
-                                                 data=f"{command}:{user.id}:{category_id}")
-                update = Update(update_id=2, message=message, callback_query=mock_query)
-
                 self.assertEqual(await core._confirm_user_data(update, context), ConversationHandler.END)
 
+                # If moderation is lazy, services are approved by default, and vice versa, and the initial value of
+                # `is_suspended` is the opposite to `SERVICES_MODERATION_IS_LAZY`.  Therefore, for the given expected
+                # value of `is_suspended`, we only expect it to change when it coincides with value of the
+                # `SERVICES_MODERATION_IS_LAZY` setting.
                 if mock_settings.SERVICES_MODERATION_IS_LAZY == expected_is_suspended:
                     mock_service_class.set_is_suspended.assert_called_once_with(
                         user.id, category_id, expected_is_suspended)
@@ -610,8 +612,6 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                     mock_reply.assert_called_once_with(update, render.admin_user_record_suspended(trans))
                 else:
                     mock_reply.assert_called_once_with(update, render.admin_user_record_approved(trans))
-
-                mock_reply.reset_mock()
 
         mock_settings.SERVICES_MODERATION_IS_LAZY = False
 
