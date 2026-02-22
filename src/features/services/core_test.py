@@ -17,8 +17,9 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.application = Application.builder().token(settings.BOT_TOKEN).build()
         self.application.bot = test_util.MockBot()
+        self._next_message_id = 1000
+        self._next_query_id = 2000
         self._next_update_id = 3000
-        self._next_message_id = 6000
 
     def tearDown(self):
         load_test_categories(0)
@@ -32,11 +33,20 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         return chat, user, CallbackContext(application=self.application, chat_id=chat.id, user_id=user.id)
 
     def _create_update_with_message(self, chat: Chat, text: str = None, from_user: User = None) -> Update:
-        self._next_update_id += 1
         self._next_message_id += 1
+        self._next_update_id += 1
         return Update(self._next_update_id,
                       message=Message(
                           self._next_message_id, datetime.datetime.now(), chat, text=text, from_user=from_user))
+
+    def _create_update_with_query(self, chat: Chat, from_user, data: str = None) -> Update:
+        # self._next_message_id += 1
+        self._next_query_id += 1
+        self._next_update_id += 1
+
+        # message = Message(self._next_message_id, date=datetime.datetime.now(), chat=chat, from_user=from_user)
+        mock_query = test_util.MockQuery(str(self._next_query_id), from_user, str(chat.id), data=data)
+        return Update(self._next_update_id, callback_query=mock_query)
 
     async def test__verify_limit_then_retry_or_proceed(self):
         trans = i18n.default()
@@ -241,9 +251,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         trans = i18n.default()
 
         chat, user, context = self._create_chat_user_context()
-
-        message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user)
-        update = Update(update_id=1, message=message, callback_query=test_util.MockQuery("1", user, "1", message))
+        update = self._create_update_with_query(chat, user)
 
         # _who_request_category() must not be called with an empty set of people.
         with self.assertRaises(RuntimeError):
@@ -286,13 +294,10 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         trans = i18n.default()
 
         chat, user, context = self._create_chat_user_context()
-
-        message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user)
+        category_id = 1
+        update = self._create_update_with_query(chat, user, str(category_id))
 
         context.user_data["who_request_category"] = {}
-
-        update = Update(update_id=1, message=message,
-                        callback_query=test_util.MockQuery("1", user, "1", message=message, data="1"))
 
         with self.assertRaises(RuntimeError):
             await core._who_received_category(update, context), ConversationHandler.END
@@ -305,9 +310,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                                   state.Service(**data_row_for_service(2, 2))]}
 
         for selected_category_id in (1, 2):
-            update = Update(update_id=1, message=message,
-                            callback_query=test_util.MockQuery("1", user, "1", message=message,
-                                                               data=str(selected_category_id)))
+            update = self._create_update_with_query(chat, user, str(selected_category_id))
             context.user_data["who_request_category"] = categorised_people
 
             self.assertEqual(await core._who_received_category(update, context), ConversationHandler.END)
@@ -329,9 +332,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         trans = i18n.default()
 
         chat, user, context = self._create_chat_user_context()
-
-        message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user)
-        update = Update(update_id=1, message=message, callback_query=test_util.MockQuery("1", user, "1", message))
+        update = self._create_update_with_query(chat, user)
 
         load_test_categories(2)
         state.Service.set_bot_username("bot_username")
@@ -425,9 +426,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         trans = i18n.default()
 
         chat, user, context = self._create_chat_user_context()
-
-        message = Message(message_id=1, date=datetime.datetime.now(), chat=chat, from_user=user)
-        update = Update(update_id=1, message=message, callback_query=test_util.MockQuery("1", user, "1", message))
+        update = self._create_update_with_query(chat, user)
 
         # A user that does not have a username cannot enroll.
         result = await core._handle_command_enroll(update, context)
@@ -439,8 +438,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
         # Create a query from a user that has a username.
         user = User(id=1, first_name="Joe", is_bot=False, username="username_1")
-        message = Message(message_id=2, date=datetime.datetime.now(), chat=chat, from_user=user)
-        update = Update(update_id=2, message=message, callback_query=test_util.MockQuery("2", user, "1", message))
+        update = self._create_update_with_query(chat, user)
 
         # When no categories are defined, all services are created in the default category.  When the user starts
         # enrolling, they proceed to entering their occupation right away.
@@ -473,10 +471,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         trans = i18n.default()
 
         chat, user, context = self._create_chat_user_context()
-
-        message = Message(message_id=2, date=datetime.datetime.now(), chat=chat, from_user=user)
-        mock_query = test_util.MockQuery("2", user, "1", message)
-        update = Update(update_id=2, message=message, callback_query=mock_query)
+        update = self._create_update_with_query(chat, user)
 
         load_test_categories(2)
 
@@ -485,15 +480,18 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
             yield data_row_for_service(tg_id, 2)
 
         with patch("features.services.state._service_get_all_by_user", return_two_categories):
-            self.assertFalse(mock_query._edit_message_reply_markup_called)
+            # noinspection PyUnresolvedReferences
+            self.assertFalse(update.callback_query._edit_message_reply_markup_called)
 
             self.assertEqual(await core._handle_command_update(update, context), const.SELECTING_CATEGORY)
 
             self.assertIn("mode", context.user_data)
             self.assertEqual(context.user_data["mode"], "update")
 
-            self.assertTrue(mock_query._edit_message_reply_markup_called)
-            self.assertIsNone(mock_query._edit_message_reply_markup_called_with)
+            # noinspection PyUnresolvedReferences
+            self.assertTrue(update.callback_query._edit_message_reply_markup_called)
+            # noinspection PyUnresolvedReferences
+            self.assertIsNone(update.callback_query._edit_message_reply_markup_called_with)
             mock_reply.assert_called_once_with(update, trans.gettext("SERVICES_DM_SELECT_CATEGORY_FOR_UPDATE"),
                                                keyboards.select_category(
                                                    [s.category for s in state.Service.get_all_by_user(user.id)]))
@@ -505,12 +503,9 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
         chat, user, context = self._create_chat_user_context()
         selected_category_id = 1
+        update = self._create_update_with_query(chat, user, str(selected_category_id))
 
         load_test_categories(2)
-
-        message = Message(message_id=2, date=datetime.datetime.now(), chat=chat, from_user=user)
-        mock_query = test_util.MockQuery("2", user, "1", message, data=selected_category_id)
-        update = Update(update_id=2, message=message, callback_query=mock_query)
 
         def return_two_categories(tg_id: int) -> Iterator[dict]:
             yield data_row_for_service(tg_id, 1)
@@ -587,13 +582,10 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         @patch("features.services.core.reply")
         async def test_call(command: int, expected_is_suspended: bool, mock_reply) -> None:
             trans = i18n.default()
+
             chat, user, context = self._create_chat_user_context()
             category_id = 0
-
-            message = Message(message_id=2, date=datetime.datetime.now(), chat=chat, from_user=user)
-            mock_query = test_util.MockQuery("2", user, str(chat.id), message,
-                                             data=f"{command}:{user.id}:{category_id}")
-            update = Update(update_id=2, message=message, callback_query=mock_query)
+            update = self._create_update_with_query(chat, user, f"{command}:{user.id}:{category_id}")
 
             with patch("features.services.state.Service") as mock_service_class:
                 self.assertEqual(await core._confirm_user_data(update, context), ConversationHandler.END)
@@ -628,13 +620,9 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
         chat, user, context = self._create_chat_user_context()
         selected_category_id = 1
+        update = self._create_update_with_query(chat, user, str(selected_category_id))
 
         load_test_categories(5)
-
-        message = Message(message_id=2, date=datetime.datetime.now(), chat=chat, from_user=user)
-        mock_query = test_util.MockQuery("2", user, "1", message, data=selected_category_id)
-        update = Update(update_id=2, message=message, callback_query=mock_query)
-
         category_ids = [1, 3]
 
         def return_two_services(tg_id: int) -> Iterator[state.Service]:
@@ -655,12 +643,9 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
         chat, user, context = self._create_chat_user_context()
         selected_category_id = 1
+        update = self._create_update_with_query(chat, user, str(selected_category_id))
 
         load_test_categories(2)
-
-        message = Message(message_id=2, date=datetime.datetime.now(), chat=chat, from_user=user)
-        mock_query = test_util.MockQuery("2", user, "1", message, data=selected_category_id)
-        update = Update(update_id=2, message=message, callback_query=mock_query)
 
         with patch("features.services.state.Service") as mock_service_class:
             with patch("features.services.core.show_main_status") as mock_show_main_status:
