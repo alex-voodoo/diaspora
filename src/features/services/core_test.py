@@ -21,6 +21,11 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         self._next_query_id = 2000
         self._next_update_id = 3000
 
+    @property
+    def next_update_id(self) -> int:
+        self._next_update_id += 1
+        return self._next_update_id
+
     def tearDown(self):
         load_test_categories(0)
 
@@ -34,19 +39,17 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
     def _create_update_with_message(self, chat: Chat, text: str = None, from_user: User = None) -> Update:
         self._next_message_id += 1
-        self._next_update_id += 1
-        return Update(self._next_update_id,
+        return Update(self.next_update_id,
                       message=Message(
                           self._next_message_id, datetime.datetime.now(), chat, text=text, from_user=from_user))
 
     def _create_update_with_query(self, chat: Chat, from_user, data: str = None) -> Update:
         # self._next_message_id += 1
         self._next_query_id += 1
-        self._next_update_id += 1
 
         # message = Message(self._next_message_id, date=datetime.datetime.now(), chat=chat, from_user=from_user)
         mock_query = test_util.MockQuery(str(self._next_query_id), from_user, str(chat.id), data=data)
-        return Update(self._next_update_id, callback_query=mock_query)
+        return Update(self.next_update_id, callback_query=mock_query)
 
     async def test__verify_limit_then_retry_or_proceed(self):
         trans = i18n.default()
@@ -480,7 +483,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
             yield data_row_for_service(tg_id, 2)
 
         with patch("features.services.state._service_get_all_by_user", return_two_categories):
-            # noinspection PyUnresolvedReferences
+            self.assertIsInstance(update.callback_query, test_util.MockQuery)
+
             self.assertFalse(update.callback_query._edit_message_reply_markup_called)
 
             self.assertEqual(await core._handle_command_update(update, context), const.SELECTING_CATEGORY)
@@ -488,9 +492,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
             self.assertIn("mode", context.user_data)
             self.assertEqual(context.user_data["mode"], "update")
 
-            # noinspection PyUnresolvedReferences
             self.assertTrue(update.callback_query._edit_message_reply_markup_called)
-            # noinspection PyUnresolvedReferences
             self.assertIsNone(update.callback_query._edit_message_reply_markup_called_with)
             mock_reply.assert_called_once_with(update, trans.gettext("SERVICES_DM_SELECT_CATEGORY_FOR_UPDATE"),
                                                keyboards.select_category(
@@ -565,14 +567,33 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
                 await test_request_updated_occupation()
 
+    async def _test_data_entry_handler(self, method_being_tested, initial_stage_id: int, final_stage_id: int):
+        with patch("logging.warning") as mock_logging:
+            with patch("features.services.core._verify_limit_then_retry_or_proceed") as mock_proceed:
+                chat, user, context = self._create_chat_user_context()
+                update = Update(self.next_update_id)
+
+                self.assertEqual(await method_being_tested(update, context), initial_stage_id)
+                mock_proceed.assert_not_called()
+                mock_logging.assert_called_once()
+
+                update = self._create_update_with_message(chat)
+
+                mock_proceed.return_value = final_stage_id
+                self.assertEqual(await method_being_tested(update, context), final_stage_id)
+                mock_proceed.assert_called_once()
+
     async def test__verify_occupation_and_request_description(self):
-        self.skipTest("Test not implemented")
+        await self._test_data_entry_handler(core._verify_occupation_and_request_description,
+                                            const.TYPING_OCCUPATION, const.TYPING_DESCRIPTION)
 
     async def test__verify_description_and_request_location(self):
-        self.skipTest("Test not implemented")
+        await self._test_data_entry_handler(core._verify_description_and_request_location,
+                                            const.TYPING_DESCRIPTION, const.TYPING_LOCATION)
 
     async def test__verify_location_and_request_legality(self):
-        self.skipTest("Test not implemented")
+        await self._test_data_entry_handler(core._verify_location_and_request_legality,
+                                            const.TYPING_LOCATION, const.CONFIRMING_LEGALITY)
 
     async def test__verify_legality_and_finalise_data_collection(self):
         self.skipTest(f"Test not implemented")
@@ -631,7 +652,6 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
         with patch("features.services.state._service_get_all_by_user", return_two_services):
             with patch("features.services.core.reply") as mock_reply:
-
                 self.assertEqual(await core._handle_command_retire(update, context), const.SELECTING_CATEGORY)
 
                 mock_reply.assert_called_once_with(
