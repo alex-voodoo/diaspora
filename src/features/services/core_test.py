@@ -1,7 +1,7 @@
 """
 Tests for the core.py
 """
-
+import copy
 import unittest
 from unittest.mock import call
 
@@ -44,12 +44,10 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                           self._next_message_id, datetime.datetime.now(), chat, text=text, from_user=from_user))
 
     def _create_update_with_query(self, chat: Chat, from_user, data: str = None) -> Update:
-        # self._next_message_id += 1
         self._next_query_id += 1
 
-        # message = Message(self._next_message_id, date=datetime.datetime.now(), chat=chat, from_user=from_user)
-        mock_query = test_util.MockQuery(str(self._next_query_id), from_user, str(chat.id), data=data)
-        return Update(self.next_update_id, callback_query=mock_query)
+        return Update(self.next_update_id,
+                      callback_query=test_util.MockQuery(str(self._next_query_id), from_user, str(chat.id), data=data))
 
     async def test__verify_limit_then_retry_or_proceed(self):
         trans = i18n.default()
@@ -595,8 +593,92 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         await self._test_data_entry_handler(core._verify_location_and_request_legality,
                                             const.TYPING_LOCATION, const.CONFIRMING_LEGALITY)
 
-    async def test__verify_legality_and_finalise_data_collection(self):
-        self.skipTest(f"Test not implemented")
+    @patch("features.services.keyboards.standard")
+    @patch("features.services.state.Service.delete")
+    @patch("features.services.state.Service.set")
+    @patch("features.services.core._moderate_new_data")
+    @patch("features.services.core.reply")
+    @patch("features.services.core.settings")
+    async def test__verify_legality_and_finalise_data_collection(self, mock_settings, mock_reply,
+                                                                 mock_moderate_new_data, mock_service_set,
+                                                                 mock_service_delete, mock_standard_keyboard):
+        trans = i18n.default()
+
+        chat, user, context = self._create_chat_user_context(username="username")
+        update = self._create_update_with_query(chat, user, const.RESPONSE_NO)
+
+        category_id = 0
+
+        for moderation_enabled in (True, False):
+            mock_settings.SERVICES_MODERATION_ENABLED = moderation_enabled
+
+            context.user_data["category_id"] = category_id
+
+            self.assertEqual(await core._verify_legality_and_finalise_data_collection(update, context),
+                             ConversationHandler.END)
+
+            mock_reply.assert_called_once_with(update, render.enroll_declined_illegal_service(trans),
+                                               keyboards.standard(user))
+            mock_reply.reset_mock()
+
+            mock_moderate_new_data.assert_not_called()
+
+            mock_service_set.assert_not_called()
+
+            mock_service_delete.assert_called_once_with(user.id, category_id)
+            mock_service_delete.reset_mock()
+
+            mock_standard_keyboard.assert_called()
+            mock_standard_keyboard.reset_mock()
+
+            self.assertFalse(context.user_data)
+
+        update = self._create_update_with_query(chat, user, const.RESPONSE_YES)
+
+        for moderation_enabled in (True, False):
+            for moderation_is_lazy in (True, False):
+                mock_settings.SERVICES_MODERATION_ENABLED = moderation_enabled
+                mock_settings.SERVICES_MODERATION_IS_LAZY = moderation_is_lazy
+
+                context.user_data["category_id"] = category_id
+                context.user_data["occupation"] = "occupation"
+                context.user_data["description"] = "description"
+                context.user_data["location"] = "location"
+
+                initial_data = copy.deepcopy(context.user_data)
+
+                self.assertEqual(await core._verify_legality_and_finalise_data_collection(update, context),
+                                 ConversationHandler.END)
+
+                if not moderation_enabled:
+                    text = render.enroll_completed(trans)
+                elif moderation_is_lazy:
+                    text = render.enroll_completed_post_moderation(trans)
+                else:
+                    text = render.enroll_completed_pre_moderation(trans)
+
+                mock_reply.assert_called_once_with(update, text, keyboards.standard(user))
+                mock_reply.reset_mock()
+
+                if moderation_enabled:
+                    mock_moderate_new_data.assert_called_once_with(context, initial_data | {"tg_id": user.id,
+                                                                                            "tg_username":
+                                                                                                user.username})
+                    mock_moderate_new_data.reset_mock()
+                else:
+                    mock_moderate_new_data.assert_not_called()
+
+                mock_service_set.assert_called_once_with(user.id, user.username, initial_data["occupation"],
+                                                         initial_data["description"], initial_data["location"],
+                                                         moderation_enabled and not moderation_is_lazy, category_id)
+                mock_service_set.reset_mock()
+
+                mock_service_delete.assert_not_called()
+
+                mock_standard_keyboard.assert_called()
+                mock_standard_keyboard.reset_mock()
+
+                self.assertFalse(context.user_data)
 
     @patch("features.services.core.settings")
     async def test__confirm_user_data(self, mock_settings):

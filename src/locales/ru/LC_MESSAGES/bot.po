@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-02-23 20:09+0100\n"
+"POT-Creation-Date: 2026-02-23 21:17+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -395,27 +395,27 @@ msgstr "Загрузить книгу услуг"
 msgid "SERVICES_ADMIN_BUTTON_STATS"
 msgstr "Статистика книги услуг"
 
-#: features/services/core.py:106 features/services/core_test.py:175
+#: features/services/core.py:105 features/services/core_test.py:173
 msgid "SERVICES_DM_HELLO_AGAIN {user_first_name}"
 msgstr "Здравствуйте, {user_first_name}. Вот ваша запись.\n"
 
-#: features/services/core.py:110 features/services/core_test.py:212
+#: features/services/core.py:109 features/services/core_test.py:210
 msgid "SERVICES_DM_HELLO_AGAIN_S {user_first_name} {record_count}"
 msgid_plural "SERVICES_DM_HELLO_AGAIN_P {user_first_name} {record_count}"
 msgstr[0] "Здравствуйте, {user_first_name}. Вот ваша {record_count} запись.\n"
 msgstr[1] "Здравствуйте, {user_first_name}. Вот ваши {record_count} записи.\n"
 msgstr[2] "Здравствуйте, {user_first_name}. Вот ваши {record_count} записей.\n"
 
-#: features/services/core.py:120
+#: features/services/core.py:119
 msgid "SERVICES_DM_NO_RECORDS"
 msgstr "У вас нет записей."
 
-#: features/services/core.py:124 features/services/core_test.py:172
+#: features/services/core.py:123 features/services/core_test.py:170
 msgid "SERVICES_DM_HELLO {bot_first_name} {main_chat_name}"
 msgstr "Здравствуйте, я бот {bot_first_name} — хранитель полезных контактов группы «{main_chat_name}». Подскажу, кто будет полезен вам, или помогу найти клиентов."
 
-#: features/services/core.py:136 features/services/core_test.py:232
-#: features/services/core_test.py:245
+#: features/services/core.py:135 features/services/core_test.py:230
+#: features/services/core_test.py:243
 msgid "SERVICES_ADMIN_APPROVE_USER_DATA {category} {description} {location} {occupation} {username}"
 msgstr ""
 "Пользователь @{username} изменил свою запись в категории <b>{category}</b>.\n"
@@ -425,93 +425,77 @@ msgstr ""
 "\n"
 "Принять изменения?"
 
-#: features/services/core.py:161 features/services/core_test.py:279
+#: features/services/core.py:160 features/services/core_test.py:277
 msgid "SERVICES_DM_WHO_CATEGORY_LIST"
 msgstr "Какую категорию показать?"
 
-#: features/services/core.py:204 features/services/core_test.py:356
+#: features/services/core.py:203 features/services/core_test.py:354
 msgid "SERVICES_DM_WHO_EMPTY"
 msgstr "Пока никто не записался, будьте первым!"
 
-#: features/services/core.py:237 features/services/core_test.py:438
+#: features/services/core.py:236 features/services/core_test.py:436
 msgid "SERVICES_DM_ENROLL_USERNAME_REQUIRED"
 msgstr ""
 "В вашем профиле Телеграм не задано имя пользователя. Добавьте его в настройках, чтобы другие участники могли написать вам, не зная вашего номера.\n"
 "\n"
 "После этого я смогу добавить вас в список."
 
-#: features/services/core.py:240 features/services/core_test.py:454
-#: features/services/core_test.py:468
+#: features/services/core.py:239 features/services/core_test.py:452
+#: features/services/core_test.py:466
 msgid "SERVICES_DM_ENROLL_START"
 msgstr "Давайте знакомиться!"
 
-#: features/services/core.py:248 features/services/core_test.py:469
+#: features/services/core.py:247 features/services/core_test.py:467
 msgid "SERVICES_DM_ENROLL_ASK_CATEGORY"
 msgstr "Выберите категорию, к которой можно отнести вашу услугу."
 
-#: features/services/core.py:268 features/services/core_test.py:497
+#: features/services/core.py:267 features/services/core_test.py:495
 msgid "SERVICES_DM_SELECT_CATEGORY_FOR_UPDATE"
 msgstr "Выберите категорию для редактирования."
 
-#: features/services/core.py:322 features/services/core_test.py:64
-#: features/services/core_test.py:117
+#: features/services/core.py:321 features/services/core_test.py:62
+#: features/services/core_test.py:115
 msgid "SERVICES_DM_ENROLL_ASK_DESCRIPTION"
 msgstr "Опишите вашу услугу подробно."
 
-#: features/services/core.py:323 features/services/core_test.py:65
-#: features/services/core_test.py:118
+#: features/services/core.py:322 features/services/core_test.py:63
+#: features/services/core_test.py:116
 msgid "SERVICES_DM_UPDATE_DESCRIPTION {title} {current_value}"
 msgstr ""
 "Введите новое подробное описание вашей услуги в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:340
+#: features/services/core.py:339
 msgid "SERVICES_DM_ENROLL_ASK_LOCATION"
 msgstr ""
 "Где вы оказываете услуги?\n"
 "\n"
 "Укажите город по-русски: Сантьяго, Корунья, Виго и др. Если городов несколько, пишите «Галисия»."
 
-#: features/services/core.py:341
+#: features/services/core.py:340
 msgid "SERVICES_DM_UPDATE_LOCATION {title} {current_value}"
 msgstr ""
 "Введите новое описание места, где вы оказываете услугу в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:356
+#: features/services/core.py:355
 msgid "SERVICES_DM_ENROLL_CONFIRM_LEGALITY"
 msgstr ""
 "И последнее: подтвердите, что не нарушаете местные законы и правила.\n"
 "\n"
 "Ваша услуга легальна?"
 
-#: features/services/core.py:390
-msgid "SERVICES_DM_ENROLL_COMPLETED"
-msgstr "Готово, вы добавлены в список!"
-
-#: features/services/core.py:392
-msgid "SERVICES_DM_ENROLL_COMPLETED_POST_MODERATION"
-msgstr "Готово, вы добавлены в список! Обратите внимание, модераторы могут скрыть вашу запись, если она нарушает правила группы."
-
-#: features/services/core.py:394
-msgid "SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION"
-msgstr "Готово! Я добавлю вас в список после проверки модераторами."
-
-#: features/services/core.py:406
-msgid "SERVICES_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"
-msgstr "Извините, я не могу добавлять нелегальные услуги."
-
-#: features/services/core.py:484 features/services/core_test.py:691
+#: features/services/core.py:485 features/services/core_test.py:773
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Начнём сначала."
 
-#: features/services/core.py:507 features/services/core.py:510
-#: features/services/core_test.py:769 features/services/core_test.py:794
+#: features/services/core.py:508 features/services/core.py:511
+#: features/services/core_test.py:851 features/services/core_test.py:876
 msgid "SERVICES_DM_SERVICE_NOT_FOUND"
 msgstr "Услуга не найдена."
 
-#: features/services/core.py:516 features/services/core_test.py:739
-#: features/services/core_test.py:781
+#: features/services/core.py:517 features/services/core_test.py:821
+#: features/services/core_test.py:863
 msgid "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}"
 msgstr ""
 "Ваша услуга в категории <b>{category_title}</b>\n"
@@ -521,7 +505,7 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/core.py:521 features/services/core_test.py:753
+#: features/services/core.py:522 features/services/core_test.py:835
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "Услуга @{username} в категории <b>{category_title}</b>\n"
@@ -617,6 +601,22 @@ msgstr "Одобрено."
 #: features/services/render.py:87
 msgid "SERVICES_ADMIN_USER_RECORD_SUSPENDED"
 msgstr "Запись скрыта."
+
+#: features/services/render.py:91
+msgid "SERVICES_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"
+msgstr "Извините, я не могу добавлять нелегальные услуги."
+
+#: features/services/render.py:95
+msgid "SERVICES_DM_ENROLL_COMPLETED"
+msgstr "Готово, вы добавлены в список!"
+
+#: features/services/render.py:99
+msgid "SERVICES_DM_ENROLL_COMPLETED_POST_MODERATION"
+msgstr "Готово, вы добавлены в список! Обратите внимание, модераторы могут скрыть вашу запись, если она нарушает правила группы."
+
+#: features/services/render.py:103
+msgid "SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION"
+msgstr "Готово! Я добавлю вас в список после проверки модераторами."
 
 #: features/services/state.py:185
 msgid "SERVICES_CATEGORY_LIST_TITLE"

@@ -85,3 +85,19 @@ def admin_user_record_approved(trans: gettext.GNUTranslations) -> str:
 
 def admin_user_record_suspended(trans: gettext.GNUTranslations) -> str:
     return trans.gettext("SERVICES_ADMIN_USER_RECORD_SUSPENDED")
+
+
+def enroll_declined_illegal_service(trans: gettext.GNUTranslations) -> str:
+    return trans.gettext("SERVICES_DM_ENROLL_DECLINED_ILLEGAL_SERVICE")
+
+
+def enroll_completed(trans: gettext.GNUTranslations) -> str:
+    return trans.gettext("SERVICES_DM_ENROLL_COMPLETED")
+
+
+def enroll_completed_post_moderation(trans: gettext.GNUTranslations) -> str:
+    return trans.gettext("SERVICES_DM_ENROLL_COMPLETED_POST_MODERATION")
+
+
+def enroll_completed_pre_moderation(trans: gettext.GNUTranslations) -> str:
+    return trans.gettext("SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION")

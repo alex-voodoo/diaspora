@@ -3,7 +3,6 @@ Registry of services
 """
 
 import copy
-import gettext
 import logging
 import re
 from collections.abc import Awaitable, Callable
@@ -376,7 +375,9 @@ async def _verify_legality_and_finalise_data_collection(update: Update, context:
 
     if query.data == const.RESPONSE_YES:
         state.Service.set(from_user.id, from_user.username, user_data["occupation"], user_data["description"],
-                          user_data["location"], not settings.SERVICES_MODERATION_IS_LAZY, user_data["category_id"])
+                          user_data["location"],
+                          settings.SERVICES_MODERATION_ENABLED and not settings.SERVICES_MODERATION_IS_LAZY,
+                          user_data["category_id"])
 
         saved_user_data = copy.deepcopy(user_data)
         user_data.clear()
@@ -387,11 +388,11 @@ async def _verify_legality_and_finalise_data_collection(update: Update, context:
         await query.edit_message_reply_markup(None)
 
         if not settings.SERVICES_MODERATION_ENABLED:
-            message = trans.gettext("SERVICES_DM_ENROLL_COMPLETED")
+            message = render.enroll_completed(trans)
         elif settings.SERVICES_MODERATION_IS_LAZY:
-            message = trans.gettext("SERVICES_DM_ENROLL_COMPLETED_POST_MODERATION")
+            message = render.enroll_completed_post_moderation(trans)
         else:
-            message = trans.gettext("SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION")
+            message = render.enroll_completed_pre_moderation(trans)
 
         await reply(update, message, keyboards.standard(from_user))
 
@@ -403,7 +404,7 @@ async def _verify_legality_and_finalise_data_collection(update: Update, context:
         user_data.clear()
 
         await query.edit_message_reply_markup(None)
-        await reply(update, trans.gettext("SERVICES_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"), keyboards.standard(from_user))
+        await reply(update, render.enroll_declined_illegal_service(trans), keyboards.standard(from_user))
 
     return ConversationHandler.END
 
