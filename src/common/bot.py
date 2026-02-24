@@ -18,7 +18,7 @@ async def forward_message(context: ContextTypes.DEFAULT_TYPE, from_chat_id: int,
 
 
 async def reply(update: Update, text: str, reply_markup: InlineKeyboardMarkup = None) -> None:
-    await update.effective_message.reply_text(text=text, reply_markup=reply_markup)
+    await update.effective_message.reply_text(text, reply_markup=reply_markup)
 
 
 async def restrict_chat_member(context: ContextTypes.DEFAULT_TYPE, chat_id: int, user_id: int,
@@ -28,8 +28,8 @@ async def restrict_chat_member(context: ContextTypes.DEFAULT_TYPE, chat_id: int,
 
 async def send(context: ContextTypes.DEFAULT_TYPE, chat_id: int, text: str, reply_markup: InlineKeyboardMarkup = None,
                reply_to_message_id: int = None, disable_notification: bool = False) -> None:
-    await context.bot.send_message(chat_id=chat_id, text=text, reply_markup=reply_markup,
-                                   reply_to_message_id=reply_to_message_id, disable_notification=disable_notification)
+    await context.bot.send_message(chat_id, text, reply_markup=reply_markup, reply_to_message_id=reply_to_message_id,
+                                   disable_notification=disable_notification)
 
 
 async def send_poll(context: ContextTypes.DEFAULT_TYPE, chat_id: int, question: str,

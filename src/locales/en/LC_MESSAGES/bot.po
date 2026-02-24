@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-02-23 21:17+0100\n"
+"POT-Creation-Date: 2026-02-24 21:44+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -111,25 +111,25 @@ msgstr "Main menu"
 msgid "COMMAND_DESCRIPTION_ADMIN"
 msgstr "Administrator's menu"
 
-#: bot.py:241
+#: bot.py:240
 msgid "MESSAGE_ADMIN_HELLO_ON_STARTUP"
 msgstr "I am online."
 
-#: common/admin.py:55
+#: common/admin.py:56
 msgid "ADMIN_MESSAGE_DM_EXPECTED_REGULAR_FILE"
 msgstr "Please send a regular file."
 
-#: common/admin.py:60
+#: common/admin.py:61
 msgid "ADMIN_MESSAGE_DM_UNEXPECTED_FILE_TYPE {expected} {actual}"
 msgstr "Wrong file type!  Expected <code>{expected}</code> but got <code>{actual}</code> instead."
 
-#: common/admin.py:94
+#: common/admin.py:95
 msgid "ADMIN_MESSAGE_DM_VALIDATION_FAILED {message}"
 msgstr ""
 "This file cannot be used.\n"
 "{message}"
 
-#: common/admin.py:117
+#: common/admin.py:118
 msgid "ADMIN_MESSAGE_DM_OS_ERROR_WHILE_SAVING {error}"
 msgstr ""
 "Something terrible happened:\n"
@@ -155,27 +155,27 @@ msgstr "Awaiting a .joblib file."
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_KEYWORDS_UPDATED"
 msgstr "Accepted."
 
-#: features/antispam.py:278
+#: features/antispam.py:277
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_OPENAI_UPDATED"
 msgstr "Accepted."
 
-#: features/antispam.py:281
+#: features/antispam.py:279
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_OPENAI_CANNOT_USE"
 msgstr "Could not load the new model.  I will use the old one."
 
-#: features/antispam.py:304
+#: features/antispam.py:301
 msgid "ANTISPAM_BUTTON_DOWNLOAD_ANTISPAM_KEYWORDS"
 msgstr "Download spam keywords"
 
-#: features/antispam.py:306
+#: features/antispam.py:303
 msgid "ANTISPAM_BUTTON_UPLOAD_ANTISPAM_KEYWORDS"
 msgstr "Upload spam keywords"
 
-#: features/antispam.py:317
+#: features/antispam.py:314
 msgid "ANTISPAM_BUTTON_DOWNLOAD_SPAM"
 msgstr "Download spam"
 
-#: features/antispam.py:319
+#: features/antispam.py:316
 msgid "ANTISPAM_BUTTON_UPLOAD_ANTISPAM_OPENAI"
 msgstr "Upload the OpenAI model"
 

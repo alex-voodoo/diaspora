@@ -11,6 +11,7 @@ from pathlib import Path
 from telegram import InlineKeyboardMarkup, Update
 
 from . import i18n
+from .bot import reply
 from .checks import is_admin
 
 buttons = None
@@ -79,7 +80,7 @@ async def save_file_with_backup(update: Update, path: Path, expected_mime_type: 
 
     success, error_message = has_attachment(update, expected_mime_type)
     if not success:
-        await update.effective_message.reply_text(error_message, reply_markup=get_main_keyboard())
+        await reply(update, error_message, reply_markup=get_main_keyboard())
         return False
 
     file = await update.effective_message.document.get_file()
@@ -90,9 +91,9 @@ async def save_file_with_backup(update: Update, path: Path, expected_mime_type: 
     if validate:
         success, message = validate(data)
         if not success:
-            await update.effective_message.reply_text(
-                trans.gettext("ADMIN_MESSAGE_DM_VALIDATION_FAILED {message}").format(message=message),
-                reply_markup=get_main_keyboard())
+            await reply(update,
+                        trans.gettext("ADMIN_MESSAGE_DM_VALIDATION_FAILED {message}").format(message=message),
+                        reply_markup=get_main_keyboard())
             return False
 
     try:
@@ -113,9 +114,9 @@ async def save_file_with_backup(update: Update, path: Path, expected_mime_type: 
         if backup_backup_path and os.path.exists(backup_backup_path):
             os.remove(backup_backup_path)
     except OSError as e:
-        await update.effective_message.reply_text(
-            trans.gettext("ADMIN_MESSAGE_DM_OS_ERROR_WHILE_SAVING {error}".format(error=e)),
-            reply_markup=get_main_keyboard())
+        await reply(update,
+                    trans.gettext("ADMIN_MESSAGE_DM_OS_ERROR_WHILE_SAVING {error}".format(error=e)),
+                    get_main_keyboard())
         return False
 
     return True

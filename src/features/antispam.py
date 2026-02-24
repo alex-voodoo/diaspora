@@ -253,8 +253,7 @@ async def handle_received_keywords(update: Update, context: ContextTypes.DEFAULT
 
         keywords = None
 
-        await update.effective_message.reply_text(trans.gettext("ANTISPAM_MESSAGE_DM_ADMIN_KEYWORDS_UPDATED"),
-                                                  reply_markup=None)
+        await reply(update, trans.gettext("ANTISPAM_MESSAGE_DM_ADMIN_KEYWORDS_UPDATED"))
 
     return ConversationHandler.END
 
@@ -275,11 +274,9 @@ async def handle_received_openai(update: Update, context: ContextTypes.DEFAULT_T
     trans = i18n.trans(user)
 
     if save_new_openai(data):
-        await update.effective_message.reply_text(trans.gettext("ANTISPAM_MESSAGE_DM_ADMIN_OPENAI_UPDATED"),
-                                                  reply_markup=None)
+        await reply(update, trans.gettext("ANTISPAM_MESSAGE_DM_ADMIN_OPENAI_UPDATED"))
     else:
-        await update.effective_message.reply_text(trans.gettext("ANTISPAM_MESSAGE_DM_ADMIN_OPENAI_CANNOT_USE"),
-                                                  reply_markup=get_main_keyboard())
+        await reply(update, trans.gettext("ANTISPAM_MESSAGE_DM_ADMIN_OPENAI_CANNOT_USE"), get_main_keyboard())
 
     return ConversationHandler.END
 

@@ -18,7 +18,7 @@ from telegram import BotCommand, LinkPreviewOptions, MenuButtonCommands, Update
 from telegram.constants import ParseMode, ChatType
 from telegram.ext import Application, CommandHandler, ContextTypes, Defaults, filters, MessageHandler
 
-from common.bot import send
+from common.bot import reply, send
 
 # Configure logging before importing settings and other project modules to have messages that may be rendered during
 # initialisation logged correctly.
@@ -214,9 +214,9 @@ async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> No
             or not await talking_private(update, context, False)):
         return
 
-    await update.effective_message.reply_text(
-        i18n.trans(update.effective_message.from_user).gettext("MESSAGE_DM_INTERNAL_ERROR {error_uuid}").format(
-            error_uuid=error_uuid))
+    await reply(update,
+                i18n.trans(update.effective_message.from_user).gettext("MESSAGE_DM_INTERNAL_ERROR {error_uuid}").format(
+                    error_uuid=error_uuid))
 
 
 async def post_init(application: Application) -> None:
@@ -237,8 +237,7 @@ async def post_init(application: Application) -> None:
     glossary.post_init(application, 4)
 
     if settings.DEVELOPER_CHAT_ID:
-        await bot.send_message(chat_id=settings.DEVELOPER_CHAT_ID,
-                               text=i18n.default().gettext("MESSAGE_ADMIN_HELLO_ON_STARTUP"))
+        await send(application, settings.DEVELOPER_CHAT_ID, i18n.default().gettext("MESSAGE_ADMIN_HELLO_ON_STARTUP"))
 
 
 def main() -> None:

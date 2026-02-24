@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-02-23 21:17+0100\n"
+"POT-Creation-Date: 2026-02-24 21:44+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -111,25 +111,25 @@ msgstr "Главное меню"
 msgid "COMMAND_DESCRIPTION_ADMIN"
 msgstr "Меню администратора"
 
-#: bot.py:241
+#: bot.py:240
 msgid "MESSAGE_ADMIN_HELLO_ON_STARTUP"
 msgstr "Я на связи."
 
-#: common/admin.py:55
+#: common/admin.py:56
 msgid "ADMIN_MESSAGE_DM_EXPECTED_REGULAR_FILE"
 msgstr "Пожалуйста, пришлите обычный файл."
 
-#: common/admin.py:60
+#: common/admin.py:61
 msgid "ADMIN_MESSAGE_DM_UNEXPECTED_FILE_TYPE {expected} {actual}"
 msgstr "Не тот вид файла! Нужен <code>{expected}</code>, а вы прислали <code>{actual}</code>."
 
-#: common/admin.py:94
+#: common/admin.py:95
 msgid "ADMIN_MESSAGE_DM_VALIDATION_FAILED {message}"
 msgstr ""
 "Этот файл не подходит.\n"
 "{message}"
 
-#: common/admin.py:117
+#: common/admin.py:118
 msgid "ADMIN_MESSAGE_DM_OS_ERROR_WHILE_SAVING {error}"
 msgstr ""
 "Случилось страшное:\n"
@@ -155,27 +155,27 @@ msgstr "Ожидаю файл .joblib, содержащий модель OpenAI.
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_KEYWORDS_UPDATED"
 msgstr "Принято."
 
-#: features/antispam.py:278
+#: features/antispam.py:277
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_OPENAI_UPDATED"
 msgstr "Принято."
 
-#: features/antispam.py:281
+#: features/antispam.py:279
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_OPENAI_CANNOT_USE"
 msgstr "Не удалось загрузить новую модель."
 
-#: features/antispam.py:304
+#: features/antispam.py:301
 msgid "ANTISPAM_BUTTON_DOWNLOAD_ANTISPAM_KEYWORDS"
 msgstr "Выгрузить стоп-слова"
 
-#: features/antispam.py:306
+#: features/antispam.py:303
 msgid "ANTISPAM_BUTTON_UPLOAD_ANTISPAM_KEYWORDS"
 msgstr "Загрузить стоп-слова"
 
-#: features/antispam.py:317
+#: features/antispam.py:314
 msgid "ANTISPAM_BUTTON_DOWNLOAD_SPAM"
 msgstr "Выгрузить спам"
 
-#: features/antispam.py:319
+#: features/antispam.py:316
 msgid "ANTISPAM_BUTTON_UPLOAD_ANTISPAM_OPENAI"
 msgstr "Загрузить модель OpenAI"
 
