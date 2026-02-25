@@ -1,0 +1,6 @@
+CREATE TABLE "services_providers" (
+    "tg_id"         INTEGER,
+    "tg_username"   TEXT NOT NULL UNIQUE,
+    "next_ping"     DATETIME NOT NULL,
+    PRIMARY KEY("tg_id")
+)
