@@ -11,6 +11,44 @@ from common import db, i18n
 from common.settings import settings
 
 
+class Provider:
+    """Wraps a service provider database record"""
+
+    class NotFound(Exception):
+        pass
+
+    def __init__(self, **kwargs):
+        self._tg_id = kwargs["tg_id"]
+        self._tg_username = kwargs["tg_username"]
+        self._next_ping = kwargs["next_ping"]
+
+    @property
+    def tg_id(self) -> int:
+        return self._tg_id
+
+    @property
+    def tg_username(self) -> str:
+        return self._tg_username
+
+    @property
+    def next_ping(self) -> datetime.datetime:
+        return self._next_ping
+
+    @classmethod
+    def get_by_tg_id(cls, tg_id: int) -> Self:
+        for row in db.sql_query("SELECT * FROM services_providers WHERE tg_id=?", (tg_id, )):
+            row["next_ping"] = datetime.datetime.fromisoformat(row["next_ping"])
+            return Provider(**row)
+        raise Provider.NotFound
+
+    @classmethod
+    def get_by_username(cls, tg_username: str) -> Self:
+        for row in db.sql_query("SELECT * FROM services_providers WHERE tg_username=?", (tg_username, )):
+            row["next_ping"] = datetime.datetime.fromisoformat(row["next_ping"])
+            return Provider(**row)
+        raise Provider.NotFound
+
+
 class ServiceCategory:
     """Wraps a service category database record
 
