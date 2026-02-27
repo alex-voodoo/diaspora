@@ -1,0 +1,11 @@
+ALTER TABLE "people"
+RENAME TO "services_services";
+
+ALTER TABLE "people_category"
+RENAME TO "services_categories";
+
+ALTER TABLE "people_category_views"
+RENAME TO "services_category_views";
+
+ALTER TABLE "people_views"
+RENAME TO "services_service_views";

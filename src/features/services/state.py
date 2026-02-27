@@ -36,14 +36,14 @@ class Provider:
 
     @classmethod
     def get_by_tg_id(cls, tg_id: int) -> Self:
-        for row in db.sql_query("SELECT * FROM services_providers WHERE tg_id=?", (tg_id, )):
+        for row in db.sql_query("SELECT * FROM services_providers WHERE tg_id=?", (tg_id,)):
             row["next_ping"] = datetime.datetime.fromisoformat(row["next_ping"])
             return Provider(**row)
         raise Provider.NotFound
 
     @classmethod
     def get_by_username(cls, tg_username: str) -> Self:
-        for row in db.sql_query("SELECT * FROM services_providers WHERE tg_username=?", (tg_username, )):
+        for row in db.sql_query("SELECT * FROM services_providers WHERE tg_username=?", (tg_username,)):
             row["next_ping"] = datetime.datetime.fromisoformat(row["next_ping"])
             return Provider(**row)
         raise Provider.NotFound
@@ -52,7 +52,7 @@ class Provider:
 class ServiceCategory:
     """Wraps a service category database record
 
-    The class caches the entire `people_category` table and provides methods for accessing individual items and the
+    The class caches the entire `services_categories` table and provides methods for accessing individual items and the
     entire collection.
 
     The storage must be initialised by calling the `load()` class method.
@@ -239,13 +239,13 @@ def _service_select(where_clause: str = "", where_params: tuple = (), additional
     @param additional_clause: what to add after WHERE
     @return: data returned by the DB
 
-    Executes an SQL SELECT query that selects all columns from the `people` table.  Converts data to their correct types
-    (`last_modified` to datetime and `is_suspended` to bool).  Data is returned as a dictionary with keys compatible
-    with `Service.__init__()`.
+    Executes an SQL SELECT query that selects all columns from the `services_services` table.  Converts data to their
+    correct types (`last_modified` to datetime and `is_suspended` to bool).  Data is returned as a dictionary with keys
+    compatible with `Service.__init__()`.
     """
 
     query = ["SELECT tg_id, tg_username, category_id, occupation, description, location, is_suspended, last_modified "
-             "FROM people"]
+             "FROM services_services"]
     if where_clause:
         query.append(f"WHERE {where_clause}")
     if additional_clause:
@@ -275,14 +275,14 @@ def _service_get(category_id: int, tg_id: int = 0, tg_username: str = "") -> Ite
 
 
 def _service_get_all_active() -> Iterator[dict]:
-    """Query all non-suspended records from the `people` table"""
+    """Query all non-suspended records from the `services_services` table"""
 
     for record in _service_select("is_suspended=0", (), "ORDER BY tg_username COLLATE NOCASE"):
         yield record
 
 
 def _service_get_all_by_user(tg_id: int) -> Iterator[dict]:
-    """Return all records of a user identified by `tg_id` existing in the `people` table"""
+    """Return all records of a user identified by `tg_id` existing in the `services_services` table"""
 
     for record in _service_select("tg_id=?", (tg_id,)):
         yield record
@@ -291,26 +291,29 @@ def _service_get_all_by_user(tg_id: int) -> Iterator[dict]:
 def _service_delete(tg_id: int, category_id: int) -> None:
     """Delete the user record identified by `tg_id`"""
 
-    db.sql_exec("DELETE FROM people WHERE tg_id=? AND category_id=?", (tg_id, category_id))
+    db.sql_exec("DELETE FROM services_services WHERE tg_id=? AND category_id=?", (tg_id, category_id))
 
 
 def _service_insert_or_update(tg_id: int, tg_username: str, occupation: str, description: str, location: str,
                               is_suspended: int, category_id: int) -> None:
-    """Create a new or update the existing record identified by `tg_id` in the `people` table"""
+    """Create a new or update the existing record identified by `tg_id` in the `services_services` table"""
 
-    db.sql_exec("INSERT OR REPLACE INTO people (tg_id, tg_username, occupation, description, location, is_suspended, "
-              "category_id) VALUES(?, ?, ?, ?, ?, ?, ?)",
-              (tg_id, tg_username, occupation, description, location, is_suspended, category_id))
+    db.sql_exec(
+        "INSERT OR REPLACE INTO services_services (tg_id, tg_username, occupation, description, location, "
+        "is_suspended, "
+        "category_id) VALUES(?, ?, ?, ?, ?, ?, ?)",
+        (tg_id, tg_username, occupation, description, location, is_suspended, category_id))
 
 
 def _set_service_is_suspended(tg_id: int, category_id: int, is_suspended: bool) -> None:
-    db.sql_exec("UPDATE people SET is_suspended=? WHERE tg_id=? AND category_id=?", (is_suspended, tg_id, category_id))
+    db.sql_exec("UPDATE services_services SET is_suspended=? WHERE tg_id=? AND category_id=?",
+                (is_suspended, tg_id, category_id))
 
 
 def _service_category_select_all() -> Iterator[dict]:
-    """Query all non-suspended records from the `people` table"""
+    """Query all non-suspended records from the `services_categories` table"""
 
-    for row in db.sql_query("SELECT id, title FROM people_category"):
+    for row in db.sql_query("SELECT id, title FROM services_categories"):
         yield row
 
 
@@ -321,7 +324,8 @@ def people_category_views_register(viewer_tg_id: int, category_id: int) -> None:
     @param category_id: ID of a category being viewed, -1 for the general view (no specific category was requested).
     """
 
-    db.sql_exec("INSERT INTO people_category_views (viewer_tg_id, category_id) VALUES(?, ?)", (viewer_tg_id, category_id))
+    db.sql_exec("INSERT INTO services_category_views (viewer_tg_id, category_id) VALUES(?, ?)",
+                (viewer_tg_id, category_id))
 
 
 def people_views_register(viewer_tg_id: int, tg_id: int, category_id: int) -> None:
@@ -332,8 +336,8 @@ def people_views_register(viewer_tg_id: int, tg_id: int, category_id: int) -> No
     @param category_id: ID of a category of the service that is being viewed.
     """
 
-    db.sql_exec("INSERT INTO people_views (viewer_tg_id, tg_id, category_id) VALUES(?, ?, ?)",
-              (viewer_tg_id, tg_id, category_id))
+    db.sql_exec("INSERT INTO services_service_views (viewer_tg_id, tg_id, category_id) VALUES(?, ?, ?)",
+                (viewer_tg_id, tg_id, category_id))
 
 
 def people_category_views_report(from_date: datetime.datetime) -> Iterator[ServiceCategoryStats]:
@@ -344,7 +348,7 @@ def people_category_views_report(from_date: datetime.datetime) -> Iterator[Servi
         additional_where_clause = f"AND viewer_tg_id NOT IN ({admin_id_phds})"
         parameters += tuple(admin["id"] for admin in settings.ADMINISTRATORS)
     query = (f"SELECT category_id, COUNT(1) as view_count, COUNT(DISTINCT viewer_tg_id) as viewer_count "
-             f"FROM people_category_views "
+             f"FROM services_category_views "
              f"WHERE timestamp > ? {additional_where_clause} "
              f"GROUP BY category_id")
 
@@ -354,49 +358,50 @@ def people_category_views_report(from_date: datetime.datetime) -> Iterator[Servi
 
 def export_db() -> dict:
     def service_select_all() -> Iterator:
-        """Query all non-suspended records from the `people` table"""
+        """Query all non-suspended records from the `services_services` table"""
 
-        for row in db.sql_query("SELECT * FROM people ORDER BY tg_username COLLATE NOCASE"):
+        for row in db.sql_query("SELECT * FROM services_services ORDER BY tg_username COLLATE NOCASE"):
             yield row
 
     return {"categories": [category for category in _service_category_select_all()],
-            "people": [person for person in service_select_all()]}
+            "services": [person for person in service_select_all()]}
 
 
 def import_db(new_data) -> None:
     cursor = db.cursor()
 
     import_timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S%Z")
-    categories_backup = f"people_category_{import_timestamp}"
-    people_backup = f"people_{import_timestamp}"
+    categories_backup = f"services_categories_{import_timestamp}"
+    services_backup = f"services_services_{import_timestamp}"
 
-    for query in (f"CREATE TABLE {categories_backup} AS SELECT * FROM people_category",
-                  f"CREATE TABLE {people_backup} AS SELECT * FROM people"):
+    for query in (f"CREATE TABLE {categories_backup} AS SELECT * FROM services_categories",
+                  f"CREATE TABLE {services_backup} AS SELECT * FROM services_services"):
         db.sql_exec(query)
 
     db.commit()
 
-    logging.info(f"Saved current data into {categories_backup} and {people_backup}")
+    logging.info(f"Saved current data into {categories_backup} and {services_backup}")
 
-    cursor.execute("DELETE FROM people_category")
+    cursor.execute("DELETE FROM services_categories")
     for c in new_data["categories"]:
-        cursor.execute("INSERT INTO people_category (id, title) "
+        cursor.execute("INSERT INTO services_categories (id, title) "
                        "VALUES(?, ?)", (c["id"], c["title"]))
 
-    cursor.execute("DELETE FROM people")
-    for p in new_data["people"]:
-        cursor.execute("INSERT INTO people (tg_id, tg_username, category_id, is_suspended, last_modified, occupation, "
-                       "description, location) "
-                       "VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (
-                           p["tg_id"], p["tg_username"], p["category_id"], p["is_suspended"], p["last_modified"],
-                           p["occupation"], p["description"], p["location"]))
+    cursor.execute("DELETE FROM services_services")
+    for p in new_data["services"]:
+        cursor.execute(
+            "INSERT INTO services_services (tg_id, tg_username, category_id, is_suspended, last_modified, occupation, "
+            "description, location) "
+            "VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (
+                p["tg_id"], p["tg_username"], p["category_id"], p["is_suspended"], p["last_modified"],
+                p["occupation"], p["description"], p["location"]))
 
     db.commit()
 
     logging.info("Loaded new data")
 
     cursor.execute(f"DROP TABLE {categories_backup}")
-    cursor.execute(f"DROP TABLE {people_backup}")
+    cursor.execute(f"DROP TABLE {services_backup}")
 
     db.commit()
 
