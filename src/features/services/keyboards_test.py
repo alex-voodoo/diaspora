@@ -23,15 +23,15 @@ class TestKeyboards(unittest.TestCase):
         user = create_test_user(1)
         trans = i18n.default()
 
-        def return_single_service_default_category(tg_id: int) -> Iterator[dict]:
-            yield data_row_for_service(tg_id, 0)
+        def return_single_service_default_category(_query: str, parameters: tuple[int, int]) -> Iterator[dict]:
+            yield data_row_for_service(parameters[0], 0)
 
-        def return_single_service_category_1(tg_id: int) -> Iterator[dict]:
-            yield data_row_for_service(tg_id, 1)
+        def return_single_service_category_1(_query: str, parameters: tuple[int, int]) -> Iterator[dict]:
+            yield data_row_for_service(parameters[0], 1)
 
-        def return_all_categories_with_default(tg_id: int) -> Iterator[dict]:
+        def return_all_categories_with_default(_query: str, parameters: tuple[int, int]) -> Iterator[dict]:
             for c in state.ServiceCategory.all():
-                yield data_row_for_service(tg_id, c.id)
+                yield data_row_for_service(parameters[0], c.id)
 
         who_button = InlineKeyboardButton(trans.gettext("SERVICES_BUTTON_WHO"), callback_data=const.COMMAND_WHO)
         enroll_button = InlineKeyboardButton(trans.gettext("SERVICES_BUTTON_ENROLL"),
@@ -68,10 +68,10 @@ class TestKeyboards(unittest.TestCase):
         # When no categories are registered, all services belong to the "default" category that does not actually exist.
         # A user can create only a single service, and when they have it, they can either update it or delete.
 
-        with patch_service_get_all_by_user_return_nothing():
+        with patch_service__do_select_query_return_nothing():
             assert_who_enroll()
 
-        with patch("features.services.state._service_get_all_by_user", return_single_service_default_category):
+        with patch("features.services.state.Service._do_select_query", return_single_service_default_category):
             assert_who_update_retire()
 
         # Load some real categories.
@@ -80,16 +80,16 @@ class TestKeyboards(unittest.TestCase):
         # When there are real categories, users can register services until they have a service in each category,
         # including the default one.
 
-        with patch_service_get_all_by_user_return_nothing():
+        with patch_service__do_select_query_return_nothing():
             assert_who_enroll()
 
-        with patch("features.services.state._service_get_all_by_user", return_single_service_default_category):
+        with patch("features.services.state.Service._do_select_query", return_single_service_default_category):
             assert_who_enroll_more_update_retire()
 
-        with patch("features.services.state._service_get_all_by_user", return_single_service_category_1):
+        with patch("features.services.state.Service._do_select_query", return_single_service_category_1):
             assert_who_enroll_more_update_retire()
 
-        with patch("features.services.state._service_get_all_by_user", return_all_categories_with_default):
+        with patch("features.services.state.Service._do_select_query", return_all_categories_with_default):
             assert_who_update_retire()
 
     def test_select_category(self):

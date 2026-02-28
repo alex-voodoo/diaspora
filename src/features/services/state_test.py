@@ -99,17 +99,17 @@ class TestService(unittest.TestCase):
         load_test_categories(0)
 
     def test_get(self):
-        def return_no_service(_category_id: int, _tg_id: int) -> Iterator[dict]:
+        def return_no_service(_query: str, _parameters: tuple[int, int]) -> Iterator[dict]:
             yield from ()
 
-        with patch("features.services.state._service_get", return_no_service):
+        with patch("features.services.state.Service._do_select_query", return_no_service):
             with self.assertRaises(state.Service.NotFound):
                 state.Service.get(1, 1)
 
-        def return_single_service(category_id: int, tg_id: int) -> Iterator[dict]:
-            yield data_row_for_service(tg_id, category_id)
+        def return_single_service(_query: str, parameters: tuple[int, int]) -> Iterator[dict]:
+            yield data_row_for_service(*parameters)
 
-        with patch("features.services.state._service_get", return_single_service):
+        with patch("features.services.state.Service._do_select_query", return_single_service):
             service = state.Service.get(SERVICE_101_TG_ID, SERVICE_101_CATEGORY_ID)
 
             self.assertEqual(service.category.id, CATEGORY_1_ID)

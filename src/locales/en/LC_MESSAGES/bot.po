@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-02-28 21:40+0100\n"
+"POT-Creation-Date: 2026-02-28 23:29+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -389,7 +389,7 @@ msgstr "Upload services"
 msgid "SERVICES_ADMIN_BUTTON_STATS"
 msgstr "Services' statistics"
 
-#: features/services/core.py:105 features/services/core_test.py:173
+#: features/services/core.py:105 features/services/core_test.py:191
 msgid "SERVICES_DM_HELLO_AGAIN {user_first_name}"
 msgstr "Hello {user_first_name}.  Here is your record.\n"
 
@@ -403,7 +403,7 @@ msgstr[1] "Hello {user_first_name}.  Here are your {record_count} records."
 msgid "SERVICES_DM_NO_RECORDS"
 msgstr "You have no records."
 
-#: features/services/core.py:123 features/services/core_test.py:170
+#: features/services/core.py:123 features/services/core_test.py:176
 msgid "SERVICES_DM_HELLO {bot_first_name} {main_chat_name}"
 msgstr "Hello!  I am {bot_first_name}, the bookkeeper bot of the \"{main_chat_name}\" group."
 
@@ -422,27 +422,27 @@ msgstr ""
 msgid "SERVICES_DM_WHO_CATEGORY_LIST"
 msgstr "Which one to show?"
 
-#: features/services/core.py:203 features/services/core_test.py:354
+#: features/services/core.py:203 features/services/core_test.py:353
 msgid "SERVICES_DM_WHO_EMPTY"
 msgstr "Nobody has registered themselves so far :-( ."
 
-#: features/services/core.py:236 features/services/core_test.py:436
+#: features/services/core.py:236 features/services/core_test.py:437
 msgid "SERVICES_DM_ENROLL_USERNAME_REQUIRED"
 msgstr ""
 "Your Telegram profile does not have a username.  I need it to show people a link to your profile.\n"
 "\n"
 "Please register a username for your profile and try again."
 
-#: features/services/core.py:239 features/services/core_test.py:452
-#: features/services/core_test.py:466
+#: features/services/core.py:239 features/services/core_test.py:453
+#: features/services/core_test.py:467
 msgid "SERVICES_DM_ENROLL_START"
 msgstr "Let us start!"
 
-#: features/services/core.py:247 features/services/core_test.py:467
+#: features/services/core.py:247 features/services/core_test.py:468
 msgid "SERVICES_DM_ENROLL_ASK_CATEGORY"
 msgstr "Please select a category that matches your service the best."
 
-#: features/services/core.py:267 features/services/core_test.py:495
+#: features/services/core.py:267 features/services/core_test.py:498
 msgid "SERVICES_DM_SELECT_CATEGORY_FOR_UPDATE"
 msgstr "Select a category to update."
 
@@ -478,17 +478,17 @@ msgstr ""
 "\n"
 "Is your service legal?"
 
-#: features/services/core.py:485 features/services/core_test.py:773
+#: features/services/core.py:485 features/services/core_test.py:782
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Let us start again."
 
 #: features/services/core.py:508 features/services/core.py:511
-#: features/services/core_test.py:851 features/services/core_test.py:876
+#: features/services/core_test.py:858 features/services/core_test.py:883
 msgid "SERVICES_DM_SERVICE_NOT_FOUND"
 msgstr "Service not found."
 
-#: features/services/core.py:517 features/services/core_test.py:821
-#: features/services/core_test.py:863
+#: features/services/core.py:517 features/services/core_test.py:828
+#: features/services/core_test.py:870
 msgid "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}"
 msgstr ""
 "Your service in the category <b>{category_title}</b>\n"
@@ -498,7 +498,7 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/core.py:522 features/services/core_test.py:835
+#: features/services/core.py:522 features/services/core_test.py:842
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "Service by @{username} in the category <b>{category_title}</b>\n"
@@ -607,7 +607,7 @@ msgstr "We are done, you are now registered!  Please note that moderators may hi
 msgid "SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION"
 msgstr "We are done!  I will add your record to the list after the moderators approve it."
 
-#: features/services/state.py:227
+#: features/services/state.py:254
 msgid "SERVICES_CATEGORY_LIST_TITLE"
 msgstr "List of categories"
 

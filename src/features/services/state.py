@@ -179,20 +179,20 @@ class Service:
 
     @classmethod
     def get(cls, tg_id: int, category_id: int) -> Self:
-        for service in _service_get(category_id, tg_id):
-            return Service(**service)
+        for row in Service._do_select_query("tg_id=? AND category_id=?", (tg_id, category_id)):
+            return Service(**row)
         raise Service.NotFound
 
     @classmethod
     def get_by_username(cls, tg_username: str, category_id: int) -> Self:
-        for service in _service_get(category_id, tg_username=tg_username):
-            return Service(**service)
+        for row in Service._do_select_query("tg_username=? AND category_id=?", (tg_username, category_id)):
+            return Service(**row)
         raise Service.NotFound
 
     @classmethod
     def get_all_active(cls) -> Iterator[Self]:
-        for service in _service_get_all_active():
-            yield Service(**service)
+        for row in Service._do_select_query("is_suspended=0", (), "ORDER BY tg_username COLLATE NOCASE"):
+            yield Service(**row)
 
     @classmethod
     def set(cls, tg_id: int, tg_username: str, occupation: str, description: str, location: str, is_suspended: bool,
@@ -210,8 +210,35 @@ class Service:
 
     @classmethod
     def get_all_by_user(cls, tg_id) -> Iterator[Self]:
-        for service in _service_get_all_by_user(tg_id):
-            yield Service(**service)
+        for row in Service._do_select_query("tg_id=?", (tg_id,)):
+            yield Service(**row)
+
+    @staticmethod
+    def _do_select_query(where_clause: str = "", where_params: tuple = (), additional_clause: str = "") -> Iterator[dict]:
+        """Select services with optional clauses
+
+        @param where_clause: what to put into SQL WHERE clause, with placeholders for bound parameters
+        @param where_params: data to bind in the WHERE clause
+        @param additional_clause: what to add after WHERE
+        @return: data returned by the DB
+
+        Executes an SQL SELECT query that selects all columns from the `services_services` table.  Converts data to their
+        correct types (`last_modified` to datetime and `is_suspended` to bool).  Data is returned as a dictionary with keys
+        compatible with `Service.__init__()`.
+        """
+
+        query = ["SELECT tg_id, tg_username, category_id, occupation, description, location, is_suspended, last_modified "
+                 "FROM services_services"]
+        if where_clause:
+            query.append(f"WHERE {where_clause}")
+        if additional_clause:
+            query.append(additional_clause)
+        query = " ".join(query)
+
+        for record in db.sql_query(query, where_params):
+            record["last_modified"] = datetime.datetime.fromisoformat(record["last_modified"])
+            record["is_suspended"] = bool(record["is_suspended"])
+            yield record
 
 
 class ServiceCategoryStats:
@@ -233,63 +260,6 @@ class ServiceCategoryStats:
     @property
     def viewer_count(self) -> int:
         return self._viewer_count
-
-
-def _service_select(where_clause: str = "", where_params: tuple = (), additional_clause: str = "") -> Iterator[dict]:
-    """Select services with optional clauses
-
-    @param where_clause: what to put into SQL WHERE clause, with placeholders for bound parameters
-    @param where_params: data to bind in the WHERE clause
-    @param additional_clause: what to add after WHERE
-    @return: data returned by the DB
-
-    Executes an SQL SELECT query that selects all columns from the `services_services` table.  Converts data to their
-    correct types (`last_modified` to datetime and `is_suspended` to bool).  Data is returned as a dictionary with keys
-    compatible with `Service.__init__()`.
-    """
-
-    query = ["SELECT tg_id, tg_username, category_id, occupation, description, location, is_suspended, last_modified "
-             "FROM services_services"]
-    if where_clause:
-        query.append(f"WHERE {where_clause}")
-    if additional_clause:
-        query.append(additional_clause)
-    query = " ".join(query)
-
-    for record in db.sql_query(query, where_params):
-        record["last_modified"] = datetime.datetime.fromisoformat(record["last_modified"])
-        record["is_suspended"] = bool(record["is_suspended"])
-        yield record
-
-
-def _service_get(category_id: int, tg_id: int = 0, tg_username: str = "") -> Iterator[dict]:
-    """Return a record of a user identified by `category_id` and either `tg_id` or `tg_username` """
-
-    if tg_id != 0:
-        where_clause = "tg_id=? AND category_id=?"
-        where_params = (tg_id, category_id)
-    elif tg_username != "":
-        where_clause = "tg_username=? AND category_id=?"
-        where_params = (tg_username, category_id)
-    else:
-        raise RuntimeError("Neither tg_id nor tg_username were defined")
-
-    for record in _service_select(where_clause, where_params):
-        yield record
-
-
-def _service_get_all_active() -> Iterator[dict]:
-    """Query all non-suspended records from the `services_services` table"""
-
-    for record in _service_select("is_suspended=0", (), "ORDER BY tg_username COLLATE NOCASE"):
-        yield record
-
-
-def _service_get_all_by_user(tg_id: int) -> Iterator[dict]:
-    """Return all records of a user identified by `tg_id` existing in the `services_services` table"""
-
-    for record in _service_select("tg_id=?", (tg_id,)):
-        yield record
 
 
 def _service_delete(tg_id: int, category_id: int) -> None:
