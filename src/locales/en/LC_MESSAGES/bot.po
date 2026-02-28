@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-02-27 22:49+0100\n"
+"POT-Creation-Date: 2026-02-28 21:40+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -536,8 +536,8 @@ msgstr "Yes"
 msgid "SERVICES_BUTTON_NO"
 msgstr "No"
 
-#: features/services/keyboards_test.py:117 features/services/state.py:86
-#: features/services/state_test.py:26 features/services/state_test.py:33
+#: features/services/keyboards_test.py:117 features/services/state.py:90
+#: features/services/state_test.py:57 features/services/state_test.py:64
 msgid "SERVICES_CATEGORY_OTHER_TITLE"
 msgstr "Other"
 
@@ -607,7 +607,7 @@ msgstr "We are done, you are now registered!  Please note that moderators may hi
 msgid "SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION"
 msgstr "We are done!  I will add your record to the list after the moderators approve it."
 
-#: features/services/state.py:223
+#: features/services/state.py:227
 msgid "SERVICES_CATEGORY_LIST_TITLE"
 msgstr "List of categories"
 

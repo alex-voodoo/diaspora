@@ -36,17 +36,21 @@ class Provider:
 
     @classmethod
     def get_by_tg_id(cls, tg_id: int) -> Self:
-        for row in db.sql_query("SELECT * FROM services_providers WHERE tg_id=?", (tg_id,)):
-            row["next_ping"] = datetime.datetime.fromisoformat(row["next_ping"])
+        for row in cls._do_select_query("SELECT * FROM services_providers WHERE tg_id=?", (tg_id,)):
             return Provider(**row)
         raise Provider.NotFound
 
     @classmethod
-    def get_by_username(cls, tg_username: str) -> Self:
-        for row in db.sql_query("SELECT * FROM services_providers WHERE tg_username=?", (tg_username,)):
-            row["next_ping"] = datetime.datetime.fromisoformat(row["next_ping"])
+    def get_by_tg_username(cls, tg_username: str) -> Self:
+        for row in cls._do_select_query("SELECT * FROM services_providers WHERE tg_username=?", (tg_username,)):
             return Provider(**row)
         raise Provider.NotFound
+
+    @staticmethod
+    def _do_select_query(query: str, parameters: tuple = ()) -> Iterator[dict]:
+        for row in db.sql_query(query, parameters):
+            row["next_ping"] = datetime.datetime.fromisoformat(row["next_ping"])
+            yield row
 
 
 class ServiceCategory:

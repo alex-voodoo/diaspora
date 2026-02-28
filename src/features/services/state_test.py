@@ -5,15 +5,46 @@ Tests for state.py
 import unittest
 from unittest.mock import MagicMock
 
-from common import i18n
+from common import i18n, util
 from .test_util import *
-
 
 CATEGORY_1_ID = 1
 CATEGORY_1_TITLE = "Category 1"
 
 SERVICE_101_TG_ID = 101
 SERVICE_101_CATEGORY_ID = CATEGORY_1_ID
+
+
+class TestServiceProvider(unittest.TestCase):
+    @patch("features.services.state.Provider._do_select_query")
+    def test_get(self, mock__do_select_query):
+        mock__do_select_query.return_value = iter(())
+
+        with self.assertRaises(state.Provider.NotFound):
+            state.Provider.get_by_tg_id(1)
+
+        with self.assertRaises(state.Provider.NotFound):
+            state.Provider.get_by_tg_username("username")
+
+        tg_id = 1273
+        tg_username = "username_1273"
+        next_ping = util.rounded_now() + datetime.timedelta(days=45)
+
+        mock__do_select_query.return_value = iter(
+            ({"tg_id": tg_id, "tg_username": tg_username, "next_ping": next_ping},))
+
+        provider = state.Provider.get_by_tg_id(1)
+        self.assertEqual(provider.tg_id, tg_id)
+        self.assertEqual(provider.tg_username, tg_username)
+        self.assertEqual(provider.next_ping, next_ping)
+
+        mock__do_select_query.return_value = iter(
+            ({"tg_id": tg_id, "tg_username": tg_username, "next_ping": next_ping},))
+
+        provider = state.Provider.get_by_tg_username("")
+        self.assertEqual(provider.tg_id, tg_id)
+        self.assertEqual(provider.tg_username, tg_username)
+        self.assertEqual(provider.next_ping, next_ping)
 
 
 class TestServiceCategory(unittest.TestCase):
