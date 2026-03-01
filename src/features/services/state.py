@@ -11,6 +11,9 @@ from common import db, i18n
 from common.settings import settings
 
 
+_SERVICES = "services_services"
+
+
 class Provider:
     """Wraps a service provider database record"""
 
@@ -197,22 +200,21 @@ class Service:
     @staticmethod
     def set(tg_id: int, tg_username: str, occupation: str, description: str, location: str, is_suspended: bool,
             category_id: int) -> None:
-        db.sql_exec(
-            "INSERT OR REPLACE INTO services_services (tg_id, tg_username, occupation, description, location, "
-            "is_suspended, "
-            "category_id) VALUES(?, ?, ?, ?, ?, ?, ?)",
-            (tg_id, tg_username, occupation, description, location, 1 if is_suspended else 0, category_id))
+        db.sql_exec(f"INSERT OR REPLACE INTO {_SERVICES} "
+                    f"(tg_id, tg_username, occupation, description, location, is_suspended, category_id) "
+                    f"VALUES(?, ?, ?, ?, ?, ?, ?)",
+                    (tg_id, tg_username, occupation, description, location, 1 if is_suspended else 0, category_id))
 
     @staticmethod
     def set_is_suspended(tg_id: int, category_id: int, is_suspended: bool):
-        db.sql_exec("UPDATE services_services SET is_suspended=? WHERE tg_id=? AND category_id=?",
+        db.sql_exec(f"UPDATE {_SERVICES} SET is_suspended=? WHERE tg_id=? AND category_id=?",
                     (is_suspended, tg_id, category_id))
 
     @staticmethod
     def delete(tg_id: int, category_id: int) -> None:
         """Delete the service record identified by `tg_id` and `category_id`"""
 
-        db.sql_exec("DELETE FROM services_services WHERE tg_id=? AND category_id=?", (tg_id, category_id))
+        db.sql_exec(f"DELETE FROM {_SERVICES} WHERE tg_id=? AND category_id=?", (tg_id, category_id))
 
     @classmethod
     def get_all_by_user(cls, tg_id) -> Iterator[Self]:
@@ -228,13 +230,12 @@ class Service:
         @param additional_clause: what to add after WHERE
         @return: data returned by the DB
 
-        Executes an SQL SELECT query that selects all columns from the `services_services` table.  Converts data to their
-        correct types (`last_modified` to datetime and `is_suspended` to bool).  Data is returned as a dictionary with keys
+        Executes an SQL SELECT query that selects all columns from the database table.  Converts data to their correct
+        types (`last_modified` to datetime and `is_suspended` to bool).  Data is returned as a dictionary with keys
         compatible with `Service.__init__()`.
         """
 
-        query = ["SELECT tg_id, tg_username, category_id, occupation, description, location, is_suspended, last_modified "
-                 "FROM services_services"]
+        query = [f"SELECT * FROM {_SERVICES}"]
         if where_clause:
             query.append(f"WHERE {where_clause}")
         if additional_clause:
@@ -316,9 +317,9 @@ def people_category_views_report(from_date: datetime.datetime) -> Iterator[Servi
 
 def export_db() -> dict:
     def service_select_all() -> Iterator:
-        """Query all non-suspended records from the `services_services` table"""
+        """Query all non-suspended service records from the database table"""
 
-        for row in db.sql_query("SELECT * FROM services_services ORDER BY tg_username COLLATE NOCASE"):
+        for row in db.sql_query(f"SELECT * FROM {_SERVICES} ORDER BY tg_username COLLATE NOCASE"):
             yield row
 
     return {"categories": [category for category in _service_category_select_all()],
@@ -333,7 +334,7 @@ def import_db(new_data) -> None:
     services_backup = f"services_services_{import_timestamp}"
 
     for query in (f"CREATE TABLE {categories_backup} AS SELECT * FROM services_categories",
-                  f"CREATE TABLE {services_backup} AS SELECT * FROM services_services"):
+                  f"CREATE TABLE {services_backup} AS SELECT * FROM {_SERVICES}"):
         db.sql_exec(query)
 
     db.commit()
@@ -345,12 +346,12 @@ def import_db(new_data) -> None:
         cursor.execute("INSERT INTO services_categories (id, title) "
                        "VALUES(?, ?)", (c["id"], c["title"]))
 
-    cursor.execute("DELETE FROM services_services")
+    cursor.execute(f"DELETE FROM {_SERVICES}")
     for p in new_data["services"]:
         cursor.execute(
-            "INSERT INTO services_services (tg_id, tg_username, category_id, is_suspended, last_modified, occupation, "
-            "description, location) "
-            "VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (
+            f"INSERT INTO {_SERVICES} (tg_id, tg_username, category_id, is_suspended, last_modified, occupation, "
+            f"description, location) "
+            f"VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (
                 p["tg_id"], p["tg_username"], p["category_id"], p["is_suspended"], p["last_modified"],
                 p["occupation"], p["description"], p["location"]))
 
