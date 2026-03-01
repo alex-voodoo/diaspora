@@ -121,10 +121,3 @@ class TestService(unittest.TestCase):
             self.assertEqual(service.location, test_location(SERVICE_101_TG_ID))
             self.assertEqual(service.is_suspended, test_is_suspended(SERVICE_101_TG_ID))
             self.assertEqual(service.last_modified, test_last_modified(SERVICE_101_TG_ID))
-
-    def test_delete(self):
-        mock_delete = MagicMock()
-        with patch("features.services.state._service_delete", mock_delete):
-            state.Service.delete(SERVICE_101_TG_ID, CATEGORY_1_ID)
-
-            mock_delete.assert_called_once_with(SERVICE_101_TG_ID, CATEGORY_1_ID)

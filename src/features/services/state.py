@@ -194,19 +194,25 @@ class Service:
         for row in Service._do_select_query("is_suspended=0", (), "ORDER BY tg_username COLLATE NOCASE"):
             yield Service(**row)
 
-    @classmethod
-    def set(cls, tg_id: int, tg_username: str, occupation: str, description: str, location: str, is_suspended: bool,
+    @staticmethod
+    def set(tg_id: int, tg_username: str, occupation: str, description: str, location: str, is_suspended: bool,
             category_id: int) -> None:
-        _service_insert_or_update(tg_id, tg_username, occupation, description, location, 1 if is_suspended else 0,
-                                  category_id)
+        db.sql_exec(
+            "INSERT OR REPLACE INTO services_services (tg_id, tg_username, occupation, description, location, "
+            "is_suspended, "
+            "category_id) VALUES(?, ?, ?, ?, ?, ?, ?)",
+            (tg_id, tg_username, occupation, description, location, 1 if is_suspended else 0, category_id))
 
-    @classmethod
-    def set_is_suspended(cls, tg_id: int, category_id: int, is_suspended: bool):
-        _set_service_is_suspended(tg_id, category_id, is_suspended)
+    @staticmethod
+    def set_is_suspended(tg_id: int, category_id: int, is_suspended: bool):
+        db.sql_exec("UPDATE services_services SET is_suspended=? WHERE tg_id=? AND category_id=?",
+                    (is_suspended, tg_id, category_id))
 
-    @classmethod
-    def delete(cls, tg_id: int, category_id: int) -> None:
-        _service_delete(tg_id, category_id)
+    @staticmethod
+    def delete(tg_id: int, category_id: int) -> None:
+        """Delete the service record identified by `tg_id` and `category_id`"""
+
+        db.sql_exec("DELETE FROM services_services WHERE tg_id=? AND category_id=?", (tg_id, category_id))
 
     @classmethod
     def get_all_by_user(cls, tg_id) -> Iterator[Self]:
@@ -260,28 +266,6 @@ class ServiceCategoryStats:
     @property
     def viewer_count(self) -> int:
         return self._viewer_count
-
-
-def _service_delete(tg_id: int, category_id: int) -> None:
-    """Delete the user record identified by `tg_id`"""
-
-    db.sql_exec("DELETE FROM services_services WHERE tg_id=? AND category_id=?", (tg_id, category_id))
-
-
-def _service_insert_or_update(tg_id: int, tg_username: str, occupation: str, description: str, location: str,
-                              is_suspended: int, category_id: int) -> None:
-    """Create a new or update the existing record identified by `tg_id` in the `services_services` table"""
-
-    db.sql_exec(
-        "INSERT OR REPLACE INTO services_services (tg_id, tg_username, occupation, description, location, "
-        "is_suspended, "
-        "category_id) VALUES(?, ?, ?, ?, ?, ?, ?)",
-        (tg_id, tg_username, occupation, description, location, is_suspended, category_id))
-
-
-def _set_service_is_suspended(tg_id: int, category_id: int, is_suspended: bool) -> None:
-    db.sql_exec("UPDATE services_services SET is_suspended=? WHERE tg_id=? AND category_id=?",
-                (is_suspended, tg_id, category_id))
 
 
 def _service_category_select_all() -> Iterator[dict]:
