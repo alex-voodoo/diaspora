@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-03-01 21:04+0100\n"
+"POT-Creation-Date: 2026-03-01 21:30+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -395,11 +395,11 @@ msgstr "Загрузить книгу услуг"
 msgid "SERVICES_ADMIN_BUTTON_STATS"
 msgstr "Статистика книги услуг"
 
-#: features/services/core.py:105 features/services/core_test.py:191
+#: features/services/core.py:105 features/services/core_test.py:187
 msgid "SERVICES_DM_HELLO_AGAIN {user_first_name}"
 msgstr "Здравствуйте, {user_first_name}. Вот ваша запись.\n"
 
-#: features/services/core.py:109 features/services/core_test.py:210
+#: features/services/core.py:109 features/services/core_test.py:207
 msgid "SERVICES_DM_HELLO_AGAIN_S {user_first_name} {record_count}"
 msgid_plural "SERVICES_DM_HELLO_AGAIN_P {user_first_name} {record_count}"
 msgstr[0] "Здравствуйте, {user_first_name}. Вот ваша {record_count} запись.\n"
@@ -410,12 +410,12 @@ msgstr[2] "Здравствуйте, {user_first_name}. Вот ваши {record_
 msgid "SERVICES_DM_NO_RECORDS"
 msgstr "У вас нет записей."
 
-#: features/services/core.py:123 features/services/core_test.py:176
+#: features/services/core.py:123 features/services/core_test.py:170
 msgid "SERVICES_DM_HELLO {bot_first_name} {main_chat_name}"
 msgstr "Здравствуйте, я бот {bot_first_name} — хранитель полезных контактов группы «{main_chat_name}». Подскажу, кто будет полезен вам, или помогу найти клиентов."
 
-#: features/services/core.py:135 features/services/core_test.py:230
-#: features/services/core_test.py:243
+#: features/services/core.py:135 features/services/core_test.py:227
+#: features/services/core_test.py:240
 msgid "SERVICES_ADMIN_APPROVE_USER_DATA {category} {description} {location} {occupation} {username}"
 msgstr ""
 "Пользователь @{username} изменил свою запись в категории <b>{category}</b>.\n"
@@ -425,31 +425,31 @@ msgstr ""
 "\n"
 "Принять изменения?"
 
-#: features/services/core.py:160 features/services/core_test.py:277
+#: features/services/core.py:160 features/services/core_test.py:274
 msgid "SERVICES_DM_WHO_CATEGORY_LIST"
 msgstr "Какую категорию показать?"
 
-#: features/services/core.py:203 features/services/core_test.py:353
+#: features/services/core.py:203 features/services/core_test.py:350
 msgid "SERVICES_DM_WHO_EMPTY"
 msgstr "Пока никто не записался, будьте первым!"
 
-#: features/services/core.py:236 features/services/core_test.py:437
+#: features/services/core.py:236 features/services/core_test.py:434
 msgid "SERVICES_DM_ENROLL_USERNAME_REQUIRED"
 msgstr ""
 "В вашем профиле Телеграм не задано имя пользователя. Добавьте его в настройках, чтобы другие участники могли написать вам, не зная вашего номера.\n"
 "\n"
 "После этого я смогу добавить вас в список."
 
-#: features/services/core.py:239 features/services/core_test.py:453
-#: features/services/core_test.py:467
+#: features/services/core.py:239 features/services/core_test.py:450
+#: features/services/core_test.py:464
 msgid "SERVICES_DM_ENROLL_START"
 msgstr "Давайте знакомиться!"
 
-#: features/services/core.py:247 features/services/core_test.py:468
+#: features/services/core.py:247 features/services/core_test.py:465
 msgid "SERVICES_DM_ENROLL_ASK_CATEGORY"
 msgstr "Выберите категорию, к которой можно отнести вашу услугу."
 
-#: features/services/core.py:267 features/services/core_test.py:498
+#: features/services/core.py:267 features/services/core_test.py:495
 msgid "SERVICES_DM_SELECT_CATEGORY_FOR_UPDATE"
 msgstr "Выберите категорию для редактирования."
 
@@ -485,17 +485,17 @@ msgstr ""
 "\n"
 "Ваша услуга легальна?"
 
-#: features/services/core.py:485 features/services/core_test.py:782
+#: features/services/core.py:485 features/services/core_test.py:779
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Начнём сначала."
 
 #: features/services/core.py:508 features/services/core.py:511
-#: features/services/core_test.py:858 features/services/core_test.py:883
+#: features/services/core_test.py:855 features/services/core_test.py:880
 msgid "SERVICES_DM_SERVICE_NOT_FOUND"
 msgstr "Услуга не найдена."
 
-#: features/services/core.py:517 features/services/core_test.py:828
-#: features/services/core_test.py:870
+#: features/services/core.py:517 features/services/core_test.py:825
+#: features/services/core_test.py:867
 msgid "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}"
 msgstr ""
 "Ваша услуга в категории <b>{category_title}</b>\n"
@@ -505,7 +505,7 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/core.py:522 features/services/core_test.py:842
+#: features/services/core.py:522 features/services/core_test.py:839
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "Услуга @{username} в категории <b>{category_title}</b>\n"
@@ -618,7 +618,7 @@ msgstr "Готово, вы добавлены в список! Обратите 
 msgid "SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION"
 msgstr "Готово! Я добавлю вас в список после проверки модераторами."
 
-#: features/services/state.py:261
+#: features/services/state.py:268
 msgid "SERVICES_CATEGORY_LIST_TITLE"
 msgstr "Список категорий"
 

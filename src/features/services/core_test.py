@@ -166,53 +166,50 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
         trans = i18n.default()
 
-        def return_no_categories(*_args, **_kwargs) -> Iterator[dict]:
-            yield from ()
-
-        def return_single_category(*_args, **_kwargs) -> Iterator[dict]:
-            yield data_row_for_service_category(1)
-
         with patch_service__do_select_query_return_nothing():
             expected_text = trans.gettext("SERVICES_DM_HELLO {bot_first_name} {main_chat_name}").format(
                 bot_first_name=context.bot.first_name, main_chat_name=chat_title)
 
-            with patch("features.services.state._service_category_select_all", return_no_categories):
-                await core.show_main_status(update, context)
-                mock_reply.assert_called_once_with(update, expected_text, keyboards.standard(user))
-                mock_reply.reset_mock()
+            load_test_categories(0)
 
-            with patch("features.services.state._service_category_select_all", return_single_category):
-                await core.show_main_status(update, context)
-                mock_reply.assert_called_once_with(update, expected_text, keyboards.standard(user))
-                mock_reply.reset_mock()
+            await core.show_main_status(update, context)
+            mock_reply.assert_called_once_with(update, expected_text, keyboards.standard(user))
+            mock_reply.reset_mock()
+
+            load_test_categories(1)
+
+            await core.show_main_status(update, context)
+            mock_reply.assert_called_once_with(update, expected_text, keyboards.standard(user))
+            mock_reply.reset_mock()
 
         with patch("features.services.state.Service._do_select_query", return_single_record):
             expected_text = "\n".join(
                 [trans.gettext("SERVICES_DM_HELLO_AGAIN {user_first_name}").format(user_first_name=user.first_name),
                  render.service_description_for_owner(state.Service(**data_row_for_service(1, 1)))])
 
-            with patch("features.services.state._service_category_select_all", return_no_categories):
-                await core.show_main_status(update, context)
-                mock_reply.assert_called_once_with(update, expected_text, keyboards.standard(user))
-                mock_reply.reset_mock()
+            load_test_categories(1)
 
-            with patch("features.services.state._service_category_select_all", return_single_category):
-                await core.show_main_status(update, context)
-                mock_reply.assert_called_once_with(update, expected_text, keyboards.standard(user))
-                mock_reply.reset_mock()
+            await core.show_main_status(update, context)
+            mock_reply.assert_called_once_with(update, expected_text, keyboards.standard(user))
+            mock_reply.reset_mock()
+
+            load_test_categories(2)
+
+            await core.show_main_status(update, context)
+            mock_reply.assert_called_once_with(update, expected_text, keyboards.standard(user))
+            mock_reply.reset_mock()
 
         with patch("features.services.state.Service._do_select_query", return_multiple_records):
-            with patch("features.services.state._service_category_select_all", return_single_category):
-                await core.show_main_status(update, context)
-                records = [r for r in return_multiple_records()]
-                expected_text = [trans.ngettext("SERVICES_DM_HELLO_AGAIN_S {user_first_name} {record_count}",
-                                                "SERVICES_DM_HELLO_AGAIN_P {user_first_name} {record_count}",
-                                                len(records)).format(user_first_name=user.first_name,
-                                                                     record_count=len(records))]
-                for record in records:
-                    expected_text.append(render.service_description_for_owner(state.Service(**record)))
-                mock_reply.assert_called_once_with(update, "\n".join(expected_text), keyboards.standard(user))
-                mock_reply.reset_mock()
+            await core.show_main_status(update, context)
+            records = [r for r in return_multiple_records()]
+            expected_text = [trans.ngettext("SERVICES_DM_HELLO_AGAIN_S {user_first_name} {record_count}",
+                                            "SERVICES_DM_HELLO_AGAIN_P {user_first_name} {record_count}",
+                                            len(records)).format(user_first_name=user.first_name,
+                                                                 record_count=len(records))]
+            for record in records:
+                expected_text.append(render.service_description_for_owner(state.Service(**record)))
+            mock_reply.assert_called_once_with(update, "\n".join(expected_text), keyboards.standard(user))
+            mock_reply.reset_mock()
 
     @patch("features.services.core.send")
     @patch("features.services.core.settings")

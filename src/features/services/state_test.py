@@ -82,7 +82,7 @@ class TestServiceCategory(unittest.TestCase):
             for category_id in unordered_sequence:
                 yield data_row_for_service_category(category_id)
 
-        with patch("features.services.state._service_category_select_all", return_unordered_categories):
+        with patch("features.services.state.ServiceCategory._do_select_all_query", return_unordered_categories):
             state.ServiceCategory.load()
 
         all_categories = [c for c in state.ServiceCategory.all()]

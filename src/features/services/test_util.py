@@ -106,5 +106,5 @@ def load_test_categories(category_count: int) -> None:
         for category_id in range(1, category_count + 1):
             yield data_row_for_service_category(category_id)
 
-    with patch("features.services.state._service_category_select_all", return_n_categories):
+    with patch("features.services.state.ServiceCategory._do_select_all_query", return_n_categories):
         state.ServiceCategory.load()

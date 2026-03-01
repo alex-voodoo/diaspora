@@ -99,7 +99,7 @@ class ServiceCategory:
 
         cls._categories = {}
 
-        for category in _service_category_select_all():
+        for category in ServiceCategory._do_select_all_query():
             cls._categories[category["id"]] = ServiceCategory(category["id"], category["title"])
 
         cls._order = [c.id for c in sorted(cls._categories.values(), key=lambda v: v.title)]
@@ -117,6 +117,13 @@ class ServiceCategory:
         for category_id in cls._order:
             yield cls.get(category_id)
         yield cls.get(0)
+
+    @staticmethod
+    def _do_select_all_query() -> Iterator[dict]:
+        """Query all service categories from the database"""
+
+        for row in db.sql_query("SELECT id, title FROM services_categories"):
+            yield row
 
 
 class Service:
@@ -269,13 +276,6 @@ class ServiceCategoryStats:
         return self._viewer_count
 
 
-def _service_category_select_all() -> Iterator[dict]:
-    """Query all non-suspended records from the `services_categories` table"""
-
-    for row in db.sql_query("SELECT id, title FROM services_categories"):
-        yield row
-
-
 def people_category_views_register(viewer_tg_id: int, category_id: int) -> None:
     """Register a single event of a user browsing a category
 
@@ -322,7 +322,13 @@ def export_db() -> dict:
         for row in db.sql_query(f"SELECT * FROM {_SERVICES} ORDER BY tg_username COLLATE NOCASE"):
             yield row
 
-    return {"categories": [category for category in _service_category_select_all()],
+    def service_category_select_all() -> Iterator:
+        """Query all non-suspended service records from the database table"""
+
+        for row in db.sql_query(f"SELECT * FROM services_categories"):
+            yield row
+
+    return {"categories": [category for category in service_category_select_all()],
             "services": [person for person in service_select_all()]}
 
 
