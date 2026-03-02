@@ -566,4 +566,4 @@ def init(application: Application, group: int) -> None:
             "^({approve}|{decline}):[0-9]+:[0-9]+$".format(approve=const.MODERATOR_APPROVE,
                                                            decline=const.MODERATOR_DECLINE))), group=2)
 
-    state.ServiceCategory.load()
+    state.init()

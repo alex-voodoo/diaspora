@@ -11,14 +11,21 @@ from common import db, i18n
 from common.settings import settings
 
 
+_PROVIDERS = "services_providers"
 _SERVICES = "services_services"
 
 
 class Provider:
-    """Wraps a service provider database record"""
+    """Wraps a service provider database record
+
+    Caches objects to minimise DB operations.
+    """
 
     class NotFound(Exception):
         pass
+
+    _id_index = {}
+    _username_index = {}
 
     def __init__(self, **kwargs):
         self._tg_id = kwargs["tg_id"]
@@ -38,16 +45,33 @@ class Provider:
         return self._next_ping
 
     @classmethod
+    def load(cls) -> None:
+        """Load all service category records from the DB and store them in a class attribute"""
+
+        _id_index = {}
+        _username_index = {}
+
+        for row in Provider._do_select_query(f"SELECT * FROM {_PROVIDERS}"):
+            cls._cache(row)
+
+    @classmethod
     def get_by_tg_id(cls, tg_id: int) -> Self:
-        for row in cls._do_select_query("SELECT * FROM services_providers WHERE tg_id=?", (tg_id,)):
-            return Provider(**row)
-        raise Provider.NotFound
+        if tg_id not in cls._id_index:
+            raise Provider.NotFound
+        return cls._id_index[tg_id]
 
     @classmethod
     def get_by_tg_username(cls, tg_username: str) -> Self:
-        for row in cls._do_select_query("SELECT * FROM services_providers WHERE tg_username=?", (tg_username,)):
-            return Provider(**row)
-        raise Provider.NotFound
+        if tg_username not in cls._username_index:
+            raise Provider.NotFound
+        return cls._username_index[tg_username]
+
+    @classmethod
+    def _cache(cls, data):
+        provider = Provider(**data)
+        cls._id_index[provider.tg_id] = provider
+        cls._username_index[provider.tg_username] = provider
+        return provider
 
     @staticmethod
     def _do_select_query(query: str, parameters: tuple = ()) -> Iterator[dict]:
@@ -372,4 +396,9 @@ def import_db(new_data) -> None:
 
     logging.info("Dropped data snapshots")
 
+    ServiceCategory.load()
+
+
+def init():
+    Provider.load()
     ServiceCategory.load()

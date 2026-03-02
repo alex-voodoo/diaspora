@@ -15,36 +15,39 @@ SERVICE_101_TG_ID = 101
 SERVICE_101_CATEGORY_ID = CATEGORY_1_ID
 
 
-class TestServiceProvider(unittest.TestCase):
-    @patch("features.services.state.Provider._do_select_query")
-    def test_get(self, mock__do_select_query):
-        mock__do_select_query.return_value = iter(())
+class TestProvider(unittest.TestCase):
+    def tearDown(self):
+        def yield_nothing(_query: str) -> Iterator[dict]:
+            yield from ()
 
-        with self.assertRaises(state.Provider.NotFound):
-            state.Provider.get_by_tg_id(1)
+        with patch("features.services.state.Provider._do_select_query", yield_nothing):
+            state.Provider.load()
 
-        with self.assertRaises(state.Provider.NotFound):
-            state.Provider.get_by_tg_username("username")
-
+    def test_get(self):
         tg_id = 1273
         tg_username = "username_1273"
         next_ping = util.rounded_now() + datetime.timedelta(days=45)
 
-        mock__do_select_query.return_value = iter(
-            ({"tg_id": tg_id, "tg_username": tg_username, "next_ping": next_ping},))
+        with self.assertRaises(state.Provider.NotFound):
+            state.Provider.get_by_tg_id(tg_id)
 
-        provider = state.Provider.get_by_tg_id(1)
-        self.assertEqual(provider.tg_id, tg_id)
-        self.assertEqual(provider.tg_username, tg_username)
-        self.assertEqual(provider.next_ping, next_ping)
+        with self.assertRaises(state.Provider.NotFound):
+            state.Provider.get_by_tg_username(tg_username)
 
-        mock__do_select_query.return_value = iter(
-            ({"tg_id": tg_id, "tg_username": tg_username, "next_ping": next_ping},))
+        def get_one_provider(_query: str) -> Iterator[dict]:
+            yield {"tg_id": tg_id, "tg_username": tg_username, "next_ping": next_ping}
 
-        provider = state.Provider.get_by_tg_username("")
-        self.assertEqual(provider.tg_id, tg_id)
-        self.assertEqual(provider.tg_username, tg_username)
-        self.assertEqual(provider.next_ping, next_ping)
+        with patch("features.services.state.Provider._do_select_query", get_one_provider):
+            state.Provider.load()
+
+        provider_via_tg_id = state.Provider.get_by_tg_id(tg_id)
+        self.assertEqual(provider_via_tg_id.tg_id, tg_id)
+        self.assertEqual(provider_via_tg_id.tg_username, tg_username)
+        self.assertEqual(provider_via_tg_id.next_ping, next_ping)
+
+        provider_via_tg_username = state.Provider.get_by_tg_username(tg_username)
+
+        self.assertIs(provider_via_tg_id, provider_via_tg_username)
 
 
 class TestServiceCategory(unittest.TestCase):
