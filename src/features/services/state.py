@@ -7,7 +7,7 @@ import logging
 from collections.abc import Iterator
 from typing import Self
 
-from common import db, i18n
+from common import db, i18n, util
 from common.settings import settings
 
 
@@ -48,8 +48,8 @@ class Provider:
     def load(cls) -> None:
         """Load all service category records from the DB and store them in a class attribute"""
 
-        _id_index = {}
-        _username_index = {}
+        cls._id_index = {}
+        cls._username_index = {}
 
         for row in Provider._do_select_query(f"SELECT * FROM {_PROVIDERS}"):
             cls._cache(row)
@@ -65,6 +65,31 @@ class Provider:
         if tg_username not in cls._username_index:
             raise Provider.NotFound
         return cls._username_index[tg_username]
+
+    @classmethod
+    def create_or_update(cls, tg_id: int, tg_username: str, next_ping: datetime.datetime) -> None:
+        db.sql_exec(
+            f"INSERT OR REPLACE INTO {_PROVIDERS} (tg_id, tg_username, next_ping) "
+            f"VALUES(?, ?, ?)", (tg_id, tg_username, util.db_format(next_ping)))
+        if tg_id in cls._id_index:
+            existing_provider = cls._id_index[tg_id]
+            if tg_username != existing_provider.tg_username:
+                del cls._username_index[existing_provider.tg_username]
+                cls._username_index[tg_username] = existing_provider
+                existing_provider._tg_username = tg_username
+            existing_provider._next_ping = next_ping
+        else:
+            new_provider = Provider(tg_id=tg_id, tg_username=tg_username, next_ping=next_ping)
+            cls._id_index[new_provider.tg_id] = new_provider
+            cls._username_index[new_provider.tg_username] = new_provider
+
+    @classmethod
+    def delete(cls, tg_id: int) -> None:
+        db.sql_exec(f"DELETE FROM {_PROVIDERS} WHERE tg_id=?", (tg_id,))
+
+        existing_provider = cls._id_index[tg_id]
+        del cls._username_index[existing_provider.tg_username]
+        del cls._id_index[tg_id]
 
     @classmethod
     def _cache(cls, data):
@@ -174,6 +199,10 @@ class Service:
     @property
     def category(self) -> ServiceCategory:
         return ServiceCategory.get(self._category_id)
+
+    @property
+    def provider(self) -> Provider:
+        return Provider.get_by_tg_id(self._tg_id)
 
     @property
     def tg_id(self) -> int:
