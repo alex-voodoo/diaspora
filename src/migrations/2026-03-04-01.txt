@@ -1,0 +1,26 @@
+INSERT INTO "services_providers" ("tg_id", "tg_username", "next_ping")
+SELECT DISTINCT "tg_id", "tg_username", CURRENT_TIMESTAMP FROM "services_services";
+
+CREATE TABLE "new_services_services" (
+    "provider_tg_id"    INTEGER NOT NULL,
+    "category_id"       INTEGER NOT NULL DEFAULT 0,
+    "is_suspended"      INTEGER NOT NULL DEFAULT 0,
+    "last_modified"     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "occupation"        TEXT NOT NULL,
+    "description"       TEXT NOT NULL,
+    "location"          TEXT NOT NULL,
+    FOREIGN KEY ("provider_tg_id")
+        REFERENCES "services_providers" ("tg_id")
+        ON DELETE CASCADE,
+    FOREIGN KEY ("category_id")
+        REFERENCES "services_categories" ("id")
+        ON DELETE SET DEFAULT
+);
+
+INSERT INTO "new_services_services" ("provider_tg_id", "category_id", "is_suspended", "last_modified", "location", "occupation", "description")
+SELECT "tg_id", "category_id", "is_suspended", "last_modified", "location", "occupation", "description" FROM "services_services";
+
+DROP TABLE "services_services";
+
+ALTER TABLE "new_services_services"
+RENAME TO "services_services";

@@ -1,11 +1,10 @@
 """
 Tests for state.py
 """
-import datetime
-import unittest
-from unittest.mock import MagicMock
 
-from common import i18n, util
+import unittest
+
+from common import i18n
 from .test_util import *
 
 CATEGORY_1_ID = 1
@@ -17,10 +16,10 @@ SERVICE_101_CATEGORY_ID = CATEGORY_1_ID
 
 class TestProvider(unittest.TestCase):
     def setUp(self):
-        TestProvider._load_providers_with_ids()
+        load_test_providers([])
 
     def tearDown(self):
-        TestProvider._load_providers_with_ids()
+        load_test_providers([])
 
     @staticmethod
     def _tg_username_from_tg_id(tg_id: int) -> str:
@@ -29,16 +28,6 @@ class TestProvider(unittest.TestCase):
     @staticmethod
     def _next_ping_from_tg_id(tg_id: int) -> datetime.datetime:
         return util.rounded_now() + datetime.timedelta(minutes=tg_id)
-
-    @staticmethod
-    def _load_providers_with_ids(tg_ids: list[int] = None) -> None:
-        def yield_data_rows(_query: str) -> Iterator[dict]:
-            for tg_id in (tg_ids if tg_ids else []):
-                yield {"tg_id": tg_id, "tg_username": TestProvider._tg_username_from_tg_id(tg_id),
-                       "next_ping": TestProvider._next_ping_from_tg_id(tg_id)}
-
-        with patch("features.services.state.Provider._do_select_query", yield_data_rows):
-            state.Provider.load()
 
     def test_get(self):
         tg_id = 1273
@@ -50,7 +39,7 @@ class TestProvider(unittest.TestCase):
         with self.assertRaises(state.Provider.NotFound):
             state.Provider.get_by_tg_username(tg_username)
 
-        TestProvider._load_providers_with_ids([tg_id])
+        load_test_providers([tg_id])
 
         provider_via_tg_id = state.Provider.get_by_tg_id(tg_id)
         self.assertEqual(provider_via_tg_id.tg_id, tg_id)
@@ -65,7 +54,7 @@ class TestProvider(unittest.TestCase):
     def test_create_or_update(self, mock_sql_exec):
         tg_id = 1273
 
-        TestProvider._load_providers_with_ids([tg_id])
+        load_test_providers([tg_id])
 
         provider_1273 = state.Provider.get_by_tg_id(tg_id)
 
@@ -98,7 +87,7 @@ class TestProvider(unittest.TestCase):
     def test_delete(self, mock_sql_exec):
         tg_id = 1273
 
-        TestProvider._load_providers_with_ids([tg_id])
+        load_test_providers([tg_id])
 
         state.Provider.get_by_tg_id(tg_id)
 
@@ -181,7 +170,6 @@ class TestService(unittest.TestCase):
             self.assertEqual(service.category.id, CATEGORY_1_ID)
             self.assertEqual(service.category.title, CATEGORY_1_TITLE)
             self.assertEqual(service.tg_id, SERVICE_101_TG_ID)
-            self.assertEqual(service.tg_username, test_tg_username(SERVICE_101_TG_ID))
             self.assertEqual(service.occupation, test_occupation(SERVICE_101_TG_ID))
             self.assertEqual(service.description, test_description(SERVICE_101_TG_ID))
             self.assertEqual(service.location, test_location(SERVICE_101_TG_ID))

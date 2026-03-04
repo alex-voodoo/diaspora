@@ -14,7 +14,7 @@ def service_description_for_owner(service: state.Service) -> str:
 
 
 def service_description_for_public(service: state.Service) -> str:
-    return f"- @{service.tg_username} ({service.location}): <a href=\"{service.deep_link}\">{service.occupation}</a>"
+    return f"- @{service.provider.tg_username} ({service.location}): <a href=\"{service.deep_link}\">{service.occupation}</a>"
 
 
 def category_with_services(category: state.ServiceCategory, services: Iterable[state.Service],

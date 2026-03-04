@@ -185,8 +185,7 @@ class Service:
     _bot_username: str
 
     def __init__(self, **kwargs):
-        self._tg_id = kwargs["tg_id"]
-        self._tg_username = kwargs["tg_username"]
+        self._tg_id = kwargs["provider_tg_id"]
         self._category_id = kwargs["category_id"]
         self._occupation = kwargs["occupation"]
         self._description = kwargs["description"]
@@ -210,10 +209,6 @@ class Service:
         return self._tg_id
 
     @property
-    def tg_username(self) -> str:
-        return self._tg_username
-
-    @property
     def occupation(self) -> str:
         return self._occupation
 
@@ -235,7 +230,7 @@ class Service:
 
     @property
     def deep_link(self) -> str:
-        return f"t.me/{Service._bot_username}?start=service_info_{self._category_id or 0}_{self._tg_username}"
+        return f"t.me/{Service._bot_username}?start=service_info_{self._category_id or 0}_{self.provider.tg_username}"
 
     @classmethod
     def set_bot_username(cls, bot_username: str) -> None:
@@ -243,43 +238,36 @@ class Service:
 
     @classmethod
     def get(cls, tg_id: int, category_id: int) -> Self:
-        for row in Service._do_select_query("tg_id=? AND category_id=?", (tg_id, category_id)):
-            return Service(**row)
-        raise Service.NotFound
-
-    @classmethod
-    def get_by_username(cls, tg_username: str, category_id: int) -> Self:
-        for row in Service._do_select_query("tg_username=? AND category_id=?", (tg_username, category_id)):
+        for row in Service._do_select_query("provider_tg_id=? AND category_id=?", (tg_id, category_id)):
             return Service(**row)
         raise Service.NotFound
 
     @classmethod
     def get_all_active(cls) -> Iterator[Self]:
-        for row in Service._do_select_query("is_suspended=0", (), "ORDER BY tg_username COLLATE NOCASE"):
+        for row in Service._do_select_query("is_suspended=0", ()):
             yield Service(**row)
 
     @staticmethod
-    def set(tg_id: int, tg_username: str, occupation: str, description: str, location: str, is_suspended: bool,
-            category_id: int) -> None:
+    def set(tg_id: int, occupation: str, description: str, location: str, is_suspended: bool, category_id: int) -> None:
         db.sql_exec(f"INSERT OR REPLACE INTO {_SERVICES} "
-                    f"(tg_id, tg_username, occupation, description, location, is_suspended, category_id) "
-                    f"VALUES(?, ?, ?, ?, ?, ?, ?)",
-                    (tg_id, tg_username, occupation, description, location, 1 if is_suspended else 0, category_id))
+                    f"(provider_tg_id, occupation, description, location, is_suspended, category_id) "
+                    f"VALUES(?, ?, ?, ?, ?, ?)",
+                    (tg_id, occupation, description, location, 1 if is_suspended else 0, category_id))
 
     @staticmethod
     def set_is_suspended(tg_id: int, category_id: int, is_suspended: bool):
-        db.sql_exec(f"UPDATE {_SERVICES} SET is_suspended=? WHERE tg_id=? AND category_id=?",
+        db.sql_exec(f"UPDATE {_SERVICES} SET is_suspended=? WHERE provider_tg_id=? AND category_id=?",
                     (is_suspended, tg_id, category_id))
 
     @staticmethod
     def delete(tg_id: int, category_id: int) -> None:
         """Delete the service record identified by `tg_id` and `category_id`"""
 
-        db.sql_exec(f"DELETE FROM {_SERVICES} WHERE tg_id=? AND category_id=?", (tg_id, category_id))
+        db.sql_exec(f"DELETE FROM {_SERVICES} WHERE provider_tg_id=? AND category_id=?", (tg_id, category_id))
 
     @classmethod
     def get_all_by_user(cls, tg_id) -> Iterator[Self]:
-        for row in Service._do_select_query("tg_id=?", (tg_id,)):
+        for row in Service._do_select_query("provider_tg_id=?", (tg_id,)):
             yield Service(**row)
 
     @staticmethod
@@ -377,7 +365,7 @@ def export_db() -> dict:
     def service_select_all() -> Iterator:
         """Query all non-suspended service records from the database table"""
 
-        for row in db.sql_query(f"SELECT * FROM {_SERVICES} ORDER BY tg_username COLLATE NOCASE"):
+        for row in db.sql_query(f"SELECT * FROM {_SERVICES}"):
             yield row
 
     def service_category_select_all() -> Iterator:
@@ -421,10 +409,10 @@ def import_db(new_data) -> None:
     cursor.execute(f"DELETE FROM {_SERVICES}")
     for p in new_data["services"]:
         cursor.execute(
-            f"INSERT INTO {_SERVICES} (tg_id, tg_username, category_id, is_suspended, last_modified, occupation, "
+            f"INSERT INTO {_SERVICES} (tg_id, category_id, is_suspended, last_modified, occupation, "
             f"description, location) "
-            f"VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (
-                p["tg_id"], p["tg_username"], p["category_id"], p["is_suspended"], p["last_modified"],
+            f"VALUES(?, ?, ?, ?, ?, ?, ?)", (
+                p["tg_id"], p["category_id"], p["is_suspended"], p["last_modified"],
                 p["occupation"], p["description"], p["location"]))
 
     db.commit()

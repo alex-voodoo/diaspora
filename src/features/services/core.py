@@ -3,6 +3,7 @@ Registry of services
 """
 
 import copy
+import datetime
 import logging
 import re
 from collections.abc import Awaitable, Callable
@@ -10,7 +11,7 @@ from collections.abc import Awaitable, Callable
 from telegram import Update
 from telegram.ext import Application, CallbackQueryHandler, ContextTypes, ConversationHandler, filters, MessageHandler
 
-from common import i18n
+from common import i18n, util
 from common.bot import reply, send
 from common.settings import settings
 from . import admin, const, keyboards, render, state
@@ -374,8 +375,9 @@ async def _verify_legality_and_finalise_data_collection(update: Update, context:
     trans = i18n.trans(query.from_user)
 
     if query.data == const.RESPONSE_YES:
-        state.Service.set(from_user.id, from_user.username, user_data["occupation"], user_data["description"],
-                          user_data["location"],
+        state.Provider.create_or_update(from_user.id, from_user.username, util.rounded_now() + datetime.timedelta(days=60))
+
+        state.Service.set(from_user.id, user_data["occupation"], user_data["description"], user_data["location"],
                           settings.SERVICES_MODERATION_ENABLED and not settings.SERVICES_MODERATION_IS_LAZY,
                           user_data["category_id"])
 
@@ -503,7 +505,7 @@ async def handle_extended_start_command(update: Update, _context: ContextTypes.D
     trans = i18n.trans(user)
 
     try:
-        service = state.Service.get_by_username(tg_username, category_id)
+        service = state.Service.get(state.Provider.get_by_tg_username(tg_username).tg_id, category_id)
         if service.is_suspended and user.id != service.tg_id:
             await reply(update, trans.gettext("SERVICES_DM_SERVICE_NOT_FOUND"))
             return
@@ -522,7 +524,7 @@ async def handle_extended_start_command(update: Update, _context: ContextTypes.D
         await reply(update, trans.gettext(
             "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}").format(
             category_title=service.category.title, description=service.description, location=service.location,
-            occupation=service.occupation, username=service.tg_username))
+            occupation=service.occupation, username=tg_username))
 
 
 def post_init(application: Application) -> None:

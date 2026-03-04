@@ -147,14 +147,17 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
     @patch("features.services.core.reply")
     async def test_show_main_status(self, mock_reply):
+        tg_id = 1234215
+
         def return_single_record(_where_clause: str = "", _where_params: tuple = ()) -> Iterator[dict]:
-            yield data_row_for_service(1, 1)
+            yield data_row_for_service(tg_id, 1)
 
         def return_multiple_records(_where_clause: str = "", _where_params: tuple = ()) -> Iterator[dict]:
             for category_id in (1, 2):
-                yield data_row_for_service(1, category_id)
+                yield data_row_for_service(tg_id, category_id)
 
         load_test_categories(2)
+        load_test_providers([tg_id])
 
         state.Service.set_bot_username("bot_username")
 
@@ -185,7 +188,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         with patch("features.services.state.Service._do_select_query", return_single_record):
             expected_text = "\n".join(
                 [trans.gettext("SERVICES_DM_HELLO_AGAIN {user_first_name}").format(user_first_name=user.first_name),
-                 render.service_description_for_owner(state.Service(**data_row_for_service(1, 1)))])
+                 render.service_description_for_owner(state.Service(**data_row_for_service(tg_id, 1)))])
 
             load_test_categories(1)
 
@@ -301,6 +304,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
             await core._who_received_category(update, context), ConversationHandler.END
 
         load_test_categories(2)
+        load_test_providers([1, 2])
+
         state.Service.set_bot_username("bot_username")
 
         categorised_people = {1: [state.Service(**data_row_for_service(1, 1))],
@@ -332,6 +337,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         update = self._create_update_with_query(chat, user)
 
         load_test_categories(2)
+        load_test_providers(list(range(1, 5)))
+
         state.Service.set_bot_username("bot_username")
 
         # When there are no services, nothing should be rendered.
@@ -598,6 +605,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                                             const.TYPING_LOCATION, const.CONFIRMING_LEGALITY)
 
     @patch("features.services.keyboards.standard")
+    @patch("features.services.state.Provider.create_or_update")
     @patch("features.services.state.Service.delete")
     @patch("features.services.state.Service.set")
     @patch("features.services.core._moderate_new_data")
@@ -605,7 +613,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     @patch("features.services.core.settings")
     async def test__verify_legality_and_finalise_data_collection(self, mock_settings, mock_reply,
                                                                  mock_moderate_new_data, mock_service_set,
-                                                                 mock_service_delete, mock_standard_keyboard):
+                                                                 mock_service_delete, mock_provider_create_or_update,
+                                                                 mock_standard_keyboard):
         trans = i18n.default()
 
         chat, user, context = self._create_chat_user_context(username="username")
@@ -665,14 +674,17 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                 mock_reply.reset_mock()
 
                 if moderation_enabled:
-                    mock_moderate_new_data.assert_called_once_with(context, initial_data | {"tg_id": user.id,
-                                                                                            "tg_username":
-                                                                                                user.username})
+                    mock_moderate_new_data.assert_called_once_with(
+                        context, initial_data | {"tg_id": user.id, "tg_username": user.username})
                     mock_moderate_new_data.reset_mock()
                 else:
                     mock_moderate_new_data.assert_not_called()
 
-                mock_service_set.assert_called_once_with(user.id, user.username, initial_data["occupation"],
+                mock_provider_create_or_update.assert_called_once()
+                # user.id, user.username, test_next_ping(user.id)
+                mock_provider_create_or_update.reset_mock()
+
+                mock_service_set.assert_called_once_with(user.id, initial_data["occupation"],
                                                          initial_data["description"], initial_data["location"],
                                                          moderation_enabled and not moderation_is_lazy, category_id)
                 mock_service_set.reset_mock()
@@ -794,10 +806,10 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
         # Load two real categories.
         load_test_categories(2)
+        load_test_providers([1, 2])
 
-        def return_single_service(_query: str, parameters: tuple[str, int]) -> Iterator[dict]:
-            tg_id = test_username_to_tg_id(parameters[0])
-            yield data_row_for_service(tg_id, parameters[1])
+        def return_single_service(_query: str, parameters: tuple[int, int]) -> Iterator[dict]:
+            yield data_row_for_service(*parameters)
 
         def return_no_service(_query: str, _parameters: tuple[str, int]) -> Iterator[dict]:
             yield from ()
@@ -816,7 +828,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
             mock_reply.assert_not_called()
 
         update = self._create_update_with_message(
-            chat, text=f"/start service_info_{service.category.id}_{service.tg_username}", from_user=user_1)
+            chat, text=f"/start service_info_{service.category.id}_{service.provider.tg_username}", from_user=user_1)
 
         with patch("features.services.state.Service._do_select_query", return_single_service):
             with patch("features.services.core.reply") as mock_reply:
@@ -831,7 +843,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
             mock_stat.reset_mock()
 
             update = self._create_update_with_message(
-                chat, text=f"/start service_info_{service.category.id}_{service.tg_username}", from_user=user_2)
+                chat, f"/start service_info_{service.category.id}_{service.provider.tg_username}", user_2)
 
             with patch("features.services.core.reply") as mock_reply:
                 await core.handle_extended_start_command(update, context)
@@ -840,13 +852,13 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                     "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {"
                     "username}").format(category_title=service.category.title, description=service.description,
                                         location=service.location, occupation=service.occupation,
-                                        username=service.tg_username))
+                                        username=service.provider.tg_username))
                 mock_stat.assert_called_once_with(user_2.id, service.tg_id, service.category.id)
 
             mock_stat.reset_mock()
 
             update = self._create_update_with_message(
-                chat, text=f"/start service_info_{suspended_service.category.id}_{suspended_service.tg_username}",
+                chat, f"/start service_info_{suspended_service.category.id}_{suspended_service.provider.tg_username}",
                 from_user=user_1)
 
             with patch("features.services.core.reply") as mock_reply:
@@ -858,7 +870,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
             mock_stat.reset_mock()
 
             update = self._create_update_with_message(
-                chat, text=f"/start service_info_{suspended_service.category.id}_{suspended_service.tg_username}",
+                chat, f"/start service_info_{suspended_service.category.id}_{suspended_service.provider.tg_username}",
                 from_user=user_2)
 
             with patch("features.services.core.reply") as mock_reply:
@@ -868,7 +880,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                     "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}").format(
                     category_title=suspended_service.category.title, description=suspended_service.description,
                     location=suspended_service.location, occupation=suspended_service.occupation,
-                    username=suspended_service.tg_username))
+                    username=suspended_service.provider.tg_username))
                 mock_stat.assert_called_once_with(user_2.id, suspended_service.tg_id, suspended_service.category.id)
 
             mock_stat.reset_mock()

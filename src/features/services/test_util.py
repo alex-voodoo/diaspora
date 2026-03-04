@@ -8,6 +8,7 @@ from unittest.mock import patch
 
 from telegram import User
 
+from common import util
 from common.settings import settings
 from features.services import state
 
@@ -41,7 +42,10 @@ def test_category_title(category_id: int) -> str:
 
 
 def test_last_modified(tg_id: int) -> datetime:
-    return datetime.datetime.fromisoformat("2026-01-14 12:00:00") - datetime.timedelta(days=tg_id)
+    return datetime.datetime.fromisoformat("2026-01-14 12:00:00") - datetime.timedelta(minutes=tg_id)
+
+def test_next_ping(tg_id: int) -> datetime.datetime:
+    return util.rounded_now() + datetime.timedelta(minutes=tg_id)
 
 
 def test_username_to_tg_id(tg_username: str) -> int:
@@ -66,7 +70,7 @@ def data_row_for_service(tg_id: int, category_id: int) -> dict:
     @return: dictionary that contains generated test values for all data fields necessary to construct a Service object
     """
 
-    return {"tg_id": tg_id, "tg_username": test_tg_username(tg_id), "category_id": category_id,
+    return {"provider_tg_id": tg_id, "category_id": category_id,
             "occupation": test_occupation(tg_id), "description": test_description(tg_id), "location": test_location(tg_id),
             "is_suspended": test_is_suspended(tg_id), "last_modified": test_last_modified(tg_id)}
 
@@ -108,3 +112,12 @@ def load_test_categories(category_count: int) -> None:
 
     with patch("features.services.state.ServiceCategory._do_select_all_query", return_n_categories):
         state.ServiceCategory.load()
+
+
+def load_test_providers(tg_ids: list[int]) -> None:
+    def yield_data_rows(_query: str) -> Iterator[dict]:
+        for tg_id in (tg_ids if tg_ids else []):
+            yield {"tg_id": tg_id, "tg_username": test_tg_username(tg_id), "next_ping": test_next_ping(tg_id)}
+
+    with patch("features.services.state.Provider._do_select_query", yield_data_rows):
+        state.Provider.load()
