@@ -11,6 +11,7 @@ from common import db, i18n, util
 from common.settings import settings
 
 
+_CATEGORIES = "services_categories"
 _PROVIDERS = "services_providers"
 _SERVICES = "services_services"
 
@@ -171,7 +172,7 @@ class ServiceCategory:
     def _do_select_all_query() -> Iterator[dict]:
         """Query all service categories from the database"""
 
-        for row in db.sql_query("SELECT id, title FROM services_categories"):
+        for row in db.sql_query(f"SELECT id, title FROM {_CATEGORIES}"):
             yield row
 
 
@@ -369,6 +370,10 @@ def people_category_views_report(from_date: datetime.datetime) -> Iterator[Servi
 
 
 def export_db() -> dict:
+    def all_providers() -> Iterator[dict]:
+        for row in db.sql_query(f"SELECT * FROM {_PROVIDERS}"):
+            yield row
+
     def service_select_all() -> Iterator:
         """Query all non-suspended service records from the database table"""
 
@@ -378,10 +383,11 @@ def export_db() -> dict:
     def service_category_select_all() -> Iterator:
         """Query all non-suspended service records from the database table"""
 
-        for row in db.sql_query(f"SELECT * FROM services_categories"):
+        for row in db.sql_query(f"SELECT * FROM {_CATEGORIES}"):
             yield row
 
     return {"categories": [category for category in service_category_select_all()],
+            "providers": [provider for provider in all_providers()],
             "services": [person for person in service_select_all()]}
 
 
@@ -390,20 +396,27 @@ def import_db(new_data) -> None:
 
     import_timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S%Z")
     categories_backup = f"services_categories_{import_timestamp}"
+    providers_backup = f"services_providers_{import_timestamp}"
     services_backup = f"services_services_{import_timestamp}"
 
-    for query in (f"CREATE TABLE {categories_backup} AS SELECT * FROM services_categories",
+    for query in (f"CREATE TABLE {categories_backup} AS SELECT * FROM {_CATEGORIES}",
+                  f"CREATE TABLE {providers_backup} AS SELECT * FROM {_PROVIDERS}",
                   f"CREATE TABLE {services_backup} AS SELECT * FROM {_SERVICES}"):
         db.sql_exec(query)
 
     db.commit()
 
-    logging.info(f"Saved current data into {categories_backup} and {services_backup}")
+    logging.info(f"Saved current data into {categories_backup}, {providers_backup} and {services_backup}")
 
-    cursor.execute("DELETE FROM services_categories")
+    cursor.execute(f"DELETE FROM {_CATEGORIES}")
     for c in new_data["categories"]:
-        cursor.execute("INSERT INTO services_categories (id, title) "
-                       "VALUES(?, ?)", (c["id"], c["title"]))
+        cursor.execute(f"INSERT INTO {_CATEGORIES} (id, title) "
+                       f"VALUES(?, ?)", (c["id"], c["title"]))
+
+    cursor.execute(f"DELETE FROM {_PROVIDERS}")
+    for p in new_data["providers"]:
+        cursor.execute(f"INSERT INTO {_PROVIDERS} (tg_id, tg_username, next_ping) "
+                       f"VALUES(?, ?, ?)", (p["tg_id"], p["tg_username"], p["next_ping"]))
 
     cursor.execute(f"DELETE FROM {_SERVICES}")
     for p in new_data["services"]:
@@ -419,6 +432,7 @@ def import_db(new_data) -> None:
     logging.info("Loaded new data")
 
     cursor.execute(f"DROP TABLE {categories_backup}")
+    cursor.execute(f"DROP TABLE {providers_backup}")
     cursor.execute(f"DROP TABLE {services_backup}")
 
     db.commit()

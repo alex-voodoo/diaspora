@@ -13,7 +13,20 @@
         "required": ["id", "title"]
       }
     },
-    "people": {
+    "providers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tg_id": { "type": "string"},
+          "tg_username": {"type": "string"},
+          "next_ping": {"type":  "string"}
+        },
+        "additionalProperties": false,
+        "required": ["id", "title"]
+      }
+    },
+    "services": {
       "type": "array",
       "items": {
         "type": "object",
@@ -33,5 +46,5 @@
     }
   },
   "additionalProperties": false,
-  "required": ["categories", "people"]
+  "required": ["categories", "providers", "services"]
 }
