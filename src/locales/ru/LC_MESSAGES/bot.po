@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-03-05 19:50+0100\n"
+"POT-Creation-Date: 2026-03-05 20:20+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -618,7 +618,7 @@ msgstr "Готово, вы добавлены в список! Обратите 
 msgid "SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION"
 msgstr "Готово! Я добавлю вас в список после проверки модераторами."
 
-#: features/services/state.py:315
+#: features/services/state.py:309
 msgid "SERVICES_CATEGORY_LIST_TITLE"
 msgstr "Список категорий"
 

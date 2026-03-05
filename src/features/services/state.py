@@ -238,13 +238,17 @@ class Service:
 
     @classmethod
     def get(cls, tg_id: int, category_id: int) -> Self:
-        for row in Service._do_select_query("provider_tg_id=? AND category_id=?", (tg_id, category_id)):
+        for row in Service._do_select_query(f"SELECT * FROM {_SERVICES} "
+                                            f"WHERE provider_tg_id=? AND category_id=?", (tg_id, category_id)):
             return Service(**row)
         raise Service.NotFound
 
     @classmethod
     def get_all_active(cls) -> Iterator[Self]:
-        for row in Service._do_select_query("is_suspended=0", ()):
+        for row in Service._do_select_query(f"SELECT s.* "
+                                            f"FROM {_SERVICES} s, {_PROVIDERS} p "
+                                            f"WHERE s.provider_tg_id=p.tg_id AND s.is_suspended=? "
+                                            f"ORDER BY p.tg_username COLLATE NOCASE", (0,)):
             yield Service(**row)
 
     @staticmethod
@@ -267,7 +271,7 @@ class Service:
 
     @classmethod
     def get_all_by_user(cls, tg_id) -> Iterator[Self]:
-        for row in Service._do_select_query("provider_tg_id=?", (tg_id,)):
+        for row in Service._do_select_query(f"SELECT * FROM {_SERVICES} WHERE provider_tg_id=?", (tg_id,)):
             yield Service(**row)
 
     @classmethod
@@ -276,27 +280,17 @@ class Service:
             return int(row["count"])
 
     @staticmethod
-    def _do_select_query(where_clause: str = "", where_params: tuple = (), additional_clause: str = "") -> Iterator[dict]:
-        """Select services with optional clauses
+    def _do_select_query(query: str, params: tuple = ()) -> Iterator[dict]:
+        """Select services and convert data to correct types
 
-        @param where_clause: what to put into SQL WHERE clause, with placeholders for bound parameters
-        @param where_params: data to bind in the WHERE clause
-        @param additional_clause: what to add after WHERE
-        @return: data returned by the DB
+        @param query: SQL query to execute (supposed to be a SELECT from the services table)
+        @param params: data to bind to the query
 
-        Executes an SQL SELECT query that selects all columns from the database table.  Converts data to their correct
-        types (`last_modified` to datetime and `is_suspended` to bool).  Data is returned as a dictionary with keys
-        compatible with `Service.__init__()`.
+        Executes `query` with `params`.  Converts returned data to their correct types (`last_modified` to datetime and
+        `is_suspended` to bool).  Data is returned as a dictionary with keys compatible with `Service.__init__()`.
         """
 
-        query = [f"SELECT * FROM {_SERVICES}"]
-        if where_clause:
-            query.append(f"WHERE {where_clause}")
-        if additional_clause:
-            query.append(additional_clause)
-        query = " ".join(query)
-
-        for record in db.sql_query(query, where_params):
+        for record in db.sql_query(query, params):
             record["last_modified"] = datetime.datetime.fromisoformat(record["last_modified"])
             record["is_suspended"] = bool(record["is_suspended"])
             yield record
