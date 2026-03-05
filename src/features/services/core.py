@@ -468,7 +468,13 @@ async def _retire_received_category(update: Update, context: ContextTypes.DEFAUL
 
     await query.edit_message_reply_markup(None)
 
-    state.Service.delete(query.from_user.id, int(query.data))
+    tg_id = query.from_user.id
+
+    state.Service.delete(tg_id, int(query.data))
+    if state.Service.get_count_by_user(tg_id) == 0:
+        provider = state.Provider.get_by_tg_id(tg_id)
+        logging.info(f"User {provider.tg_username} (ID {tg_id}) has just deleted their last service")
+        state.Provider.delete(query.from_user.id)
 
     await show_main_status(update, context, render.retired_confirmation(i18n.trans(query.from_user)))
 

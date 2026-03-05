@@ -270,6 +270,11 @@ class Service:
         for row in Service._do_select_query("provider_tg_id=?", (tg_id,)):
             yield Service(**row)
 
+    @classmethod
+    def get_count_by_user(cls, tg_id) -> int:
+        for row in db.sql_query(f"SELECT COUNT(1) AS count FROM {_SERVICES} WHERE provider_tg_id=?", (tg_id,)):
+            return int(row["count"])
+
     @staticmethod
     def _do_select_query(where_clause: str = "", where_params: tuple = (), additional_clause: str = "") -> Iterator[dict]:
         """Select services with optional clauses

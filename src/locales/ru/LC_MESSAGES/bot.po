@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-03-04 21:44+0100\n"
+"POT-Creation-Date: 2026-03-05 19:50+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -485,16 +485,16 @@ msgstr ""
 "\n"
 "Ваша услуга легальна?"
 
-#: features/services/core.py:487 features/services/core_test.py:791
+#: features/services/core.py:493 features/services/core_test.py:791
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Начнём сначала."
 
-#: features/services/core.py:510 features/services/core.py:513
+#: features/services/core.py:516 features/services/core.py:519
 #: features/services/core_test.py:867 features/services/core_test.py:892
 msgid "SERVICES_DM_SERVICE_NOT_FOUND"
 msgstr "Услуга не найдена."
 
-#: features/services/core.py:519 features/services/core_test.py:837
+#: features/services/core.py:525 features/services/core_test.py:837
 #: features/services/core_test.py:879
 msgid "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}"
 msgstr ""
@@ -505,7 +505,7 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/core.py:524 features/services/core_test.py:851
+#: features/services/core.py:530 features/services/core_test.py:851
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "Услуга @{username} в категории <b>{category_title}</b>\n"
@@ -618,7 +618,7 @@ msgstr "Готово, вы добавлены в список! Обратите 
 msgid "SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION"
 msgstr "Готово! Я добавлю вас в список после проверки модераторами."
 
-#: features/services/state.py:310
+#: features/services/state.py:315
 msgid "SERVICES_CATEGORY_LIST_TITLE"
 msgstr "Список категорий"
 
