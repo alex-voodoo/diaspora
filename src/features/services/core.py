@@ -376,7 +376,10 @@ async def _verify_legality_and_finalise_data_collection(update: Update, context:
     trans = i18n.trans(query.from_user)
 
     if query.data == const.RESPONSE_YES:
-        state.Provider.create_or_update(from_user.id, from_user.username, util.rounded_now() + datetime.timedelta(days=60))
+        state.Provider.create_or_update(
+            from_user.id, from_user.username,
+            util.rounded_now().replace(hour=0, minute=0, second=0) +
+            datetime.timedelta(days=settings.SERVICES_PROVIDER_PING_PERIOD_DAYS))
 
         state.Service.set(from_user.id, user_data["occupation"], user_data["description"], user_data["location"],
                           settings.SERVICES_MODERATION_ENABLED and not settings.SERVICES_MODERATION_IS_LAZY,
@@ -537,19 +540,31 @@ async def handle_extended_start_command(update: Update, _context: ContextTypes.D
 async def _check_providers(context: ContextTypes.DEFAULT_TYPE) -> None:
     logging.info("Checking if all providers are still in the main chat")
 
+    provider_ids_to_remove = []
     for provider in state.Provider.get_all():
         try:
             chat_member = await context.bot.get_chat_member(settings.MAIN_CHAT_ID, provider.tg_id)
             if isinstance(chat_member, ChatMemberLeft) or isinstance(chat_member, ChatMemberBanned):
                 logging.info(f"User {provider.tg_username} (ID {provider.tg_id}) is not found in the main chat")
+                provider_ids_to_remove.append(provider.tg_id)
+                continue
+
+            if datetime.datetime.now() > provider.next_ping:
+                logging.info(f"Would ping user {provider.tg_username} (ID {provider.tg_id}")
+
         except BadRequest as e:
             logging.info(f"Exception when checking provider {provider.tg_username} (ID {provider.tg_id}): {e}")
+            provider_ids_to_remove.append(provider.tg_id)
+
+    for provider_id in provider_ids_to_remove:
+        state.Provider.delete(provider_id)
+
 
 def post_init(application: Application) -> None:
     # noinspection PyUnresolvedReferences
     state.Service.set_bot_username(application.bot.username)
 
-    application.job_queue.run_once(_check_providers, 10)
+    application.job_queue.run_daily(_check_providers, datetime.time(settings.SERVICES_PROVIDER_PING_HOUR, 0, 0))
 
 
 def init(application: Application, group: int) -> None:

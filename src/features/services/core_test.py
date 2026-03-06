@@ -652,6 +652,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
             for moderation_is_lazy in (True, False):
                 mock_settings.SERVICES_MODERATION_ENABLED = moderation_enabled
                 mock_settings.SERVICES_MODERATION_IS_LAZY = moderation_is_lazy
+                mock_settings.SERVICES_PROVIDER_PING_PERIOD_DAYS = 5
 
                 context.user_data["category_id"] = category_id
                 context.user_data["occupation"] = "occupation"

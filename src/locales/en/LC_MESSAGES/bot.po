@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-03-06 16:58+0100\n"
+"POT-Creation-Date: 2026-03-06 21:58+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -478,17 +478,17 @@ msgstr ""
 "\n"
 "Is your service legal?"
 
-#: features/services/core.py:494 features/services/core_test.py:791
+#: features/services/core.py:497 features/services/core_test.py:792
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Let us start again."
 
-#: features/services/core.py:517 features/services/core.py:520
-#: features/services/core_test.py:867 features/services/core_test.py:892
+#: features/services/core.py:520 features/services/core.py:523
+#: features/services/core_test.py:868 features/services/core_test.py:893
 msgid "SERVICES_DM_SERVICE_NOT_FOUND"
 msgstr "Service not found."
 
-#: features/services/core.py:526 features/services/core_test.py:837
-#: features/services/core_test.py:879
+#: features/services/core.py:529 features/services/core_test.py:838
+#: features/services/core_test.py:880
 msgid "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}"
 msgstr ""
 "Your service in the category <b>{category_title}</b>\n"
@@ -498,7 +498,7 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/core.py:531 features/services/core_test.py:851
+#: features/services/core.py:534 features/services/core_test.py:852
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "Service by @{username} in the category <b>{category_title}</b>\n"
