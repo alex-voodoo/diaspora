@@ -99,6 +99,10 @@ class Settings:
         self.SERVICES_DESCRIPTION_MAX_LENGTH = 1000
         # Whether to include administrators into statistics report.  Default is false.
         self.SERVICES_STATS_INCLUDE_ADMINISTRATORS = False
+        # How often to ask service providers if their services are still offered.  Default is 60.
+        self.SERVICES_PROVIDER_PING_PERIOD_DAYS = 60
+        # At which time of the day to ping providers.  UTC timezone is used.  Default is 12.
+        self.SERVICES_PROVIDER_PING_HOUR = 12
 
         # --------------------------------------------------------------------------------------------------------------
         # Greeting new users
