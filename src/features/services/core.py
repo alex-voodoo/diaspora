@@ -8,7 +8,8 @@ import logging
 import re
 from collections.abc import Awaitable, Callable
 
-from telegram import Update
+from telegram import ChatMemberBanned, ChatMemberLeft, Update
+from telegram.error import BadRequest
 from telegram.ext import Application, CallbackQueryHandler, ContextTypes, ConversationHandler, filters, MessageHandler
 
 from common import i18n, util
@@ -533,9 +534,22 @@ async def handle_extended_start_command(update: Update, _context: ContextTypes.D
             occupation=service.occupation, username=tg_username))
 
 
+async def _check_providers(context: ContextTypes.DEFAULT_TYPE) -> None:
+    logging.info("Checking if all providers are still in the main chat")
+
+    for provider in state.Provider.get_all():
+        try:
+            chat_member = await context.bot.get_chat_member(settings.MAIN_CHAT_ID, provider.tg_id)
+            if isinstance(chat_member, ChatMemberLeft) or isinstance(chat_member, ChatMemberBanned):
+                logging.info(f"User {provider.tg_username} (ID {provider.tg_id}) is not found in the main chat")
+        except BadRequest as e:
+            logging.info(f"Exception when checking provider {provider.tg_username} (ID {provider.tg_id}): {e}")
+
 def post_init(application: Application) -> None:
     # noinspection PyUnresolvedReferences
     state.Service.set_bot_username(application.bot.username)
+
+    application.job_queue.run_once(_check_providers, 10)
 
 
 def init(application: Application, group: int) -> None:

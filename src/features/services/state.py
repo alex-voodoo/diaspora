@@ -56,6 +56,11 @@ class Provider:
             cls._cache(row)
 
     @classmethod
+    def get_all(cls) -> Iterator[Self]:
+        for provider in cls._id_index.values():
+            yield provider
+
+    @classmethod
     def get_by_tg_id(cls, tg_id: int) -> Self:
         if tg_id not in cls._id_index:
             raise Provider.NotFound
