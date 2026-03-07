@@ -568,17 +568,13 @@ async def _handle_pong(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> N
     if command == const.PING_CONFIRM_ALL:
         logging.info(f"User {provider.tg_username} (ID {tg_id}) confirms that their services are up-to-date")
 
-        state.Provider.create_or_update(provider.tg_id, provider.tg_username,
-                                        util.rounded_now().replace(hour=0, minute=0, second=0) +
-                                            datetime.timedelta(days=settings.SERVICES_PROVIDER_PING_PERIOD_DAYS))
+        state.Provider.refresh_ping(provider.tg_id)
 
         await reply(update, render.ping_confirmed_all(trans, settings.SERVICES_PROVIDER_PING_PERIOD_DAYS))
     elif command == const.PING_CONFIRM_EDIT:
         logging.info(f"User {provider.tg_username} (ID {tg_id}) confirms that their services need edits")
 
-        state.Provider.create_or_update(provider.tg_id, provider.tg_username,
-                                        util.rounded_now().replace(hour=0, minute=0, second=0) +
-                                        datetime.timedelta(days=settings.SERVICES_PROVIDER_PING_PERIOD_DAYS))
+        state.Provider.refresh_ping(provider.tg_id)
 
         await reply(update, render.ping_confirmed_all_with_edits(trans, settings.SERVICES_PROVIDER_PING_PERIOD_DAYS))
     elif command == const.PING_DELETE_ALL:
@@ -604,9 +600,7 @@ async def _handle_pong_confirm_delete(update: Update, _context: ContextTypes.DEF
     if command == const.PING_DELETE_ALL_NO:
         logging.info(f"User {provider.tg_username} (ID {tg_id}) cancels deleting all their services")
 
-        state.Provider.create_or_update(provider.tg_id, provider.tg_username,
-                                        util.rounded_now().replace(hour=0, minute=0, second=0) +
-                                        datetime.timedelta(days=settings.SERVICES_PROVIDER_PING_PERIOD_DAYS))
+        state.Provider.refresh_ping(provider.tg_id)
 
         await reply(update, render.ping_delete_all_cancelled(trans), keyboards.standard(update.effective_user))
     elif command == const.PING_DELETE_ALL_YES:

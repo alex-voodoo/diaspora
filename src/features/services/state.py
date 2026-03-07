@@ -10,7 +10,6 @@ from typing import Self
 from common import db, i18n, util
 from common.settings import settings
 
-
 _CATEGORIES = "services_categories"
 _PROVIDERS = "services_providers"
 _SERVICES = "services_services"
@@ -88,6 +87,15 @@ class Provider:
             new_provider = Provider(tg_id=tg_id, tg_username=tg_username, next_ping=next_ping)
             cls._id_index[new_provider.tg_id] = new_provider
             cls._username_index[new_provider.tg_username] = new_provider
+
+    @classmethod
+    def refresh_ping(cls, tg_id: int) -> None:
+        new_next_ping = util.rounded_now().replace(hour=0, minute=0, second=0) + datetime.timedelta(
+            days=settings.SERVICES_PROVIDER_PING_PERIOD_DAYS)
+        # noinspection PyProtectedMember
+        cls._id_index[tg_id]._next_ping = new_next_ping
+        db.sql_exec(f"UPDATE {_PROVIDERS} SET next_ping=? WHERE tg_id=?",
+                    (util.db_format(new_next_ping), tg_id))
 
     @classmethod
     def delete(cls, tg_id: int) -> None:
