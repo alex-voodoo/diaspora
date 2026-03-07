@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-03-06 21:58+0100\n"
+"POT-Creation-Date: 2026-03-07 23:03+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -536,12 +536,26 @@ msgid "SERVICES_BUTTON_RETIRE"
 msgstr "Удалить запись"
 
 #: features/services/keyboards.py:102 features/services/keyboards.py:126
+#: features/services/keyboards.py:160
 msgid "SERVICES_BUTTON_YES"
 msgstr "Да"
 
 #: features/services/keyboards.py:103 features/services/keyboards.py:127
+#: features/services/keyboards.py:161
 msgid "SERVICES_BUTTON_NO"
 msgstr "Нет"
+
+#: features/services/keyboards.py:138
+msgid "SERVICES_PING_BUTTON_CONFIRM_ALL"
+msgstr "Всё по-прежнему в силе"
+
+#: features/services/keyboards.py:139
+msgid "SERVICES_PING_BUTTON_CONFIRM_EDIT"
+msgstr "Я кое-что исправлю"
+
+#: features/services/keyboards.py:140
+msgid "SERVICES_PING_BUTTON_DELETE_ALL"
+msgstr "🗑️ Удалить всё"
 
 #: features/services/keyboards_test.py:117 features/services/state.py:148
 #: features/services/state_test.py:112 features/services/state_test.py:119
@@ -617,6 +631,47 @@ msgstr "Готово, вы добавлены в список! Обратите 
 #: features/services/render.py:103
 msgid "SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION"
 msgstr "Готово! Я добавлю вас в список после проверки модераторами."
+
+#: features/services/render.py:110
+msgid "SERVICES_DM_PING {user_first_name}"
+msgstr "Здравствуйте, {user_first_name}. В моей книге услуг есть ваша запись."
+
+#: features/services/render.py:114
+msgid "SERVICES_DM_PING_S {user_first_name} {record_count}"
+msgid_plural "SERVICES_DM_PING_P {user_first_name} {record_count}"
+msgstr[0] "Здравствуйте, {user_first_name}. В моей книге услуг есть {record_count} ваша запись."
+msgstr[1] "Здравствуйте, {user_first_name}. В моей книге услуг есть {record_count} ваши записи."
+msgstr[2] "Здравствуйте, {user_first_name}. В моей книге услуг есть {record_count} ваших записей."
+
+#: features/services/render.py:123
+msgid "SERVICES_DM_PING_QUESTION"
+msgstr "Эта информация до сих пор актуальна?"
+
+#: features/services/render.py:128
+msgid "SERVICES_DM_PING_CONFIRMED_ALL_S {days}"
+msgid_plural "SERVICES_DM_PING_CONFIRMED_ALL_P {days}"
+msgstr[0] "Спасибо, что подтвердили. В следующий раз я задам этот вопрос через {days} день."
+msgstr[1] "Спасибо, что подтвердили. В следующий раз я задам этот вопрос через {days} дня."
+msgstr[2] "Спасибо, что подтвердили. В следующий раз я задам этот вопрос через {days} дней."
+
+#: features/services/render.py:134
+msgid "SERVICES_DM_PING_NEED_EDIT_S {days}"
+msgid_plural "SERVICES_DM_PING_NEED_EDIT_P {days}"
+msgstr[0] "Спасибо, что подтвердили. В следующий раз я задам этот вопрос через {days} день."
+msgstr[1] "Спасибо, что подтвердили. В следующий раз я задам этот вопрос через {days} дня."
+msgstr[2] "Спасибо, что подтвердили. В следующий раз я задам этот вопрос через {days} дней."
+
+#: features/services/render.py:140
+msgid "SERVICES_DM_PING_CONFIRM_DELETE_ALL"
+msgstr "Это действие нельзя будет отменить. Вы уверены, что хотите удалить все ваши услуги?"
+
+#: features/services/render.py:143
+msgid "SERVICES_DM_PING_DELETE_ALL_CANCELLED"
+msgstr "Хорошо. Пожалуйста, проверьте, что данные по-прежнему актуальны."
+
+#: features/services/render.py:146
+msgid "SERVICES_DM_PING_DELETE_ALL_COMPLETED"
+msgstr "Ваши данные удалены."
 
 #: features/services/state.py:314
 msgid "SERVICES_CATEGORY_LIST_TITLE"

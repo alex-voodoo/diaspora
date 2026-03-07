@@ -101,3 +101,46 @@ def enroll_completed_post_moderation(trans: gettext.GNUTranslations) -> str:
 
 def enroll_completed_pre_moderation(trans: gettext.GNUTranslations) -> str:
     return trans.gettext("SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION")
+
+
+def ping(trans: gettext.GNUTranslations, user_first_name: str, services: list[state.Service]) -> str:
+    lines = []
+    if len(services) == 1:
+        lines.append(
+            trans.gettext("SERVICES_DM_PING {user_first_name}").format(user_first_name=user_first_name))
+    else:
+        lines.append(trans.ngettext("SERVICES_DM_PING_S {user_first_name} {record_count}",
+                                   "SERVICES_DM_PING_P {user_first_name} {record_count}",
+                                    len(services)).format(user_first_name=user_first_name, record_count=len(services)))
+
+    lines.append("")
+
+    for record in services:
+        lines.append(service_description_for_owner(record))
+
+    lines.append("")
+
+    lines.append(trans.gettext("SERVICES_DM_PING_QUESTION"))
+
+    return "\n".join(lines)
+
+def ping_confirmed_all(trans: gettext.GNUTranslations, days: int) -> str:
+    return trans.ngettext("SERVICES_DM_PING_CONFIRMED_ALL_S {days}",
+                          "SERVICES_DM_PING_CONFIRMED_ALL_P {days}",
+                          days).format(days=days)
+
+
+def ping_confirmed_all_with_edits(trans: gettext.GNUTranslations, days: int) -> str:
+    return trans.ngettext("SERVICES_DM_PING_NEED_EDIT_S {days}",
+                          "SERVICES_DM_PING_NEED_EDIT_P {days}",
+                          days).format(days=days)
+
+
+def ping_confirm_delete_all(trans: gettext.GNUTranslations) -> str:
+    return trans.gettext("SERVICES_DM_PING_CONFIRM_DELETE_ALL")
+
+def ping_delete_all_cancelled(trans) -> str:
+    return trans.gettext("SERVICES_DM_PING_DELETE_ALL_CANCELLED")
+
+def ping_delete_all_completed(trans) -> str:
+    return trans.gettext("SERVICES_DM_PING_DELETE_ALL_COMPLETED")

@@ -8,7 +8,7 @@ import logging
 import re
 from collections.abc import Awaitable, Callable
 
-from telegram import ChatMemberBanned, ChatMemberLeft, Update
+from telegram import ChatMemberBanned, ChatMemberLeft, Update, User
 from telegram.error import BadRequest
 from telegram.ext import Application, CallbackQueryHandler, ContextTypes, ConversationHandler, filters, MessageHandler
 
@@ -537,6 +537,88 @@ async def handle_extended_start_command(update: Update, _context: ContextTypes.D
             occupation=service.occupation, username=tg_username))
 
 
+async def _ping_provider(context: ContextTypes.DEFAULT_TYPE, user: User) -> None:
+    records = [r for r in state.Service.get_all_by_user(user.id)]
+
+    trans = i18n.trans(user)
+
+    if not records:
+        logging.error(f"User {user.username} (ID {user.id}) was requested to ping but they do not have "
+                      f"any services")
+        return
+
+    logging.info(f"Pinging user {user.username} (ID {user.id})")
+
+    await send(context, user.id, render.ping(trans, user.username, records), keyboards.ping(user))
+
+
+async def _handle_pong(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Approve or decline changes to user data"""
+
+    query = update.callback_query
+    await query.edit_message_reply_markup(None)
+
+    command, tg_id = query.data.split(":")
+    tg_id = int(tg_id)
+
+    provider = state.Provider.get_by_tg_id(tg_id)
+
+    trans = i18n.trans(query.from_user)
+
+    if command == const.PING_CONFIRM_ALL:
+        logging.info(f"User {provider.tg_username} (ID {tg_id}) confirms that their services are up-to-date")
+
+        state.Provider.create_or_update(provider.tg_id, provider.tg_username,
+                                        util.rounded_now().replace(hour=0, minute=0, second=0) +
+                                            datetime.timedelta(days=settings.SERVICES_PROVIDER_PING_PERIOD_DAYS))
+
+        await reply(update, render.ping_confirmed_all(trans, settings.SERVICES_PROVIDER_PING_PERIOD_DAYS))
+    elif command == const.PING_CONFIRM_EDIT:
+        logging.info(f"User {provider.tg_username} (ID {tg_id}) confirms that their services need edits")
+
+        state.Provider.create_or_update(provider.tg_id, provider.tg_username,
+                                        util.rounded_now().replace(hour=0, minute=0, second=0) +
+                                        datetime.timedelta(days=settings.SERVICES_PROVIDER_PING_PERIOD_DAYS))
+
+        await reply(update, render.ping_confirmed_all_with_edits(trans, settings.SERVICES_PROVIDER_PING_PERIOD_DAYS))
+    elif command == const.PING_DELETE_ALL:
+        logging.info(f"User {provider.tg_username} (ID {tg_id}) asks to delete all their services")
+
+        await reply(update, render.ping_confirm_delete_all(trans),
+                    keyboards.ping_confirm_delete_all(update.effective_user))
+    else:
+        logging.error("Unexpected query data: '{}'".format(query.data))
+
+
+async def _handle_pong_confirm_delete(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.edit_message_reply_markup(None)
+
+    command, tg_id = query.data.split(":")
+    tg_id = int(tg_id)
+
+    provider = state.Provider.get_by_tg_id(tg_id)
+
+    trans = i18n.trans(query.from_user)
+
+    if command == const.PING_DELETE_ALL_NO:
+        logging.info(f"User {provider.tg_username} (ID {tg_id}) cancels deleting all their services")
+
+        state.Provider.create_or_update(provider.tg_id, provider.tg_username,
+                                        util.rounded_now().replace(hour=0, minute=0, second=0) +
+                                        datetime.timedelta(days=settings.SERVICES_PROVIDER_PING_PERIOD_DAYS))
+
+        await reply(update, render.ping_delete_all_cancelled(trans), keyboards.standard(update.effective_user))
+    elif command == const.PING_DELETE_ALL_YES:
+        logging.info(f"User {provider.tg_username} (ID {tg_id}) confirms deleting all their services")
+
+        state.Provider.delete(tg_id)
+
+        await reply(update, render.ping_delete_all_completed(trans), keyboards.standard(update.effective_user))
+    else:
+        logging.error("Unexpected query data: '{}'".format(query.data))
+
+
 async def _check_providers(context: ContextTypes.DEFAULT_TYPE) -> None:
     logging.info("Checking if all providers are still in the main chat")
 
@@ -550,7 +632,7 @@ async def _check_providers(context: ContextTypes.DEFAULT_TYPE) -> None:
                 continue
 
             if datetime.datetime.now() > provider.next_ping:
-                logging.info(f"Would ping user {provider.tg_username} (ID {provider.tg_id}")
+                await _ping_provider(context, chat_member.user)
 
         except BadRequest as e:
             logging.info(f"Exception when checking provider {provider.tg_username} (ID {provider.tg_id}): {e}")
@@ -564,7 +646,8 @@ def post_init(application: Application) -> None:
     # noinspection PyUnresolvedReferences
     state.Service.set_bot_username(application.bot.username)
 
-    application.job_queue.run_daily(_check_providers, datetime.time(settings.SERVICES_PROVIDER_PING_HOUR, 0, 0))
+    # application.job_queue.run_daily(_check_providers, datetime.time(settings.SERVICES_PROVIDER_PING_HOUR, 0, 0))
+    application.job_queue.run_once(_check_providers, 5)
 
 
 def init(application: Application, group: int) -> None:
@@ -596,11 +679,17 @@ def init(application: Application, group: int) -> None:
                             states={const.SELECTING_CATEGORY: [CallbackQueryHandler(_retire_received_category)]},
                             fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]), group=group)
 
+    application.add_handler(CallbackQueryHandler(_handle_pong, pattern=re.compile(
+        "^({confirm}|{edit}|{delete}):[0-9]+$".format(confirm=const.PING_CONFIRM_ALL, edit=const.PING_CONFIRM_EDIT,
+                                                       delete=const.PING_DELETE_ALL))), group=2)
+    application.add_handler(CallbackQueryHandler(_handle_pong_confirm_delete, pattern=re.compile(
+        "^({yes}|{no}):[0-9]+$".format(yes=const.PING_DELETE_ALL_YES, no=const.PING_DELETE_ALL_NO))), group=2)
+
     admin.register_handlers(application, group)
 
     if settings.SERVICES_MODERATION_ENABLED:
         application.add_handler(CallbackQueryHandler(_confirm_user_data, pattern=re.compile(
             "^({approve}|{decline}):[0-9]+:[0-9]+$".format(approve=const.MODERATOR_APPROVE,
-                                                           decline=const.MODERATOR_DECLINE))), group=2)
+                                                           decline=const.MODERATOR_DECLINE))), group=group)
 
     state.init()
