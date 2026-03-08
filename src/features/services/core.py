@@ -477,7 +477,7 @@ async def _retire_received_category(update: Update, context: ContextTypes.DEFAUL
     state.Service.delete(tg_id, int(query.data))
     if state.Service.get_count_by_user(tg_id) == 0:
         provider = state.Provider.get_by_tg_id(tg_id)
-        logging.info(f"User {provider.tg_username} (ID {tg_id}) has just deleted their last service")
+        logging.info(f"User {provider} has just deleted their last service")
         state.Provider.delete(query.from_user.id)
 
     await show_main_status(update, context, render.retired_confirmation(i18n.trans(query.from_user)))
@@ -566,19 +566,19 @@ async def _handle_pong(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> N
     trans = i18n.trans(query.from_user)
 
     if command == const.PING_CONFIRM_ALL:
-        logging.info(f"User {provider.tg_username} (ID {tg_id}) confirms that their services are up-to-date")
+        logging.info(f"User {provider} confirms that their services are up-to-date")
 
         state.Provider.refresh_ping(provider.tg_id)
 
         await reply(update, render.ping_confirmed_all(trans, settings.SERVICES_PROVIDER_PING_PERIOD_DAYS))
     elif command == const.PING_CONFIRM_EDIT:
-        logging.info(f"User {provider.tg_username} (ID {tg_id}) confirms that their services need edits")
+        logging.info(f"User {provider} confirms that their services need edits")
 
         state.Provider.refresh_ping(provider.tg_id)
 
         await reply(update, render.ping_confirmed_all_with_edits(trans, settings.SERVICES_PROVIDER_PING_PERIOD_DAYS))
     elif command == const.PING_DELETE_ALL:
-        logging.info(f"User {provider.tg_username} (ID {tg_id}) asks to delete all their services")
+        logging.info(f"User {provider} asks to delete all their services")
 
         await reply(update, render.ping_confirm_delete_all(trans),
                     keyboards.ping_confirm_delete_all(update.effective_user))
@@ -598,13 +598,13 @@ async def _handle_pong_confirm_delete(update: Update, _context: ContextTypes.DEF
     trans = i18n.trans(query.from_user)
 
     if command == const.PING_DELETE_ALL_NO:
-        logging.info(f"User {provider.tg_username} (ID {tg_id}) cancels deleting all their services")
+        logging.info(f"User {provider} cancels deleting all their services")
 
         state.Provider.refresh_ping(provider.tg_id)
 
         await reply(update, render.ping_delete_all_cancelled(trans), keyboards.standard(update.effective_user))
     elif command == const.PING_DELETE_ALL_YES:
-        logging.info(f"User {provider.tg_username} (ID {tg_id}) confirms deleting all their services")
+        logging.info(f"User {provider} confirms deleting all their services")
 
         state.Provider.delete(tg_id)
 
@@ -621,7 +621,7 @@ async def _check_providers(context: ContextTypes.DEFAULT_TYPE) -> None:
         try:
             chat_member = await context.bot.get_chat_member(settings.MAIN_CHAT_ID, provider.tg_id)
             if isinstance(chat_member, ChatMemberLeft) or isinstance(chat_member, ChatMemberBanned):
-                logging.info(f"User {provider.tg_username} (ID {provider.tg_id}) is not found in the main chat")
+                logging.info(f"User {provider} is not found in the main chat")
                 provider_ids_to_remove.append(provider.tg_id)
                 continue
 
@@ -629,7 +629,7 @@ async def _check_providers(context: ContextTypes.DEFAULT_TYPE) -> None:
                 await _ping_provider(context, chat_member.user)
 
         except BadRequest as e:
-            logging.info(f"Exception when checking provider {provider.tg_username} (ID {provider.tg_id}): {e}")
+            logging.info(f"Exception when checking provider {provider}: {e}")
             provider_ids_to_remove.append(provider.tg_id)
 
     for provider_id in provider_ids_to_remove:

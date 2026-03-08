@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-03-07 23:34+0100\n"
+"POT-Creation-Date: 2026-03-08 19:01+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -557,7 +557,7 @@ msgstr "Я кое-что исправлю"
 msgid "SERVICES_PING_BUTTON_DELETE_ALL"
 msgstr "🗑️ Удалить всё"
 
-#: features/services/keyboards_test.py:117 features/services/state.py:156
+#: features/services/keyboards_test.py:117 features/services/state.py:159
 #: features/services/state_test.py:112 features/services/state_test.py:119
 msgid "SERVICES_CATEGORY_OTHER_TITLE"
 msgstr "Другое"
@@ -673,7 +673,7 @@ msgstr "Хорошо. Пожалуйста, проверьте, что данн�
 msgid "SERVICES_DM_PING_DELETE_ALL_COMPLETED"
 msgstr "Ваши данные удалены."
 
-#: features/services/state.py:322
+#: features/services/state.py:325
 msgid "SERVICES_CATEGORY_LIST_TITLE"
 msgstr "Список категорий"
 

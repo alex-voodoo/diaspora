@@ -32,6 +32,9 @@ class Provider:
         self._tg_username = kwargs["tg_username"]
         self._next_ping = kwargs["next_ping"]
 
+    def __str__(self):
+        return f"{self._tg_username} (ID {self._tg_id})"
+
     @property
     def tg_id(self) -> int:
         return self._tg_id
