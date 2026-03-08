@@ -379,7 +379,8 @@ async def _verify_legality_and_finalise_data_collection(update: Update, context:
         state.Provider.create_or_update(
             from_user.id, from_user.username,
             util.rounded_now().replace(hour=0, minute=0, second=0) +
-            datetime.timedelta(days=settings.SERVICES_PROVIDER_PING_PERIOD_DAYS))
+            datetime.timedelta(days=settings.SERVICES_PROVIDER_PING_PERIOD_DAYS),
+            settings.SERVICES_PING_ATTEMPT_COUNT)
 
         state.Service.set(from_user.id, user_data["occupation"], user_data["description"], user_data["location"],
                           settings.SERVICES_MODERATION_ENABLED and not settings.SERVICES_MODERATION_IS_LAZY,

@@ -92,7 +92,7 @@ def patch_service__do_select_query_return_nothing():
     @return: Context manager returned from a call to unittest.mock.patch()
     """
 
-    def return_no_services(_where_clause: str = "", _where_params: tuple = (), _additional_clause: str = "") -> Iterator[dict]:
+    def return_no_services(query: str = "", parameters: tuple = ()) -> Iterator[dict]:
         yield from ()
 
     return patch("features.services.state.Service._do_select_query", return_no_services)
@@ -117,7 +117,8 @@ def load_test_categories(category_count: int) -> None:
 def load_test_providers(tg_ids: list[int]) -> None:
     def yield_data_rows(_query: str) -> Iterator[dict]:
         for tg_id in (tg_ids if tg_ids else []):
-            yield {"tg_id": tg_id, "tg_username": test_tg_username(tg_id), "next_ping": test_next_ping(tg_id)}
+            yield {"tg_id": tg_id, "tg_username": test_tg_username(tg_id), "next_ping": test_next_ping(tg_id),
+                   "remaining_ping_count": 3}
 
     with patch("features.services.state.Provider._do_select_query", yield_data_rows):
         state.Provider.load()

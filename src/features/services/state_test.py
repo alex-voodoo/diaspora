@@ -61,7 +61,7 @@ class TestProvider(unittest.TestCase):
         new_tg_username = "1273_username"
         new_next_ping = util.rounded_now() + datetime.timedelta(days=50)
 
-        state.Provider.create_or_update(tg_id, new_tg_username, new_next_ping)
+        state.Provider.create_or_update(tg_id, new_tg_username, new_next_ping, 3)
 
         mock_sql_exec.assert_called_once()
 
@@ -77,7 +77,7 @@ class TestProvider(unittest.TestCase):
         with self.assertRaises(state.Provider.NotFound):
             state.Provider.get_by_tg_id(other_new_tg_id)
 
-        state.Provider.create_or_update(other_new_tg_id, other_new_tg_username, other_new_next_ping)
+        state.Provider.create_or_update(other_new_tg_id, other_new_tg_username, other_new_next_ping, 3)
 
         mock_sql_exec.assert_called_once()
 

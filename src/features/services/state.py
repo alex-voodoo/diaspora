@@ -31,6 +31,7 @@ class Provider:
         self._tg_id = kwargs["tg_id"]
         self._tg_username = kwargs["tg_username"]
         self._next_ping = kwargs["next_ping"]
+        self._remaining_ping_count = kwargs["remaining_ping_count"]
 
     def __str__(self):
         return f"{self._tg_username} (ID {self._tg_id})"
@@ -46,6 +47,10 @@ class Provider:
     @property
     def next_ping(self) -> datetime.datetime:
         return self._next_ping
+
+    @property
+    def remaining_ping_count(self) -> int:
+        return self._remaining_ping_count
 
     @classmethod
     def load(cls) -> None:
@@ -75,10 +80,11 @@ class Provider:
         return cls._username_index[tg_username]
 
     @classmethod
-    def create_or_update(cls, tg_id: int, tg_username: str, next_ping: datetime.datetime) -> None:
+    def create_or_update(cls, tg_id: int, tg_username: str, next_ping: datetime.datetime,
+                         remaining_ping_count: int) -> None:
         db.sql_exec(
-            f"INSERT OR REPLACE INTO {_PROVIDERS} (tg_id, tg_username, next_ping) "
-            f"VALUES(?, ?, ?)", (tg_id, tg_username, util.db_format(next_ping)))
+            f"INSERT OR REPLACE INTO {_PROVIDERS} (tg_id, tg_username, next_ping, remaining_ping_count) "
+            f"VALUES(?, ?, ?, ?)", (tg_id, tg_username, util.db_format(next_ping), remaining_ping_count))
         if tg_id in cls._id_index:
             existing_provider = cls._id_index[tg_id]
             if tg_username != existing_provider.tg_username:
@@ -86,8 +92,10 @@ class Provider:
                 cls._username_index[tg_username] = existing_provider
                 existing_provider._tg_username = tg_username
             existing_provider._next_ping = next_ping
+            existing_provider._remaining_ping_count = remaining_ping_count
         else:
-            new_provider = Provider(tg_id=tg_id, tg_username=tg_username, next_ping=next_ping)
+            new_provider = Provider(tg_id=tg_id, tg_username=tg_username, next_ping=next_ping,
+                                    remaining_ping_count=remaining_ping_count)
             cls._id_index[new_provider.tg_id] = new_provider
             cls._username_index[new_provider.tg_username] = new_provider
 

@@ -103,6 +103,10 @@ class Settings:
         self.SERVICES_PROVIDER_PING_PERIOD_DAYS = 60
         # At which time of the day to ping providers.  UTC timezone is used.  Default is 12.
         self.SERVICES_PROVIDER_PING_HOUR = 12
+        # How many times the bot shall ping the provider before deleting them.  Default is 3.
+        self.SERVICES_PING_ATTEMPT_COUNT = 3
+        # Interval in days between pings.  Default is 2.
+        self.SERVICES_PING_ATTEMPTS_INTERVAL_DAYS = 2
 
         # --------------------------------------------------------------------------------------------------------------
         # Greeting new users
