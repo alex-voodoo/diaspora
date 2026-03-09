@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-03-09 18:19+0100\n"
+"POT-Creation-Date: 2026-03-09 21:47+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -453,48 +453,48 @@ msgstr "Выберите категорию, к которой можно отн
 msgid "SERVICES_DM_SELECT_CATEGORY_FOR_UPDATE"
 msgstr "Выберите категорию для редактирования."
 
-#: features/services/core.py:323 features/services/core_test.py:62
+#: features/services/core.py:322 features/services/core_test.py:62
 #: features/services/core_test.py:115
 msgid "SERVICES_DM_ENROLL_ASK_DESCRIPTION"
 msgstr "Опишите вашу услугу подробно."
 
-#: features/services/core.py:324 features/services/core_test.py:63
+#: features/services/core.py:323 features/services/core_test.py:63
 #: features/services/core_test.py:116
 msgid "SERVICES_DM_UPDATE_DESCRIPTION {title} {current_value}"
 msgstr ""
 "Введите новое подробное описание вашей услуги в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:341
+#: features/services/core.py:340
 msgid "SERVICES_DM_ENROLL_ASK_LOCATION"
 msgstr ""
 "Где вы оказываете услуги?\n"
 "\n"
 "Укажите город по-русски: Сантьяго, Корунья, Виго и др. Если городов несколько, пишите «Галисия»."
 
-#: features/services/core.py:342
+#: features/services/core.py:341
 msgid "SERVICES_DM_UPDATE_LOCATION {title} {current_value}"
 msgstr ""
 "Введите новое описание места, где вы оказываете услугу в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:357
+#: features/services/core.py:356
 msgid "SERVICES_DM_ENROLL_CONFIRM_LEGALITY"
 msgstr ""
 "И последнее: подтвердите, что не нарушаете местные законы и правила.\n"
 "\n"
 "Ваша услуга легальна?"
 
-#: features/services/core.py:500 features/services/core_test.py:832
+#: features/services/core.py:499 features/services/core_test.py:832
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Начнём сначала."
 
-#: features/services/core.py:523 features/services/core.py:526
+#: features/services/core.py:522 features/services/core.py:525
 #: features/services/core_test.py:908 features/services/core_test.py:933
 msgid "SERVICES_DM_SERVICE_NOT_FOUND"
 msgstr "Услуга не найдена."
 
-#: features/services/core.py:532 features/services/core_test.py:878
+#: features/services/core.py:531 features/services/core_test.py:878
 #: features/services/core_test.py:920
 msgid "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}"
 msgstr ""
@@ -505,7 +505,7 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/core.py:537 features/services/core_test.py:892
+#: features/services/core.py:536 features/services/core_test.py:892
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "Услуга @{username} в категории <b>{category_title}</b>\n"
@@ -536,24 +536,24 @@ msgid "SERVICES_BUTTON_RETIRE"
 msgstr "Удалить запись"
 
 #: features/services/keyboards.py:102 features/services/keyboards.py:126
-#: features/services/keyboards.py:160
+#: features/services/keyboards.py:156
 msgid "SERVICES_BUTTON_YES"
 msgstr "Да"
 
 #: features/services/keyboards.py:103 features/services/keyboards.py:127
-#: features/services/keyboards.py:161
+#: features/services/keyboards.py:157
 msgid "SERVICES_BUTTON_NO"
 msgstr "Нет"
 
-#: features/services/keyboards.py:138
+#: features/services/keyboards.py:136
 msgid "SERVICES_PING_BUTTON_CONFIRM_ALL"
 msgstr "Всё по-прежнему в силе"
 
-#: features/services/keyboards.py:139
+#: features/services/keyboards.py:137
 msgid "SERVICES_PING_BUTTON_CONFIRM_EDIT"
 msgstr "Я кое-что исправлю"
 
-#: features/services/keyboards.py:140
+#: features/services/keyboards.py:138
 msgid "SERVICES_PING_BUTTON_DELETE_ALL"
 msgstr "🗑️ Удалить всё"
 
@@ -632,44 +632,44 @@ msgstr "Готово, вы добавлены в список! Обратите 
 msgid "SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION"
 msgstr "Готово! Я добавлю вас в список после проверки модераторами."
 
-#: features/services/render.py:110
-msgid "SERVICES_DM_PING {user_first_name}"
-msgstr "Здравствуйте, {user_first_name}. В моей книге услуг есть ваша запись."
+#: features/services/render.py:109
+msgid "SERVICES_DM_PING"
+msgstr "Здравствуйте! В моей книге услуг есть ваша запись."
 
-#: features/services/render.py:114
-msgid "SERVICES_DM_PING_S {user_first_name} {record_count}"
-msgid_plural "SERVICES_DM_PING_P {user_first_name} {record_count}"
-msgstr[0] "Здравствуйте, {user_first_name}. В моей книге услуг есть {record_count} ваша запись."
-msgstr[1] "Здравствуйте, {user_first_name}. В моей книге услуг есть {record_count} ваши записи."
-msgstr[2] "Здравствуйте, {user_first_name}. В моей книге услуг есть {record_count} ваших записей."
+#: features/services/render.py:113
+msgid "SERVICES_DM_PING_S {record_count}"
+msgid_plural "SERVICES_DM_PING_P {record_count}"
+msgstr[0] "Здравствуйте! В моей книге услуг есть {record_count} ваша запись."
+msgstr[1] "Здравствуйте! В моей книге услуг есть {record_count} ваши записи."
+msgstr[2] "Здравствуйте! В моей книге услуг есть {record_count} ваших записей."
 
-#: features/services/render.py:123
+#: features/services/render.py:122
 msgid "SERVICES_DM_PING_QUESTION"
 msgstr "Эта информация до сих пор актуальна?"
 
-#: features/services/render.py:128
+#: features/services/render.py:127
 msgid "SERVICES_DM_PING_CONFIRMED_ALL_S {days}"
 msgid_plural "SERVICES_DM_PING_CONFIRMED_ALL_P {days}"
 msgstr[0] "Спасибо, что подтвердили. В следующий раз я задам этот вопрос через {days} день."
 msgstr[1] "Спасибо, что подтвердили. В следующий раз я задам этот вопрос через {days} дня."
 msgstr[2] "Спасибо, что подтвердили. В следующий раз я задам этот вопрос через {days} дней."
 
-#: features/services/render.py:134
+#: features/services/render.py:133
 msgid "SERVICES_DM_PING_NEED_EDIT_S {days}"
 msgid_plural "SERVICES_DM_PING_NEED_EDIT_P {days}"
 msgstr[0] "Спасибо, что подтвердили. В следующий раз я задам этот вопрос через {days} день."
 msgstr[1] "Спасибо, что подтвердили. В следующий раз я задам этот вопрос через {days} дня."
 msgstr[2] "Спасибо, что подтвердили. В следующий раз я задам этот вопрос через {days} дней."
 
-#: features/services/render.py:140
+#: features/services/render.py:139
 msgid "SERVICES_DM_PING_CONFIRM_DELETE_ALL"
 msgstr "Это действие нельзя будет отменить. Вы уверены, что хотите удалить все ваши услуги?"
 
-#: features/services/render.py:143
+#: features/services/render.py:142
 msgid "SERVICES_DM_PING_DELETE_ALL_CANCELLED"
 msgstr "Хорошо. Пожалуйста, проверьте, что данные по-прежнему актуальны."
 
-#: features/services/render.py:146
+#: features/services/render.py:145
 msgid "SERVICES_DM_PING_DELETE_ALL_COMPLETED"
 msgstr "Ваши данные удалены."
 

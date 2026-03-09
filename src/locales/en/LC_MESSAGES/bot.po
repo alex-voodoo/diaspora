@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-03-09 18:19+0100\n"
+"POT-Creation-Date: 2026-03-09 21:47+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -446,48 +446,48 @@ msgstr "Please select a category that matches your service the best."
 msgid "SERVICES_DM_SELECT_CATEGORY_FOR_UPDATE"
 msgstr "Select a category to update."
 
-#: features/services/core.py:323 features/services/core_test.py:62
+#: features/services/core.py:322 features/services/core_test.py:62
 #: features/services/core_test.py:115
 msgid "SERVICES_DM_ENROLL_ASK_DESCRIPTION"
 msgstr "Provide a detailed description of your service."
 
-#: features/services/core.py:324 features/services/core_test.py:63
+#: features/services/core.py:323 features/services/core_test.py:63
 #: features/services/core_test.py:116
 msgid "SERVICES_DM_UPDATE_DESCRIPTION {title} {current_value}"
 msgstr ""
 "Enter a new detailed description for your service in the \"{title}\" group.  The current one is:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:341
+#: features/services/core.py:340
 msgid "SERVICES_DM_ENROLL_ASK_LOCATION"
 msgstr ""
 "Where are you based?\n"
 "\n"
 "Just the name of the place is enough, like \"A Coruña\""
 
-#: features/services/core.py:342
+#: features/services/core.py:341
 msgid "SERVICES_DM_UPDATE_LOCATION {title} {current_value}"
 msgstr ""
 "Enter a new location for your service in the \"{title}\" group.  The current one is:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:357
+#: features/services/core.py:356
 msgid "SERVICES_DM_ENROLL_CONFIRM_LEGALITY"
 msgstr ""
 "Finally, please confirm that what you do is legal and does not violate any laws or local regulations.\n"
 "\n"
 "Is your service legal?"
 
-#: features/services/core.py:500 features/services/core_test.py:832
+#: features/services/core.py:499 features/services/core_test.py:832
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Let us start again."
 
-#: features/services/core.py:523 features/services/core.py:526
+#: features/services/core.py:522 features/services/core.py:525
 #: features/services/core_test.py:908 features/services/core_test.py:933
 msgid "SERVICES_DM_SERVICE_NOT_FOUND"
 msgstr "Service not found."
 
-#: features/services/core.py:532 features/services/core_test.py:878
+#: features/services/core.py:531 features/services/core_test.py:878
 #: features/services/core_test.py:920
 msgid "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}"
 msgstr ""
@@ -498,7 +498,7 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/core.py:537 features/services/core_test.py:892
+#: features/services/core.py:536 features/services/core_test.py:892
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "Service by @{username} in the category <b>{category_title}</b>\n"
@@ -529,24 +529,24 @@ msgid "SERVICES_BUTTON_RETIRE"
 msgstr "Remove a record"
 
 #: features/services/keyboards.py:102 features/services/keyboards.py:126
-#: features/services/keyboards.py:160
+#: features/services/keyboards.py:156
 msgid "SERVICES_BUTTON_YES"
 msgstr "Yes"
 
 #: features/services/keyboards.py:103 features/services/keyboards.py:127
-#: features/services/keyboards.py:161
+#: features/services/keyboards.py:157
 msgid "SERVICES_BUTTON_NO"
 msgstr "No"
 
-#: features/services/keyboards.py:138
+#: features/services/keyboards.py:136
 msgid "SERVICES_PING_BUTTON_CONFIRM_ALL"
 msgstr "Yes, all correct"
 
-#: features/services/keyboards.py:139
+#: features/services/keyboards.py:137
 msgid "SERVICES_PING_BUTTON_CONFIRM_EDIT"
 msgstr "I will edit some details"
 
-#: features/services/keyboards.py:140
+#: features/services/keyboards.py:138
 msgid "SERVICES_PING_BUTTON_DELETE_ALL"
 msgstr "🗑️ Delete everything"
 
@@ -621,41 +621,41 @@ msgstr "We are done, you are now registered!  Please note that moderators may hi
 msgid "SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION"
 msgstr "We are done!  I will add your record to the list after the moderators approve it."
 
-#: features/services/render.py:110
-msgid "SERVICES_DM_PING {user_first_name}"
-msgstr "Hello {user_first_name}.  There is your record in my book of services."
+#: features/services/render.py:109
+msgid "SERVICES_DM_PING"
+msgstr "Hello!  There is your record in my book of services."
 
-#: features/services/render.py:114
-msgid "SERVICES_DM_PING_S {user_first_name} {record_count}"
-msgid_plural "SERVICES_DM_PING_P {user_first_name} {record_count}"
-msgstr[0] "Hello {user_first_name}.  There is {record_count} your record in my book of services."
-msgstr[1] "Hello {user_first_name}.  There are {record_count} your records in my book of services."
+#: features/services/render.py:113
+msgid "SERVICES_DM_PING_S {record_count}"
+msgid_plural "SERVICES_DM_PING_P {record_count}"
+msgstr[0] "Hello!  There is {record_count} your record in my book of services."
+msgstr[1] "Hello!  There are {record_count} your records in my book of services."
 
-#: features/services/render.py:123
+#: features/services/render.py:122
 msgid "SERVICES_DM_PING_QUESTION"
 msgstr "Is the information above still correct?"
 
-#: features/services/render.py:128
+#: features/services/render.py:127
 msgid "SERVICES_DM_PING_CONFIRMED_ALL_S {days}"
 msgid_plural "SERVICES_DM_PING_CONFIRMED_ALL_P {days}"
 msgstr[0] "Thank you, your information is confirmed.  I will ask again in {days} day."
 msgstr[1] "Thank you, your information is confirmed.  I will ask again in {days} days."
 
-#: features/services/render.py:134
+#: features/services/render.py:133
 msgid "SERVICES_DM_PING_NEED_EDIT_S {days}"
 msgid_plural "SERVICES_DM_PING_NEED_EDIT_P {days}"
 msgstr[0] "Thank you, your information is confirmed.  I will ask again in {days} day."
 msgstr[1] "Thank you, your information is confirmed.  I will ask again in {days} days."
 
-#: features/services/render.py:140
+#: features/services/render.py:139
 msgid "SERVICES_DM_PING_CONFIRM_DELETE_ALL"
 msgstr "This cannot be undone.  Are you sure that you want to delete all your services?"
 
-#: features/services/render.py:143
+#: features/services/render.py:142
 msgid "SERVICES_DM_PING_DELETE_ALL_CANCELLED"
 msgstr "Alright.  Please ensure that your data is correct."
 
-#: features/services/render.py:146
+#: features/services/render.py:145
 msgid "SERVICES_DM_PING_DELETE_ALL_COMPLETED"
 msgstr "Your data is removed."
 

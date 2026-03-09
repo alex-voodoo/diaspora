@@ -8,11 +8,11 @@ import logging
 import re
 from collections.abc import Awaitable, Callable
 
-from telegram import ChatMemberBanned, ChatMemberLeft, Update, User
+from telegram import ChatMemberBanned, ChatMemberLeft, Update
 from telegram.error import BadRequest
 from telegram.ext import Application, CallbackQueryHandler, ContextTypes, ConversationHandler, filters, MessageHandler
 
-from common import i18n, util
+from common import i18n
 from common.bot import reply, send
 from common.settings import settings
 from . import admin, const, keyboards, render, state
@@ -289,7 +289,6 @@ async def _accept_category_and_request_occupation(update: Update, context: Conte
 
     await query.edit_message_reply_markup(None)
 
-    lines = []
     if "mode" in context.user_data and context.user_data["mode"] == "update":
         service = state.Service.get(user.id, category_id)
         user_data["category_title"] = service.category.title
@@ -540,19 +539,18 @@ async def handle_extended_start_command(update: Update, _context: ContextTypes.D
             occupation=service.occupation, username=tg_username))
 
 
-async def _ping_provider(context: ContextTypes.DEFAULT_TYPE, user: User) -> None:
-    records = [r for r in state.Service.get_all_by_user(user.id)]
+async def _ping_provider(context: ContextTypes.DEFAULT_TYPE, provider: state.Provider) -> None:
+    records = [r for r in state.Service.get_all_by_user(provider.tg_id)]
 
-    trans = i18n.trans(user)
+    assert records
 
-    if not records:
-        logging.error(f"User {user.username} (ID {user.id}) was requested to ping but they do not have "
-                      f"any services")
-        return
+    trans = i18n.default()
 
-    logging.info(f"Pinging user {user.username} (ID {user.id})")
+    logging.info(f"Pinging user {provider}")
 
-    await send(context, user.id, render.ping(trans, user.username, records), keyboards.ping(user))
+    provider.consume_ping_attempt_and_schedule_next_attempt()
+
+    await send(context, provider.tg_id, render.ping(trans, records), keyboards.ping(trans, provider.tg_id))
 
 
 async def _handle_pong(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -571,20 +569,20 @@ async def _handle_pong(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> N
     if command == const.PING_CONFIRM_ALL:
         logging.info(f"User {provider} confirms that their services are up-to-date")
 
-        state.Provider.refresh_ping(provider.tg_id)
+        provider.reset_ping_attempts_and_schedule_next_ping()
 
         await reply(update, render.ping_confirmed_all(trans, settings.SERVICES_PROVIDER_PING_PERIOD_DAYS))
     elif command == const.PING_CONFIRM_EDIT:
         logging.info(f"User {provider} confirms that their services need edits")
 
-        state.Provider.refresh_ping(provider.tg_id)
+        provider.reset_ping_attempts_and_schedule_next_ping()
 
         await reply(update, render.ping_confirmed_all_with_edits(trans, settings.SERVICES_PROVIDER_PING_PERIOD_DAYS))
     elif command == const.PING_DELETE_ALL:
         logging.info(f"User {provider} asks to delete all their services")
 
         await reply(update, render.ping_confirm_delete_all(trans),
-                    keyboards.ping_confirm_delete_all(update.effective_user))
+                    keyboards.ping_confirm_delete_all(trans, tg_id))
     else:
         logging.error("Unexpected query data: '{}'".format(query.data))
 
@@ -603,7 +601,7 @@ async def _handle_pong_confirm_delete(update: Update, _context: ContextTypes.DEF
     if command == const.PING_DELETE_ALL_NO:
         logging.info(f"User {provider} cancels deleting all their services")
 
-        state.Provider.refresh_ping(provider.tg_id)
+        provider.reset_ping_attempts_and_schedule_next_ping()
 
         await reply(update, render.ping_delete_all_cancelled(trans), keyboards.standard(update.effective_user))
     elif command == const.PING_DELETE_ALL_YES:
@@ -629,7 +627,10 @@ async def _check_providers(context: ContextTypes.DEFAULT_TYPE) -> None:
                 continue
 
             if datetime.datetime.now() > provider.next_ping:
-                await _ping_provider(context, chat_member.user)
+                if provider.remaining_ping_count > 0:
+                    await _ping_provider(context, chat_member.user)
+                else:
+                    state.Provider.delete(provider.tg_id)
 
         except BadRequest as e:
             logging.info(f"Exception when checking provider {provider}: {e}")

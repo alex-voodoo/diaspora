@@ -103,15 +103,14 @@ def enroll_completed_pre_moderation(trans: gettext.GNUTranslations) -> str:
     return trans.gettext("SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION")
 
 
-def ping(trans: gettext.GNUTranslations, user_first_name: str, services: list[state.Service]) -> str:
+def ping(trans: gettext.GNUTranslations, services: list[state.Service]) -> str:
     lines = []
     if len(services) == 1:
-        lines.append(
-            trans.gettext("SERVICES_DM_PING {user_first_name}").format(user_first_name=user_first_name))
+        lines.append(trans.gettext("SERVICES_DM_PING"))
     else:
-        lines.append(trans.ngettext("SERVICES_DM_PING_S {user_first_name} {record_count}",
-                                   "SERVICES_DM_PING_P {user_first_name} {record_count}",
-                                    len(services)).format(user_first_name=user_first_name, record_count=len(services)))
+        lines.append(trans.ngettext("SERVICES_DM_PING_S {record_count}",
+                                   "SERVICES_DM_PING_P {record_count}",
+                                    len(services)).format(record_count=len(services)))
 
     lines.append("")
 

@@ -132,20 +132,18 @@ def approve_service_change(data: dict) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(((response_button_yes, response_button_no),))
 
 
-def ping(user: User) -> InlineKeyboardMarkup:
-    trans = i18n.trans(user)
-
+def ping(trans: gettext.GNUTranslations, tg_id: int) -> InlineKeyboardMarkup:
     response_buttons = {trans.gettext("SERVICES_PING_BUTTON_CONFIRM_ALL"): const.PING_CONFIRM_ALL,
                         trans.gettext("SERVICES_PING_BUTTON_CONFIRM_EDIT"): const.PING_CONFIRM_EDIT,
                         trans.gettext("SERVICES_PING_BUTTON_DELETE_ALL"): const.PING_DELETE_ALL}
     button_confirm_all, button_confirm_edit, button_delete_all = (
-        InlineKeyboardButton(text, callback_data="{}:{}".format(command, user.id)) for
+        InlineKeyboardButton(text, callback_data="{}:{}".format(command, tg_id)) for
         text, command in response_buttons.items())
 
     return InlineKeyboardMarkup(((button_confirm_all,), (button_confirm_edit,), (button_delete_all,)))
 
 
-def ping_confirm_delete_all(user: User) -> InlineKeyboardMarkup:
+def ping_confirm_delete_all(trans: gettext.GNUTranslations, tg_id: int) -> InlineKeyboardMarkup:
     """Build the YES/NO keyboard used in the step where the user confirms that they want to delete all their services
 
     +-----+----+
@@ -155,12 +153,10 @@ def ping_confirm_delete_all(user: User) -> InlineKeyboardMarkup:
     Returns an instance of InlineKeyboardMarkup.
     """
 
-    trans = i18n.trans(user)
-
     response_buttons = {trans.gettext("SERVICES_BUTTON_YES"): const.PING_DELETE_ALL_YES,
                         trans.gettext("SERVICES_BUTTON_NO"): const.PING_DELETE_ALL_NO}
     response_button_yes, response_button_no = (
-        InlineKeyboardButton(text, callback_data="{}:{}".format(command, user.id)) for
+        InlineKeyboardButton(text, callback_data="{}:{}".format(command, tg_id)) for
         text, command in response_buttons.items())
 
     return InlineKeyboardMarkup(((response_button_yes, response_button_no),))
