@@ -36,6 +36,16 @@ class Provider:
     def __str__(self):
         return f"{self._tg_username} (ID {self._tg_id})"
 
+    @staticmethod
+    def get_next_ping_date():
+        return (util.rounded_now().replace(hour=0, minute=0, second=0) +
+                datetime.timedelta(days=settings.SERVICES_PROVIDER_PING_PERIOD_DAYS))
+
+    @staticmethod
+    def get_next_ping_reminder_date():
+        return (util.rounded_now().replace(hour=0, minute=0, second=0) +
+                datetime.timedelta(days=settings.SERVICES_PING_ATTEMPTS_INTERVAL_DAYS))
+
     @property
     def tg_id(self) -> int:
         return self._tg_id
@@ -44,6 +54,15 @@ class Provider:
     def tg_username(self) -> str:
         return self._tg_username
 
+    @tg_username.setter
+    def tg_username(self, value: str) -> None:
+        value = value.strip()
+        assert value
+        if self._tg_username == value:
+            return
+        db.sql_exec(f"UPDATE {_PROVIDERS} SET tg_username=? WHERE tg_id=?", (value, self._tg_id))
+        self._tg_username = value
+
     @property
     def next_ping(self) -> datetime.datetime:
         return self._next_ping
@@ -51,6 +70,28 @@ class Provider:
     @property
     def remaining_ping_count(self) -> int:
         return self._remaining_ping_count
+
+    def consume_ping_attempt_and_schedule_next_attempt(self) -> None:
+        assert self._remaining_ping_count > 0
+
+        db.sql_exec(f"UPDATE {_PROVIDERS} SET next_ping=?, remaining_ping_count=? WHERE tg_id=?",
+                    (Provider.get_next_ping_reminder_date(), self._remaining_ping_count - 1, self._tg_id))
+        self._remaining_ping_count -= 1
+
+    def reset_ping_attempts_and_schedule_next_ping(self) -> None:
+        full_ping_count = settings.SERVICES_PING_ATTEMPT_COUNT
+        db.sql_exec(f"UPDATE {_PROVIDERS} SET next_ping=?, remaining_ping_count=? WHERE tg_id=?",
+                    (Provider.get_next_ping_date(), full_ping_count, self._tg_id))
+        self._remaining_ping_count = full_ping_count
+
+    @classmethod
+    def refresh_ping(cls, tg_id: int) -> None:
+        new_next_ping = util.rounded_now().replace(hour=0, minute=0, second=0) + datetime.timedelta(
+            days=settings.SERVICES_PROVIDER_PING_PERIOD_DAYS)
+        # noinspection PyProtectedMember
+        cls._id_index[tg_id]._next_ping = new_next_ping
+        db.sql_exec(f"UPDATE {_PROVIDERS} SET next_ping=? WHERE tg_id=?",
+                    (util.db_format(new_next_ping), tg_id))
 
     @classmethod
     def load(cls) -> None:
@@ -68,6 +109,10 @@ class Provider:
             yield provider
 
     @classmethod
+    def exists(cls, tg_id: int) -> bool:
+        return tg_id in cls._id_index
+
+    @classmethod
     def get_by_tg_id(cls, tg_id: int) -> Self:
         if tg_id not in cls._id_index:
             raise Provider.NotFound
@@ -80,33 +125,29 @@ class Provider:
         return cls._username_index[tg_username]
 
     @classmethod
-    def create_or_update(cls, tg_id: int, tg_username: str, next_ping: datetime.datetime,
-                         remaining_ping_count: int) -> None:
-        db.sql_exec(
-            f"INSERT OR REPLACE INTO {_PROVIDERS} (tg_id, tg_username, next_ping, remaining_ping_count) "
-            f"VALUES(?, ?, ?, ?)", (tg_id, tg_username, util.db_format(next_ping), remaining_ping_count))
-        if tg_id in cls._id_index:
-            existing_provider = cls._id_index[tg_id]
-            if tg_username != existing_provider.tg_username:
-                del cls._username_index[existing_provider.tg_username]
-                cls._username_index[tg_username] = existing_provider
-                existing_provider._tg_username = tg_username
-            existing_provider._next_ping = next_ping
-            existing_provider._remaining_ping_count = remaining_ping_count
-        else:
-            new_provider = Provider(tg_id=tg_id, tg_username=tg_username, next_ping=next_ping,
-                                    remaining_ping_count=remaining_ping_count)
-            cls._id_index[new_provider.tg_id] = new_provider
-            cls._username_index[new_provider.tg_username] = new_provider
+    def create(cls, tg_id: int, tg_username: str) -> None:
+        """Create a new provider
 
-    @classmethod
-    def refresh_ping(cls, tg_id: int) -> None:
-        new_next_ping = util.rounded_now().replace(hour=0, minute=0, second=0) + datetime.timedelta(
-            days=settings.SERVICES_PROVIDER_PING_PERIOD_DAYS)
-        # noinspection PyProtectedMember
-        cls._id_index[tg_id]._next_ping = new_next_ping
-        db.sql_exec(f"UPDATE {_PROVIDERS} SET next_ping=? WHERE tg_id=?",
-                    (util.db_format(new_next_ping), tg_id))
+        @param tg_id: Telegram ID of the provider
+        @param tg_username: Telegram username of the provider
+
+        Creates a new provider and initialises it with the given Telegram properties and default values for the next
+        ping date and number of remaining pings.
+        """
+
+        assert not cls.exists(tg_id)
+
+        next_ping = cls.get_next_ping_date()
+        remaining_ping_count = settings.SERVICES_PING_ATTEMPT_COUNT
+
+        db.sql_exec(f"INSERT INTO {_PROVIDERS} (tg_id, tg_username, next_ping, remaining_ping_count) "
+                    f"VALUES(?, ?, ?, ?)", (tg_id, tg_username, util.db_format(next_ping), remaining_ping_count))
+
+        new_provider = Provider(tg_id=tg_id, tg_username=tg_username, next_ping=next_ping,
+                                remaining_ping_count=remaining_ping_count)
+
+        cls._id_index[tg_id] = new_provider
+        cls._username_index[tg_username] = new_provider
 
     @classmethod
     def delete(cls, tg_id: int) -> None:

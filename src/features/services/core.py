@@ -370,26 +370,26 @@ async def _verify_legality_and_finalise_data_collection(update: Update, context:
 
     query = update.callback_query
     from_user = query.from_user
+    provider_tg_id = from_user.id
 
     user_data = context.user_data
 
-    trans = i18n.trans(query.from_user)
+    trans = i18n.trans(from_user)
 
     if query.data == const.RESPONSE_YES:
-        state.Provider.create_or_update(
-            from_user.id, from_user.username,
-            util.rounded_now().replace(hour=0, minute=0, second=0) +
-            datetime.timedelta(days=settings.SERVICES_PROVIDER_PING_PERIOD_DAYS),
-            settings.SERVICES_PING_ATTEMPT_COUNT)
+        if state.Provider.exists(provider_tg_id):
+            state.Provider.get_by_tg_id(provider_tg_id).reset_ping_attempts_and_schedule_next_ping()
+        else:
+            state.Provider.create(provider_tg_id, from_user.username)
 
-        state.Service.set(from_user.id, user_data["occupation"], user_data["description"], user_data["location"],
+        state.Service.set(provider_tg_id, user_data["occupation"], user_data["description"], user_data["location"],
                           settings.SERVICES_MODERATION_ENABLED and not settings.SERVICES_MODERATION_IS_LAZY,
                           user_data["category_id"])
 
         saved_user_data = copy.deepcopy(user_data)
         user_data.clear()
 
-        saved_user_data["tg_id"] = from_user.id
+        saved_user_data["tg_id"] = provider_tg_id
         saved_user_data["tg_username"] = from_user.username
 
         await query.edit_message_reply_markup(None)
@@ -407,7 +407,9 @@ async def _verify_legality_and_finalise_data_collection(update: Update, context:
             await _moderate_new_data(context, saved_user_data)
 
     elif query.data == const.RESPONSE_NO:
-        state.Service.delete(from_user.id, int(user_data["category_id"]))
+        state.Service.delete(provider_tg_id, int(user_data["category_id"]))
+        if state.Service.get_count_by_user(provider_tg_id) == 0:
+            state.Provider.delete(provider_tg_id)
         user_data.clear()
 
         await query.edit_message_reply_markup(None)

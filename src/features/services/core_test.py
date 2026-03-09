@@ -605,7 +605,9 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                                             const.TYPING_LOCATION, const.CONFIRMING_LEGALITY)
 
     @patch("features.services.keyboards.standard")
-    @patch("features.services.state.Provider.create_or_update")
+    @patch("features.services.state.Provider.delete")
+    @patch("features.services.state.Provider.create")
+    @patch("features.services.state.Service.get_count_by_user")
     @patch("features.services.state.Service.delete")
     @patch("features.services.state.Service.set")
     @patch("features.services.core._moderate_new_data")
@@ -613,7 +615,8 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     @patch("features.services.core.settings")
     async def test__verify_legality_and_finalise_data_collection(self, mock_settings, mock_reply,
                                                                  mock_moderate_new_data, mock_service_set,
-                                                                 mock_service_delete, mock_provider_create_or_update,
+                                                                 mock_service_delete, mock_service_get_count_by_user,
+                                                                 mock_provider_create, mock_provider_delete,
                                                                  mock_standard_keyboard):
         trans = i18n.default()
 
@@ -622,6 +625,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
         category_id = 0
 
+        mock_service_get_count_by_user.return_value = 1
         for moderation_enabled in (True, False):
             mock_settings.SERVICES_MODERATION_ENABLED = moderation_enabled
 
@@ -643,6 +647,40 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
             mock_standard_keyboard.assert_called()
             mock_standard_keyboard.reset_mock()
+
+            mock_provider_create.assert_not_called()
+
+            mock_provider_delete.assert_not_called()
+
+            self.assertFalse(context.user_data)
+
+        mock_service_get_count_by_user.return_value = 0
+        for moderation_enabled in (True, False):
+            mock_settings.SERVICES_MODERATION_ENABLED = moderation_enabled
+
+            context.user_data["category_id"] = category_id
+
+            self.assertEqual(await core._verify_legality_and_finalise_data_collection(update, context),
+                             ConversationHandler.END)
+
+            mock_reply.assert_called_once_with(update, render.enroll_declined_illegal_service(trans),
+                                               keyboards.standard(user))
+            mock_reply.reset_mock()
+
+            mock_moderate_new_data.assert_not_called()
+
+            mock_service_set.assert_not_called()
+
+            mock_service_delete.assert_called_once_with(user.id, category_id)
+            mock_service_delete.reset_mock()
+
+            mock_standard_keyboard.assert_called()
+            mock_standard_keyboard.reset_mock()
+
+            mock_provider_create.assert_not_called()
+
+            mock_provider_delete.assert_called_once_with(user.id)
+            mock_provider_delete.reset_mock()
 
             self.assertFalse(context.user_data)
 
@@ -681,9 +719,11 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                 else:
                     mock_moderate_new_data.assert_not_called()
 
-                mock_provider_create_or_update.assert_called_once()
+                mock_provider_create.assert_called_once()
                 # user.id, user.username, test_next_ping(user.id)
-                mock_provider_create_or_update.reset_mock()
+                mock_provider_create.reset_mock()
+
+                mock_provider_delete.assert_not_called()
 
                 mock_service_set.assert_called_once_with(user.id, initial_data["occupation"],
                                                          initial_data["description"], initial_data["location"],

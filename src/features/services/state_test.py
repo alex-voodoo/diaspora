@@ -22,16 +22,40 @@ class TestProvider(unittest.TestCase):
         load_test_providers([])
 
     @staticmethod
-    def _tg_username_from_tg_id(tg_id: int) -> str:
-        return f"username_{tg_id}"
-
-    @staticmethod
     def _next_ping_from_tg_id(tg_id: int) -> datetime.datetime:
         return util.rounded_now() + datetime.timedelta(minutes=tg_id)
 
+    @patch("features.services.state.db.sql_exec")
+    def test_tg_username_setter(self, mock_sql_exec):
+        tg_id = 1234
+        original_tg_username = test_tg_username(tg_id)
+
+        load_test_providers([tg_id])
+
+        provider = state.Provider.get_by_tg_id(tg_id)
+
+        with self.assertRaises(AssertionError):
+            provider.tg_username = ""
+        self.assertEqual(provider.tg_username, original_tg_username)
+        mock_sql_exec.assert_not_called()
+
+        with self.assertRaises(AssertionError):
+            provider.tg_username = "   "
+        self.assertEqual(provider.tg_username, original_tg_username)
+        mock_sql_exec.assert_not_called()
+
+        provider.tg_username = f"   {original_tg_username}   "
+        self.assertEqual(provider.tg_username, original_tg_username)
+        mock_sql_exec.assert_not_called()
+
+        totally_new_username = "TotallyNewOne"
+        provider.tg_username = totally_new_username
+        self.assertEqual(provider.tg_username, totally_new_username)
+        mock_sql_exec.assert_called_once()
+
     def test_get(self):
         tg_id = 1273
-        tg_username = TestProvider._tg_username_from_tg_id(tg_id)
+        tg_username = test_tg_username(tg_id)
 
         with self.assertRaises(state.Provider.NotFound):
             state.Provider.get_by_tg_id(tg_id)
@@ -51,39 +75,6 @@ class TestProvider(unittest.TestCase):
         self.assertIs(provider_via_tg_id, provider_via_tg_username)
 
     @patch("features.services.state.db.sql_exec")
-    def test_create_or_update(self, mock_sql_exec):
-        tg_id = 1273
-
-        load_test_providers([tg_id])
-
-        provider_1273 = state.Provider.get_by_tg_id(tg_id)
-
-        new_tg_username = "1273_username"
-        new_next_ping = util.rounded_now() + datetime.timedelta(days=50)
-
-        state.Provider.create_or_update(tg_id, new_tg_username, new_next_ping, 3)
-
-        mock_sql_exec.assert_called_once()
-
-        self.assertEqual(provider_1273.tg_username, new_tg_username)
-        self.assertEqual(provider_1273.next_ping, new_next_ping)
-
-        mock_sql_exec.reset_mock()
-
-        other_new_tg_id = 21257
-        other_new_tg_username = "username_21257"
-        other_new_next_ping = util.rounded_now() + datetime.timedelta(days=20)
-
-        with self.assertRaises(state.Provider.NotFound):
-            state.Provider.get_by_tg_id(other_new_tg_id)
-
-        state.Provider.create_or_update(other_new_tg_id, other_new_tg_username, other_new_next_ping, 3)
-
-        mock_sql_exec.assert_called_once()
-
-        state.Provider.get_by_tg_id(other_new_tg_id)
-
-    @patch("features.services.state.db.sql_exec")
     def test_delete(self, mock_sql_exec):
         tg_id = 1273
 
@@ -99,7 +90,7 @@ class TestProvider(unittest.TestCase):
             state.Provider.get_by_tg_id(tg_id)
 
         with self.assertRaises(state.Provider.NotFound):
-            state.Provider.get_by_tg_username(TestProvider._tg_username_from_tg_id(tg_id))
+            state.Provider.get_by_tg_username(test_tg_username(tg_id))
 
 
 class TestServiceCategory(unittest.TestCase):

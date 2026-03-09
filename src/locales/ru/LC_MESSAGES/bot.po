@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-03-08 21:28+0100\n"
+"POT-Creation-Date: 2026-03-09 18:19+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -485,17 +485,17 @@ msgstr ""
 "\n"
 "Ваша услуга легальна?"
 
-#: features/services/core.py:498 features/services/core_test.py:792
+#: features/services/core.py:500 features/services/core_test.py:832
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Начнём сначала."
 
-#: features/services/core.py:521 features/services/core.py:524
-#: features/services/core_test.py:868 features/services/core_test.py:893
+#: features/services/core.py:523 features/services/core.py:526
+#: features/services/core_test.py:908 features/services/core_test.py:933
 msgid "SERVICES_DM_SERVICE_NOT_FOUND"
 msgstr "Услуга не найдена."
 
-#: features/services/core.py:530 features/services/core_test.py:838
-#: features/services/core_test.py:880
+#: features/services/core.py:532 features/services/core_test.py:878
+#: features/services/core_test.py:920
 msgid "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}"
 msgstr ""
 "Ваша услуга в категории <b>{category_title}</b>\n"
@@ -505,7 +505,7 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/core.py:535 features/services/core_test.py:852
+#: features/services/core.py:537 features/services/core_test.py:892
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "Услуга @{username} в категории <b>{category_title}</b>\n"
@@ -557,8 +557,8 @@ msgstr "Я кое-что исправлю"
 msgid "SERVICES_PING_BUTTON_DELETE_ALL"
 msgstr "🗑️ Удалить всё"
 
-#: features/services/keyboards_test.py:117 features/services/state.py:167
-#: features/services/state_test.py:112 features/services/state_test.py:119
+#: features/services/keyboards_test.py:117 features/services/state.py:208
+#: features/services/state_test.py:103 features/services/state_test.py:110
 msgid "SERVICES_CATEGORY_OTHER_TITLE"
 msgstr "Другое"
 
@@ -673,7 +673,7 @@ msgstr "Хорошо. Пожалуйста, проверьте, что данн�
 msgid "SERVICES_DM_PING_DELETE_ALL_COMPLETED"
 msgstr "Ваши данные удалены."
 
-#: features/services/state.py:333
+#: features/services/state.py:374
 msgid "SERVICES_CATEGORY_LIST_TITLE"
 msgstr "Список категорий"
 
