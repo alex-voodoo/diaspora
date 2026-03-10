@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-03-10 20:13+0100\n"
+"POT-Creation-Date: 2026-03-10 20:22+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -551,7 +551,7 @@ msgid "SERVICES_PING_BUTTON_DELETE_ALL"
 msgstr "🗑️ Delete everything"
 
 #: features/services/keyboards_test.py:117 features/services/state.py:204
-#: features/services/state_test.py:140 features/services/state_test.py:147
+#: features/services/state_test.py:134 features/services/state_test.py:143
 msgid "SERVICES_CATEGORY_OTHER_TITLE"
 msgstr "Other"
 

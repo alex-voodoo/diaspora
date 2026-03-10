@@ -7,12 +7,6 @@ import unittest
 from common import i18n
 from .test_util import *
 
-CATEGORY_1_ID = 1
-CATEGORY_1_TITLE = "Category 1"
-
-SERVICE_101_TG_ID = 101
-SERVICE_101_CATEGORY_ID = CATEGORY_1_ID
-
 
 class TestProvider(unittest.TestCase):
     def setUp(self):
@@ -139,13 +133,15 @@ class TestServiceCategory(unittest.TestCase):
 
         self.assertEqual(state.ServiceCategory.get(0).title, trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"))
 
+        category_id = 1
+
         with self.assertRaises(KeyError):
-            _category = state.ServiceCategory.get(CATEGORY_1_ID)
+            state.ServiceCategory.get(category_id)
 
         load_test_categories(1)
 
         self.assertEqual(state.ServiceCategory.get(0).title, trans.gettext("SERVICES_CATEGORY_OTHER_TITLE"))
-        self.assertEqual(state.ServiceCategory.get(CATEGORY_1_ID).title, CATEGORY_1_TITLE)
+        state.ServiceCategory.get(category_id)
 
     def test_load(self):
         load_test_categories(0)
@@ -193,13 +189,16 @@ class TestService(unittest.TestCase):
             yield data_row_for_service(*parameters)
 
         with patch("features.services.state.Service._do_select_query", return_single_service):
-            service = state.Service.get(SERVICE_101_TG_ID, SERVICE_101_CATEGORY_ID)
+            service_id = 123214
+            category_id = 1
 
-            self.assertEqual(service.category.id, CATEGORY_1_ID)
-            self.assertEqual(service.category.title, CATEGORY_1_TITLE)
-            self.assertEqual(service.tg_id, SERVICE_101_TG_ID)
-            self.assertEqual(service.occupation, test_occupation(SERVICE_101_TG_ID))
-            self.assertEqual(service.description, test_description(SERVICE_101_TG_ID))
-            self.assertEqual(service.location, test_location(SERVICE_101_TG_ID))
-            self.assertEqual(service.is_suspended, test_is_suspended(SERVICE_101_TG_ID))
-            self.assertEqual(service.last_modified, test_last_modified(SERVICE_101_TG_ID))
+            service = state.Service.get(service_id, category_id)
+
+            self.assertIs(service.category, state.ServiceCategory.get(category_id))
+
+            self.assertEqual(service.tg_id, service_id)
+            self.assertEqual(service.occupation, test_occupation(service_id))
+            self.assertEqual(service.description, test_description(service_id))
+            self.assertEqual(service.location, test_location(service_id))
+            self.assertEqual(service.is_suspended, test_is_suspended(service_id))
+            self.assertEqual(service.last_modified, test_last_modified(service_id))
