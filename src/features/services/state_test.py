@@ -51,7 +51,43 @@ class TestProvider(unittest.TestCase):
         totally_new_username = "TotallyNewOne"
         provider.tg_username = totally_new_username
         self.assertEqual(provider.tg_username, totally_new_username)
+
         mock_sql_exec.assert_called_once()
+        self.assertEqual(mock_sql_exec.call_args[0][1], (provider.tg_username, provider.tg_id))
+
+    @patch("features.services.state.db.sql_exec")
+    def test_ping_management(self, mock_sql_exec):
+        tg_id = 12341
+        load_test_providers([tg_id])
+
+        provider = state.Provider.get_by_tg_id(tg_id)
+
+        self.assertEqual(provider.remaining_ping_count, settings.SERVICES_PING_ATTEMPT_COUNT)
+
+        while provider.remaining_ping_count > 0:
+            current_remaining_ping_count = provider.remaining_ping_count
+
+            provider.consume_ping_attempt_and_schedule_next_attempt()
+
+            self.assertEqual(provider.remaining_ping_count, current_remaining_ping_count - 1)
+            self.assertEqual(provider.next_ping, state.Provider.get_next_ping_reminder_date())
+
+            mock_sql_exec.assert_called_once()
+            self.assertEqual(mock_sql_exec.call_args[0][1],
+                             (util.db_format(provider.next_ping), provider.remaining_ping_count, provider.tg_id))
+            mock_sql_exec.reset_mock()
+
+        with self.assertRaises(AssertionError):
+            provider.consume_ping_attempt_and_schedule_next_attempt()
+        mock_sql_exec.assert_not_called()
+
+        provider.reset_ping_attempts_and_schedule_next_ping()
+        self.assertEqual(provider.remaining_ping_count, settings.SERVICES_PING_ATTEMPT_COUNT)
+        self.assertEqual(provider.next_ping, state.Provider.get_next_ping_date())
+
+        mock_sql_exec.assert_called_once()
+        self.assertEqual(mock_sql_exec.call_args[0][1],
+                         (util.db_format(provider.next_ping), provider.remaining_ping_count, provider.tg_id))
 
     def test_get(self):
         tg_id = 1273
@@ -85,6 +121,7 @@ class TestProvider(unittest.TestCase):
         state.Provider.delete(tg_id)
 
         mock_sql_exec.assert_called_once()
+        self.assertEqual(mock_sql_exec.call_args[0][1], (tg_id,))
 
         with self.assertRaises(state.Provider.NotFound):
             state.Provider.get_by_tg_id(tg_id)

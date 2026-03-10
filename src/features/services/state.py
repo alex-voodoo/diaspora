@@ -37,12 +37,12 @@ class Provider:
         return f"{self._tg_username} (ID {self._tg_id})"
 
     @staticmethod
-    def get_next_ping_date():
+    def get_next_ping_date() -> datetime.datetime:
         return (util.rounded_now().replace(hour=0, minute=0, second=0) +
                 datetime.timedelta(days=settings.SERVICES_PROVIDER_PING_PERIOD_DAYS))
 
     @staticmethod
-    def get_next_ping_reminder_date():
+    def get_next_ping_reminder_date() -> datetime.datetime:
         return (util.rounded_now().replace(hour=0, minute=0, second=0) +
                 datetime.timedelta(days=settings.SERVICES_PING_ATTEMPTS_INTERVAL_DAYS))
 
@@ -74,15 +74,20 @@ class Provider:
     def consume_ping_attempt_and_schedule_next_attempt(self) -> None:
         assert self._remaining_ping_count > 0
 
+        next_attempt_date = Provider.get_next_ping_reminder_date()
+
         db.sql_exec(f"UPDATE {_PROVIDERS} SET next_ping=?, remaining_ping_count=? WHERE tg_id=?",
-                    (Provider.get_next_ping_reminder_date(), self._remaining_ping_count - 1, self._tg_id))
+                    (util.db_format(next_attempt_date), self._remaining_ping_count - 1, self._tg_id))
         self._remaining_ping_count -= 1
+        self._next_ping = next_attempt_date
 
     def reset_ping_attempts_and_schedule_next_ping(self) -> None:
         full_ping_count = settings.SERVICES_PING_ATTEMPT_COUNT
+        next_ping_date = Provider.get_next_ping_date()
         db.sql_exec(f"UPDATE {_PROVIDERS} SET next_ping=?, remaining_ping_count=? WHERE tg_id=?",
-                    (Provider.get_next_ping_date(), full_ping_count, self._tg_id))
+                    (util.db_format(next_ping_date), full_ping_count, self._tg_id))
         self._remaining_ping_count = full_ping_count
+        self._next_ping = next_ping_date
 
     @classmethod
     def load(cls) -> None:
