@@ -14,7 +14,8 @@ def service_description_for_owner(service: state.Service) -> str:
 
 
 def service_description_for_public(service: state.Service) -> str:
-    return f"- @{service.provider.tg_username} ({service.location}): <a href=\"{service.deep_link}\">{service.occupation}</a>"
+    return (f"- @{service.provider.tg_username} ({service.location}): <a href=\"{service.deep_link}\">"
+            f"{service.occupation}</a>")
 
 
 def category_with_services(category: state.ServiceCategory, services: Iterable[state.Service],
@@ -103,13 +104,14 @@ def enroll_completed_pre_moderation(trans: gettext.GNUTranslations) -> str:
     return trans.gettext("SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION")
 
 
-def ping(trans: gettext.GNUTranslations, services: list[state.Service]) -> str:
+def ping(trans: gettext.GNUTranslations, services: list[state.Service], last_reminder: bool,
+         days_remaining: int) -> str:
     lines = []
     if len(services) == 1:
         lines.append(trans.gettext("SERVICES_DM_PING"))
     else:
         lines.append(trans.ngettext("SERVICES_DM_PING_S {record_count}",
-                                   "SERVICES_DM_PING_P {record_count}",
+                                    "SERVICES_DM_PING_P {record_count}",
                                     len(services)).format(record_count=len(services)))
 
     lines.append("")
@@ -121,7 +123,14 @@ def ping(trans: gettext.GNUTranslations, services: list[state.Service]) -> str:
 
     lines.append(trans.gettext("SERVICES_DM_PING_QUESTION"))
 
+    if last_reminder:
+        lines.append("")
+        lines.append(
+            trans.ngettext("SERVICES_DM_LAST_PING_S {days_remaining}", "SERVICES_DM_LAST_PING_P {days_remaining}",
+                           days_remaining).format(days_remaining=days_remaining))
+
     return "\n".join(lines)
+
 
 def ping_confirmed_all(trans: gettext.GNUTranslations, days: int) -> str:
     return trans.ngettext("SERVICES_DM_PING_CONFIRMED_ALL_S {days}",
@@ -138,8 +147,10 @@ def ping_confirmed_all_with_edits(trans: gettext.GNUTranslations, days: int) -> 
 def ping_confirm_delete_all(trans: gettext.GNUTranslations) -> str:
     return trans.gettext("SERVICES_DM_PING_CONFIRM_DELETE_ALL")
 
+
 def ping_delete_all_cancelled(trans) -> str:
     return trans.gettext("SERVICES_DM_PING_DELETE_ALL_CANCELLED")
+
 
 def ping_delete_all_completed(trans) -> str:
     return trans.gettext("SERVICES_DM_PING_DELETE_ALL_COMPLETED")

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-03-10 20:22+0100\n"
+"POT-Creation-Date: 2026-03-10 20:45+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -562,11 +562,11 @@ msgstr "🗑️ Удалить всё"
 msgid "SERVICES_CATEGORY_OTHER_TITLE"
 msgstr "Другое"
 
-#: features/services/render.py:29 features/services/render.py:33
+#: features/services/render.py:30 features/services/render.py:34
 msgid "SERVICES_DM_WHO_DISCLAIMER"
 msgstr "❗Объявления размещают участники группы. Администрация не отвечает за качество их услуг."
 
-#: features/services/render.py:39
+#: features/services/render.py:40
 msgid "SERVICES_DM_TEXT_TOO_LONG_S {limit} {text}"
 msgid_plural "SERVICES_DM_TEXT_TOO_LONG_P {limit} {text}"
 msgstr[0] ""
@@ -579,97 +579,104 @@ msgstr[2] ""
 "Слишком длинно! В этом поле я могу сохранить не более {limit} символов. Жирным выделено то, что входит:\n"
 "{text}"
 
-#: features/services/render.py:44
+#: features/services/render.py:45
 msgid "SERVICES_DM_DATA_FIELD_LIMIT_S {limit}"
 msgid_plural "SERVICES_DM_DATA_FIELD_LIMIT_P {limit}"
 msgstr[0] "(Не более {limit} символа.)"
 msgstr[1] "(Не более {limit} символов.)"
 msgstr[2] "(Не более {limit} символов.)"
 
-#: features/services/render.py:49
+#: features/services/render.py:50
 msgid "SERVICES_DM_WHO_LIST_HEADING"
 msgstr "Вот кого я знаю:"
 
-#: features/services/render.py:59
+#: features/services/render.py:60
 msgid "SERVICES_DM_ENROLL_ASK_OCCUPATION"
 msgstr "Сформулируйте коротко, кто вы или что вы делаете. Например, «Парикмахер», «Няня», «Учу сёрфингу», «Помогаю с уборкой»."
 
-#: features/services/render.py:67
+#: features/services/render.py:68
 msgid "SERVICES_DM_UPDATE_OCCUPATION {title} {current_value}"
 msgstr ""
 "Введите новое краткое описание вашей услуги в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{current_value}</b>"
 
-#: features/services/render.py:75
+#: features/services/render.py:76
 msgid "SERVICES_DM_SELECT_CATEGORY_FOR_RETIRE"
 msgstr "Выберите категорию для удаления."
 
-#: features/services/render.py:79
+#: features/services/render.py:80
 msgid "SERVICES_DM_RETIRE"
 msgstr "Запись удалена."
 
-#: features/services/render.py:83
+#: features/services/render.py:84
 msgid "SERVICES_ADMIN_USER_RECORD_APPROVED"
 msgstr "Одобрено."
 
-#: features/services/render.py:87
+#: features/services/render.py:88
 msgid "SERVICES_ADMIN_USER_RECORD_SUSPENDED"
 msgstr "Запись скрыта."
 
-#: features/services/render.py:91
+#: features/services/render.py:92
 msgid "SERVICES_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"
 msgstr "Извините, я не могу добавлять нелегальные услуги."
 
-#: features/services/render.py:95
+#: features/services/render.py:96
 msgid "SERVICES_DM_ENROLL_COMPLETED"
 msgstr "Готово, вы добавлены в список!"
 
-#: features/services/render.py:99
+#: features/services/render.py:100
 msgid "SERVICES_DM_ENROLL_COMPLETED_POST_MODERATION"
 msgstr "Готово, вы добавлены в список! Обратите внимание, модераторы могут скрыть вашу запись, если она нарушает правила группы."
 
-#: features/services/render.py:103
+#: features/services/render.py:104
 msgid "SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION"
 msgstr "Готово! Я добавлю вас в список после проверки модераторами."
 
-#: features/services/render.py:109
+#: features/services/render.py:111
 msgid "SERVICES_DM_PING"
 msgstr "Здравствуйте! В моей книге услуг есть ваша запись."
 
-#: features/services/render.py:113
+#: features/services/render.py:115
 msgid "SERVICES_DM_PING_S {record_count}"
 msgid_plural "SERVICES_DM_PING_P {record_count}"
 msgstr[0] "Здравствуйте! В моей книге услуг есть {record_count} ваша запись."
 msgstr[1] "Здравствуйте! В моей книге услуг есть {record_count} ваши записи."
 msgstr[2] "Здравствуйте! В моей книге услуг есть {record_count} ваших записей."
 
-#: features/services/render.py:122
+#: features/services/render.py:124
 msgid "SERVICES_DM_PING_QUESTION"
 msgstr "Эта информация до сих пор актуальна?"
 
-#: features/services/render.py:127
+#: features/services/render.py:129
+msgid "SERVICES_DM_LAST_PING_S {days_remaining}"
+msgid_plural "SERVICES_DM_LAST_PING_P {days_remaining}"
+msgstr[0] "Это последнее напоминание. Через {days_remaining} день все ваши данные будут удалены."
+msgstr[1] "Это последнее напоминание. Через {days_remaining} дня все ваши данные будут удалены."
+msgstr[2] "Это последнее напоминание. Через {days_remaining} дней все ваши данные будут удалены."
+
+#: features/services/render.py:136
 msgid "SERVICES_DM_PING_CONFIRMED_ALL_S {days}"
 msgid_plural "SERVICES_DM_PING_CONFIRMED_ALL_P {days}"
 msgstr[0] "Спасибо, что подтвердили. В следующий раз я задам этот вопрос через {days} день."
 msgstr[1] "Спасибо, что подтвердили. В следующий раз я задам этот вопрос через {days} дня."
 msgstr[2] "Спасибо, что подтвердили. В следующий раз я задам этот вопрос через {days} дней."
 
-#: features/services/render.py:133
+#: features/services/render.py:142
 msgid "SERVICES_DM_PING_NEED_EDIT_S {days}"
 msgid_plural "SERVICES_DM_PING_NEED_EDIT_P {days}"
 msgstr[0] "Спасибо, что подтвердили. В следующий раз я задам этот вопрос через {days} день."
 msgstr[1] "Спасибо, что подтвердили. В следующий раз я задам этот вопрос через {days} дня."
 msgstr[2] "Спасибо, что подтвердили. В следующий раз я задам этот вопрос через {days} дней."
 
-#: features/services/render.py:139
+#: features/services/render.py:148
 msgid "SERVICES_DM_PING_CONFIRM_DELETE_ALL"
 msgstr "Это действие нельзя будет отменить. Вы уверены, что хотите удалить все ваши услуги?"
 
-#: features/services/render.py:142
+#: features/services/render.py:152
 msgid "SERVICES_DM_PING_DELETE_ALL_CANCELLED"
 msgstr "Хорошо. Пожалуйста, проверьте, что данные по-прежнему актуальны."
 
-#: features/services/render.py:145
+#: features/services/render.py:156
 msgid "SERVICES_DM_PING_DELETE_ALL_COMPLETED"
 msgstr "Ваши данные удалены."
 

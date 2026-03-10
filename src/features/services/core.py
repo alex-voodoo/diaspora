@@ -550,7 +550,7 @@ async def _ping_provider(context: ContextTypes.DEFAULT_TYPE, provider: state.Pro
 
     provider.consume_ping_attempt_and_schedule_next_attempt()
 
-    await send(context, provider.tg_id, render.ping(trans, records), keyboards.ping(trans, provider.tg_id))
+    await send(context, provider.tg_id, render.ping(trans, records, provider.remaining_ping_count == 0, settings.SERVICES_PROVIDER_PING_PERIOD_DAYS), keyboards.ping(trans, provider.tg_id))
 
 
 async def _handle_pong(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -628,7 +628,7 @@ async def _check_providers(context: ContextTypes.DEFAULT_TYPE) -> None:
 
             if datetime.datetime.now() > provider.next_ping:
                 if provider.remaining_ping_count > 0:
-                    await _ping_provider(context, chat_member.user)
+                    await _ping_provider(context, provider)
                 else:
                     state.Provider.delete(provider.tg_id)
 
@@ -644,7 +644,8 @@ def post_init(application: Application) -> None:
     # noinspection PyUnresolvedReferences
     state.Service.set_bot_username(application.bot.username)
 
-    application.job_queue.run_daily(_check_providers, datetime.time(settings.SERVICES_PROVIDER_PING_HOUR, 0, 0))
+    # application.job_queue.run_daily(_check_providers, datetime.time(settings.SERVICES_PROVIDER_PING_HOUR, 0, 0))
+    application.job_queue.run_once(_check_providers, 5)
 
 
 def init(application: Application, group: int) -> None:
