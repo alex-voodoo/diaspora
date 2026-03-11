@@ -6,11 +6,18 @@
       "items": {
         "type": "object",
         "properties": {
-          "id": { "type": "number"},
-          "title": {"type": "string"}
+          "id": {
+            "type": "number"
+          },
+          "title": {
+            "type": "string"
+          }
         },
         "additionalProperties": false,
-        "required": ["id", "title"]
+        "required": [
+          "id",
+          "title"
+        ]
       }
     },
     "providers": {
@@ -18,12 +25,26 @@
       "items": {
         "type": "object",
         "properties": {
-          "tg_id": { "type": "string"},
-          "tg_username": {"type": "string"},
-          "next_ping": {"type":  "string"}
+          "tg_id": {
+            "type": "number"
+          },
+          "tg_username": {
+            "type": "string"
+          },
+          "next_ping": {
+            "type": "string"
+          },
+          "remaining_ping_count": {
+            "type": "number"
+          }
         },
         "additionalProperties": false,
-        "required": ["id", "title"]
+        "required": [
+          "tg_id",
+          "tg_username",
+          "next_ping",
+          "remaining_ping_count"
+        ]
       }
     },
     "services": {
@@ -31,20 +52,45 @@
       "items": {
         "type": "object",
         "properties": {
-          "tg_id": { "type": "number"},
-          "tg_username": {"type": "string"},
-          "category_id": { "type": "number"},
-          "is_suspended": { "type": "number"},
-          "last_modified": {"type": "string"},
-          "occupation": {"type": "string"},
-          "description": {"type": "string"},
-          "location": {"type": "string"}
+          "provider_tg_id": {
+            "type": "number"
+          },
+          "category_id": {
+            "type": "number"
+          },
+          "is_suspended": {
+            "type": "number"
+          },
+          "last_modified": {
+            "type": "string"
+          },
+          "occupation": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          }
         },
         "additionalProperties": false,
-        "required": ["tg_id", "tg_username", "category_id", "is_suspended", "last_modified", "occupation", "description", "location"]
+        "required": [
+          "provider_tg_id",
+          "category_id",
+          "is_suspended",
+          "last_modified",
+          "occupation",
+          "description",
+          "location"
+        ]
       }
     }
   },
   "additionalProperties": false,
-  "required": ["categories", "providers", "services"]
+  "required": [
+    "categories",
+    "providers",
+    "services"
+  ]
 }

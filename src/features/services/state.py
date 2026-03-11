@@ -463,16 +463,16 @@ def import_db(new_data) -> None:
 
     cursor.execute(f"DELETE FROM {_PROVIDERS}")
     for p in new_data["providers"]:
-        cursor.execute(f"INSERT INTO {_PROVIDERS} (tg_id, tg_username, next_ping) "
-                       f"VALUES(?, ?, ?)", (p["tg_id"], p["tg_username"], p["next_ping"]))
+        cursor.execute(f"INSERT INTO {_PROVIDERS} (tg_id, tg_username, next_ping, remaining_ping_count) "
+                       f"VALUES(?, ?, ?, ?)", (p["tg_id"], p["tg_username"], p["next_ping"], p["remaining_ping_count"]))
 
     cursor.execute(f"DELETE FROM {_SERVICES}")
     for p in new_data["services"]:
         cursor.execute(
-            f"INSERT INTO {_SERVICES} (tg_id, category_id, is_suspended, last_modified, occupation, "
+            f"INSERT INTO {_SERVICES} (provider_tg_id, category_id, is_suspended, last_modified, occupation, "
             f"description, location) "
             f"VALUES(?, ?, ?, ?, ?, ?, ?)", (
-                p["tg_id"], p["category_id"], p["is_suspended"], p["last_modified"],
+                p["provider_tg_id"], p["category_id"], p["is_suspended"], p["last_modified"],
                 p["occupation"], p["description"], p["location"]))
 
     db.commit()
