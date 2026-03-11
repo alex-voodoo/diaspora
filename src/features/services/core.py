@@ -644,8 +644,7 @@ def post_init(application: Application) -> None:
     # noinspection PyUnresolvedReferences
     state.Service.set_bot_username(application.bot.username)
 
-    # application.job_queue.run_daily(_check_providers, datetime.time(settings.SERVICES_PROVIDER_PING_HOUR, 0, 0))
-    application.job_queue.run_once(_check_providers, 5)
+    application.job_queue.run_daily(_check_providers, datetime.time(settings.SERVICES_PROVIDER_PING_HOUR, 0, 0))
 
 
 def init(application: Application, group: int) -> None:
