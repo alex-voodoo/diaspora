@@ -487,6 +487,7 @@ def import_db(new_data) -> None:
 
     logging.info("Dropped data snapshots")
 
+    Provider.load()
     ServiceCategory.load()
 
 
