@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS "people" (
+    "tg_id" INTEGER,
+    "tg_username" TEXT,
+    "occupation" TEXT,
+    "location" TEXT,
+    "last_modified" DATETIME DEFAULT CURRENT_TIMESTAMP,
+    "is_suspended" INTEGER DEFAULT 0,
+    PRIMARY KEY("tg_id")
+);
+
+CREATE TABLE IF NOT EXISTS "antispam_allowlist" (
+    "tg_id" INTEGER,
+    PRIMARY KEY("tg_id")
+);
+
+CREATE TABLE IF NOT EXISTS "spam" (
+    "id" INTEGER,
+    "text" TEXT,
+    "from_user_tg_id" INTEGER,
+    "trigger" TEXT,
+    "timestamp" DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY("id" AUTOINCREMENT)
+);

@@ -17,40 +17,16 @@ _db_connection: Connection
 _DB_FILENAME = "people.db"
 
 
-def _init() -> None:
-    """Initialise the database if necessary
+def _apply_migrations() -> None:
+    """Apply pending migrations
 
-    Ensures that the database is ready to use by the application:
-    Apply migrations prepared at the given path
+    Enumerates all files with .txt extension in the migrations directory, detects ones not applied previously, and tries
+    to execute each one of them as a sequence of SQL statements, going through files in alphabetical order.
 
-    Enumerates all files with .txt extension at the given path, and tries to execute each one as a sequence of SQL
-    statements, going through files in alphabetical order.
-
-    Every file should contain one or more SQL statements separated with semicolon.
+    Every file should contain one or more SQL statements separated by semicolons.
     """
 
     c = _db_connection.cursor()
-
-    c.execute("CREATE TABLE IF NOT EXISTS \"people\" ("
-              "\"tg_id\" INTEGER,"
-              "\"tg_username\" TEXT,"
-              "\"occupation\" TEXT,"
-              "\"location\" TEXT,"
-              "\"last_modified\" DATETIME DEFAULT CURRENT_TIMESTAMP,"
-              "\"is_suspended\" INTEGER DEFAULT 0,"
-              "PRIMARY KEY(\"tg_id\"))")
-    c.execute("CREATE TABLE IF NOT EXISTS \"antispam_allowlist\" ("
-              "\"tg_id\" INTEGER,"
-              "PRIMARY KEY(\"tg_id\"))")
-    c.execute("CREATE TABLE IF NOT EXISTS \"spam\" ("
-              "\"id\" INTEGER,"
-              "\"text\" TEXT,"
-              "\"from_user_tg_id\" INTEGER,"
-              "\"trigger\" TEXT,"
-              "\"timestamp\" DATETIME DEFAULT CURRENT_TIMESTAMP,"
-              "PRIMARY KEY(\"id\" AUTOINCREMENT))")
-
-    _db_connection.commit()
 
     migrations_directory = pathlib.Path(__file__).parent.parent / "migrations"
 
@@ -86,14 +62,17 @@ def _init() -> None:
     _db_connection.commit()
 
 
-def connect() -> None:
-    """Initialise the DB connection"""
+def connect(path: pathlib.Path = None) -> None:
+    """Initialise the DB connection
+
+    @param path: optional path to the SQLite3 database file.  If omitted, the standard path is used.
+    """
 
     global _db_connection
 
-    _db_connection = sqlite3.connect(settings.data_dir / _DB_FILENAME)
+    _db_connection = sqlite3.connect(path if path is not None else settings.data_dir / _DB_FILENAME)
 
-    _init()
+    _apply_migrations()
 
 
 def disconnect() -> None:
