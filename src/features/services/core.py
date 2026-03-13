@@ -525,7 +525,7 @@ async def handle_extended_start_command(update: Update, _context: ContextTypes.D
         await reply(update, trans.gettext("SERVICES_DM_SERVICE_NOT_FOUND"))
         return
 
-    state.people_views_register(user.id, service.tg_id, category_id)
+    state.ServiceStats.register(user.id, service.tg_id, category_id)
 
     if user.id == service.tg_id:
         await reply(update, trans.gettext(

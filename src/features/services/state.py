@@ -413,16 +413,26 @@ class ServiceCategoryStats:
             yield ServiceCategoryStats(**row)
 
 
-def people_views_register(viewer_tg_id: int, tg_id: int, category_id: int) -> None:
-    """Register a single event of a user viewing a service description
+class ServiceStats:
+    _DB_TABLE = "services_service_views"
 
-    @param viewer_tg_id: Telegram ID of a user that requests the information.
-    @param tg_id: Telegram ID of a user whose service is being viewed.
-    @param category_id: ID of a category of the service that is being viewed.
-    """
+    def __init__(self, tg_id: int, category_id: int, view_count: int, viewer_count: int):
+        self._tg_id = tg_id
+        self._category_id = category_id
+        self._view_count = view_count
+        self._viewer_count = viewer_count
 
-    db.sql_exec("INSERT INTO services_service_views (viewer_tg_id, tg_id, category_id) VALUES(?, ?, ?)",
-                (viewer_tg_id, tg_id, category_id))
+    @classmethod
+    def register(cls, viewer_tg_id: int, tg_id: int, category_id: int) -> None:
+        """Register a single event of a user viewing a service description
+
+        @param viewer_tg_id: Telegram ID of a user that requests the information.
+        @param tg_id: Telegram ID of a user whose service is being viewed.
+        @param category_id: ID of a category of the service that is being viewed.
+        """
+
+        db.sql_exec(f"INSERT INTO {cls._DB_TABLE} (viewer_tg_id, tg_id, category_id) VALUES(?, ?, ?)",
+                    (viewer_tg_id, tg_id, category_id))
 
 
 def export_db() -> dict:

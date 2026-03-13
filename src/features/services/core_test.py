@@ -834,7 +834,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(result, ConversationHandler.END)
             self.assertFalse(bool(context.user_data))
 
-    @patch("features.services.state.people_views_register")
+    @patch("features.services.state.ServiceStats.register")
     async def test_handle_extended_start_command(self, mock_stat):
         trans = i18n.default()
 

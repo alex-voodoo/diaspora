@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-03-10 20:45+0100\n"
+"POT-Creation-Date: 2026-03-13 23:21+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -666,7 +666,7 @@ msgstr "Alright.  Please ensure that your data is correct."
 msgid "SERVICES_DM_PING_DELETE_ALL_COMPLETED"
 msgstr "Your data is removed."
 
-#: features/services/state.py:370
+#: features/services/state.py:372
 msgid "SERVICES_CATEGORY_LIST_TITLE"
 msgstr "List of categories"
 
