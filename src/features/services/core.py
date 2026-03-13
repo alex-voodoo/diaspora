@@ -183,7 +183,7 @@ async def _who_received_category(update: Update, context: ContextTypes.DEFAULT_T
 
     category = state.ServiceCategory.get(category_id)
 
-    state.people_category_views_register(query.from_user.id, category_id)
+    state.ServiceCategoryStats.register(query.from_user.id, category_id)
 
     message = render.category_with_services(category, categorised_people[category.id], True)
 
@@ -205,7 +205,7 @@ async def _handle_command_who(update: Update, context: ContextTypes.DEFAULT_TYPE
         await reply(update, trans.gettext("SERVICES_DM_WHO_EMPTY"), keyboards.standard(query.from_user))
         return ConversationHandler.END
 
-    state.people_category_views_register(query.from_user.id, -1)
+    state.ServiceCategoryStats.register(query.from_user.id, -1)
 
     if len(categorised_services) == 1:
         united_message = render.categories_with_services(trans, categorised_services)

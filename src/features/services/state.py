@@ -358,6 +358,8 @@ class Service:
 
 
 class ServiceCategoryStats:
+    _DB_TABLE = "services_category_views"
+
     def __init__(self, category_id: int, view_count: int, viewer_count: int):
         self._category_id = category_id
         self._view_count = view_count
@@ -377,16 +379,38 @@ class ServiceCategoryStats:
     def viewer_count(self) -> int:
         return self._viewer_count
 
+    @classmethod
+    def register(cls, viewer_tg_id: int, category_id: int) -> None:
+        """Register a single event of a user browsing a category
 
-def people_category_views_register(viewer_tg_id: int, category_id: int) -> None:
-    """Register a single event of a user browsing a category
+        @param viewer_tg_id: Telegram ID of a user that requests the information.
+        @param category_id: ID of a category being viewed, -1 for the general view (no specific category was requested).
+        """
 
-    @param viewer_tg_id: Telegram ID of a user that requests the information.
-    @param category_id: ID of a category being viewed, -1 for the general view (no specific category was requested).
-    """
+        db.sql_exec(f"INSERT INTO {cls._DB_TABLE} (viewer_tg_id, category_id) VALUES(?, ?)",
+                    (viewer_tg_id, category_id))
 
-    db.sql_exec("INSERT INTO services_category_views (viewer_tg_id, category_id) VALUES(?, ?)",
-                (viewer_tg_id, category_id))
+    @classmethod
+    def report(cls, from_date: datetime.datetime) -> Iterator[Self]:
+        """Fetch summary for views of service categories
+
+        @param from_date: earliest date to report visits from
+        @return: iterator for a sequence of stats entries
+        """
+
+        parameters = (from_date.strftime("%Y-%m-%d"),)
+        additional_where_clause = ""
+        if not settings.SERVICES_STATS_INCLUDE_ADMINISTRATORS:
+            admin_id_phds = ", ".join(["?"] * len(settings.ADMINISTRATORS))
+            additional_where_clause = f"AND viewer_tg_id NOT IN ({admin_id_phds})"
+            parameters += tuple(admin["id"] for admin in settings.ADMINISTRATORS)
+        query = (f"SELECT category_id, COUNT(1) as view_count, COUNT(DISTINCT viewer_tg_id) as viewer_count "
+                 f"FROM {cls._DB_TABLE} "
+                 f"WHERE timestamp > ? {additional_where_clause} "
+                 f"GROUP BY category_id")
+
+        for row in db.sql_query(query, parameters):
+            yield ServiceCategoryStats(**row)
 
 
 def people_views_register(viewer_tg_id: int, tg_id: int, category_id: int) -> None:
@@ -399,22 +423,6 @@ def people_views_register(viewer_tg_id: int, tg_id: int, category_id: int) -> No
 
     db.sql_exec("INSERT INTO services_service_views (viewer_tg_id, tg_id, category_id) VALUES(?, ?, ?)",
                 (viewer_tg_id, tg_id, category_id))
-
-
-def people_category_views_report(from_date: datetime.datetime) -> Iterator[ServiceCategoryStats]:
-    parameters = (from_date.strftime("%Y-%m-%d"),)
-    additional_where_clause = ""
-    if not settings.SERVICES_STATS_INCLUDE_ADMINISTRATORS:
-        admin_id_phds = ", ".join(["?"] * len(settings.ADMINISTRATORS))
-        additional_where_clause = f"AND viewer_tg_id NOT IN ({admin_id_phds})"
-        parameters += tuple(admin["id"] for admin in settings.ADMINISTRATORS)
-    query = (f"SELECT category_id, COUNT(1) as view_count, COUNT(DISTINCT viewer_tg_id) as viewer_count "
-             f"FROM services_category_views "
-             f"WHERE timestamp > ? {additional_where_clause} "
-             f"GROUP BY category_id")
-
-    for row in db.sql_query(query, parameters):
-        yield ServiceCategoryStats(**row)
 
 
 def export_db() -> dict:

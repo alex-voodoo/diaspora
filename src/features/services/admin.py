@@ -98,7 +98,7 @@ async def _show_stats(update: Update) -> None:
         return f"<b>{category_title}:</b> {get_view_count_text(view_count)}, {get_viewer_count_text(viewer_count)}"
 
     category_stats = {}
-    for stats in state.people_category_views_report(from_date):
+    for stats in state.ServiceCategoryStats.report(from_date):
         category_stats[stats.category.id] = get_stat_line(stats.category.title, stats.view_count, stats.viewer_count)
 
     if not category_stats:

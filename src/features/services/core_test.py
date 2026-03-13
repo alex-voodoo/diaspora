@@ -289,7 +289,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
         await test_with_services_in_categories([1, 2, 0, 4, 3, 5])
 
     @patch_service__do_select_query_return_nothing()
-    @patch("features.services.state.people_category_views_register")
+    @patch("features.services.state.ServiceCategoryStats.register")
     @patch("features.services.core.reply")
     async def test__who_received_category(self, mock_reply, mock_stat):
         trans = i18n.default()
@@ -350,7 +350,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                 mock_settings.SHOW_CATEGORIES_ALWAYS = show_categories_always
 
                 with patch("features.services.core._who_request_category") as mock_who_request_category:
-                    with patch("features.services.state.people_category_views_register") as mock_stat:
+                    with patch("features.services.state.ServiceCategoryStats.register") as mock_stat:
                         with patch("features.services.core.reply") as mock_reply:
                             self.assertEqual(await core._handle_command_who(update, context), ConversationHandler.END)
 
@@ -360,7 +360,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
                             mock_who_request_category.assert_not_called()
 
         @patch("features.services.core._who_request_category")
-        @patch("features.services.state.people_category_views_register")
+        @patch("features.services.state.ServiceCategoryStats.register")
         async def render_category_selection(_mock_stat, _mock_who_request_category) -> None:
             _mock_who_request_category.return_value = const.SELECTING_CATEGORY
 
@@ -374,7 +374,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
             self.assertDictEqual(call_args[2], categorised_services)
 
         @patch("features.services.core._who_request_category")
-        @patch("features.services.state.people_category_views_register")
+        @patch("features.services.state.ServiceCategoryStats.register")
         @patch("features.services.core.reply")
         async def render_service_directory(_mock_reply, _mock_stat, _mock_who_request_category) -> None:
             self.assertEqual(await core._handle_command_who(update, context), ConversationHandler.END)
