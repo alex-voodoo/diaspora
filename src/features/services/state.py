@@ -217,7 +217,7 @@ class ServiceCategory:
 
     @classmethod
     def count(cls) -> int:
-        """Return number of categories"""
+        """Return number of non-default categories"""
 
         return len(cls._categories)
 
@@ -461,9 +461,9 @@ def import_db(new_data) -> None:
     cursor = db.cursor()
 
     import_timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S%Z")
-    categories_backup = f"services_categories_{import_timestamp}"
-    providers_backup = f"services_providers_{import_timestamp}"
-    services_backup = f"services_services_{import_timestamp}"
+    categories_backup = f"{_CATEGORIES}_{import_timestamp}"
+    providers_backup = f"{_PROVIDERS}_{import_timestamp}"
+    services_backup = f"{_SERVICES}_{import_timestamp}"
 
     for query in (f"CREATE TABLE {categories_backup} AS SELECT * FROM {_CATEGORIES}",
                   f"CREATE TABLE {providers_backup} AS SELECT * FROM {_PROVIDERS}",
