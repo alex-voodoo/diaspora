@@ -370,7 +370,6 @@ msgid "ADMIN_MESSAGE_DM_STATS_EMPTY"
 msgstr "No stats so far."
 
 #: features/services/admin.py:109
-#, fuzzy
 msgid "SERVICES_MESSAGE_DM_ADMIN_STATS_HEADER_S {days} {from_date}"
 msgid_plural "SERVICES_MESSAGE_DM_ADMIN_STATS_HEADER_P {days} {from_date}"
 msgstr[0] "<b>Views of service categories for the last {days} day (from {from_date})</b>"
@@ -639,11 +638,10 @@ msgid "SERVICES_DM_PING_QUESTION"
 msgstr "Is the information above still correct?"
 
 #: features/services/render.py:129
-#, fuzzy
 msgid "SERVICES_DM_LAST_PING_S {days_remaining}"
 msgid_plural "SERVICES_DM_LAST_PING_P {days_remaining}"
-msgstr[0] "Thank you, your information is confirmed.  I will ask again in {days} day."
-msgstr[1] "Thank you, your information is confirmed.  I will ask again in {days} days."
+msgstr[0] "This is the last reminder.  Your data will be removed in {days} day."
+msgstr[1] "This is the last reminder.  Your data will be removed in {days} days."
 
 #: features/services/render.py:136
 msgid "SERVICES_DM_PING_CONFIRMED_ALL_S {days}"
