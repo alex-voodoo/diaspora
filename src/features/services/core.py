@@ -630,7 +630,7 @@ async def _check_providers(context: ContextTypes.DEFAULT_TYPE) -> None:
                 if provider.remaining_ping_count > 0:
                     await _ping_provider(context, provider)
                 else:
-                    state.Provider.delete(provider.tg_id)
+                    provider_ids_to_remove.append(provider.tg_id)
 
         except BadRequest as e:
             logging.info(f"Exception when checking provider {provider}: {e}")
