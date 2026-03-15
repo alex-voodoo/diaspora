@@ -8,6 +8,10 @@ from collections.abc import Iterable
 from . import state
 
 
+def days(trans: gettext.GNUTranslations, count: int) -> str:
+    return trans.ngettext("DAYS_S {count}", "DAYS_P {count}", count).format(count=count)
+
+
 def service_description_for_owner(service: state.Service) -> str:
     return (f"<b>{service.category.title}:</b> <a href=\"{service.deep_link}\">{service.occupation}</a> ("
             f"{service.location})")
@@ -125,23 +129,20 @@ def ping(trans: gettext.GNUTranslations, services: list[state.Service], last_rem
 
     if last_reminder:
         lines.append("")
-        lines.append(
-            trans.ngettext("SERVICES_DM_LAST_PING_S {days_remaining}", "SERVICES_DM_LAST_PING_P {days_remaining}",
-                           days_remaining).format(days_remaining=days_remaining))
+        lines.append(trans.gettext("SERVICES_DM_LAST_PING {days_remaining}").format(
+            days_remaining=days(trans, days_remaining)))
 
     return "\n".join(lines)
 
 
-def ping_confirmed_all(trans: gettext.GNUTranslations, days: int) -> str:
-    return trans.ngettext("SERVICES_DM_PING_CONFIRMED_ALL_S {days}",
-                          "SERVICES_DM_PING_CONFIRMED_ALL_P {days}",
-                          days).format(days=days)
+def ping_confirmed_all(trans: gettext.GNUTranslations, day_count: int) -> str:
+    return trans.gettext("SERVICES_DM_PING_CONFIRMED_ALL {days_to_next_check}").format(
+        days_to_next_check=days(trans, day_count))
 
 
-def ping_confirmed_all_with_edits(trans: gettext.GNUTranslations, days: int) -> str:
-    return trans.ngettext("SERVICES_DM_PING_NEED_EDIT_S {days}",
-                          "SERVICES_DM_PING_NEED_EDIT_P {days}",
-                          days).format(days=days)
+def ping_confirmed_all_with_edits(trans: gettext.GNUTranslations, day_count: int) -> str:
+    return trans.gettext("SERVICES_DM_PING_NEED_EDIT {days_to_next_check}").format(
+        days_to_next_check=days(trans, day_count))
 
 
 def ping_confirm_delete_all(trans: gettext.GNUTranslations) -> str:

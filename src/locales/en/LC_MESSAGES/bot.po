@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-03-15 19:32+0100\n"
+"POT-Creation-Date: 2026-03-15 21:06+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -375,19 +375,19 @@ msgid_plural "SERVICES_MESSAGE_DM_ADMIN_STATS_HEADER_P {days} {from_date}"
 msgstr[0] "<b>Views of service categories for the last {days} day (from {from_date})</b>"
 msgstr[1] "<b>Views of service categories for the last {days} days (from {from_date})</b>"
 
-#: features/services/admin.py:123
+#: features/services/admin.py:124
 msgid "SERVICES_MESSAGE_DM_ADMIN_STATS_FOOTER_ADMINISTRATORS_EXCLUDED"
 msgstr "Administrators' activity is excluded from these statistics."
 
-#: features/services/admin.py:137
+#: features/services/admin.py:138
 msgid "SERVICES_ADMIN_BUTTON_EXPORT_DB"
 msgstr "Download services"
 
-#: features/services/admin.py:139
+#: features/services/admin.py:140
 msgid "SERVICES_ADMIN_BUTTON_IMPORT_DB"
 msgstr "Upload services"
 
-#: features/services/admin.py:141
+#: features/services/admin.py:142
 msgid "SERVICES_ADMIN_BUTTON_STATS"
 msgstr "Services' statistics"
 
@@ -557,11 +557,17 @@ msgstr "🗑️ Delete everything"
 msgid "SERVICES_CATEGORY_OTHER_TITLE"
 msgstr "Other"
 
-#: features/services/render.py:30 features/services/render.py:34
+#: features/services/render.py:12
+msgid "DAYS_S {count}"
+msgid_plural "DAYS_P {count}"
+msgstr[0] "{count} day"
+msgstr[1] "{count} days"
+
+#: features/services/render.py:34 features/services/render.py:38
 msgid "SERVICES_DM_WHO_DISCLAIMER"
 msgstr "❗Announcements are posted by members of the group.  The administration cannot take responsibility for quality of these services."
 
-#: features/services/render.py:40
+#: features/services/render.py:44
 msgid "SERVICES_DM_TEXT_TOO_LONG_S {limit} {text}"
 msgid_plural "SERVICES_DM_TEXT_TOO_LONG_P {limit} {text}"
 msgstr[0] ""
@@ -571,102 +577,97 @@ msgstr[1] ""
 "Too long!  This field can have no more than {limit} characters.  What fits that limit is in bold:\n"
 "{text}"
 
-#: features/services/render.py:45
+#: features/services/render.py:49
 msgid "SERVICES_DM_DATA_FIELD_LIMIT_S {limit}"
 msgid_plural "SERVICES_DM_DATA_FIELD_LIMIT_P {limit}"
 msgstr[0] "(No more than {limit} character.)"
 msgstr[1] "(No more than {limit} characters.)"
 
-#: features/services/render.py:50
+#: features/services/render.py:54
 msgid "SERVICES_DM_WHO_LIST_HEADING"
 msgstr "Here is the directory:"
 
-#: features/services/render.py:60
+#: features/services/render.py:64
 msgid "SERVICES_DM_ENROLL_ASK_OCCUPATION"
 msgstr "What do you do?  Please give a short and simple answer, like \"Teach how to surf\" or \"Help with the immigrations\"."
 
-#: features/services/render.py:68
+#: features/services/render.py:72
 msgid "SERVICES_DM_UPDATE_OCCUPATION {title} {current_value}"
 msgstr ""
 "Enter a new brief description for your service in the \"{title}\" group.  The current one is:\n"
 "<b>{current_value}</b>"
 
-#: features/services/render.py:76
+#: features/services/render.py:80
 msgid "SERVICES_DM_SELECT_CATEGORY_FOR_RETIRE"
 msgstr "Select category to delete."
 
-#: features/services/render.py:80
+#: features/services/render.py:84
 msgid "SERVICES_DM_RETIRE"
 msgstr "The record is deleted."
 
-#: features/services/render.py:84
+#: features/services/render.py:88
 msgid "SERVICES_ADMIN_USER_RECORD_APPROVED"
 msgstr "Approved."
 
-#: features/services/render.py:88
+#: features/services/render.py:92
 msgid "SERVICES_ADMIN_USER_RECORD_SUSPENDED"
 msgstr "The record is hidden."
 
-#: features/services/render.py:92
+#: features/services/render.py:96
 msgid "SERVICES_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"
 msgstr "I am sorry.  I cannot register services that do not comply with the laws and local regulations."
 
-#: features/services/render.py:96
+#: features/services/render.py:100
 msgid "SERVICES_DM_ENROLL_COMPLETED"
 msgstr "We are done, you are now registered!"
 
-#: features/services/render.py:100
+#: features/services/render.py:104
 msgid "SERVICES_DM_ENROLL_COMPLETED_POST_MODERATION"
 msgstr "We are done, you are now registered!  Please note that moderators may hide your record if it violates rules of the group."
 
-#: features/services/render.py:104
+#: features/services/render.py:108
 msgid "SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION"
 msgstr "We are done!  I will add your record to the list after the moderators approve it."
 
-#: features/services/render.py:111
+#: features/services/render.py:115
 msgid "SERVICES_DM_PING"
 msgstr "Hello!  There is your record in my book of services."
 
-#: features/services/render.py:115
+#: features/services/render.py:119
 msgid "SERVICES_DM_PING_S {record_count}"
 msgid_plural "SERVICES_DM_PING_P {record_count}"
 msgstr[0] "Hello!  There is {record_count} your record in my book of services."
 msgstr[1] "Hello!  There are {record_count} your records in my book of services."
 
-#: features/services/render.py:124
+#: features/services/render.py:128
 msgid "SERVICES_DM_PING_QUESTION"
 msgstr "Is the information above still correct?"
 
-#: features/services/render.py:129
-msgid "SERVICES_DM_LAST_PING_S {days_remaining}"
-msgid_plural "SERVICES_DM_LAST_PING_P {days_remaining}"
-msgstr[0] "This is the last reminder.  Your data will be removed in {days} day."
-msgstr[1] "This is the last reminder.  Your data will be removed in {days} days."
+#: features/services/render.py:132
+msgid "SERVICES_DM_LAST_PING {days_remaining}"
+msgstr "This is the last reminder.  Your data will be removed in {days_remaining}."
 
-#: features/services/render.py:136
-msgid "SERVICES_DM_PING_CONFIRMED_ALL_S {days}"
-msgid_plural "SERVICES_DM_PING_CONFIRMED_ALL_P {days}"
-msgstr[0] "Thank you, your information is confirmed.  I will ask again in {days} day."
-msgstr[1] "Thank you, your information is confirmed.  I will ask again in {days} days."
+#: features/services/render.py:139
+msgid "SERVICES_DM_PING_CONFIRMED_ALL {days_to_next_check}"
+msgstr "Thank you, your information is confirmed.  I will ask again in {days_to_next_check}."
 
-#: features/services/render.py:142
-msgid "SERVICES_DM_PING_NEED_EDIT_S {days}"
-msgid_plural "SERVICES_DM_PING_NEED_EDIT_P {days}"
-msgstr[0] "Thank you, your information is confirmed.  I will ask again in {days} day."
-msgstr[1] "Thank you, your information is confirmed.  I will ask again in {days} days."
+#: features/services/render.py:144
+msgid "SERVICES_DM_PING_NEED_EDIT {days_to_next_check}"
+msgstr "Thank you, your information is confirmed.  I will ask again in {days_to_next_check}."
 
-#: features/services/render.py:148
+#: features/services/render.py:149
 msgid "SERVICES_DM_PING_CONFIRM_DELETE_ALL"
 msgstr "This cannot be undone.  Are you sure that you want to delete all your services?"
 
-#: features/services/render.py:152
+#: features/services/render.py:153
 msgid "SERVICES_DM_PING_DELETE_ALL_CANCELLED"
 msgstr "Alright.  Please ensure that your data is correct."
 
-#: features/services/render.py:156
+#: features/services/render.py:157
 msgid "SERVICES_DM_PING_DELETE_ALL_COMPLETED"
 msgstr "Your data is removed."
 
 #: features/services/state.py:372
 msgid "SERVICES_CATEGORY_LIST_TITLE"
 msgstr "List of categories"
+
