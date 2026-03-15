@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-03-13 23:21+0100\n"
+"POT-Creation-Date: 2026-03-15 19:32+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -375,23 +375,26 @@ msgstr[2] "{count} пользователей"
 msgid "ADMIN_MESSAGE_DM_STATS_EMPTY"
 msgstr "Статистики пока нет."
 
-#: features/services/admin.py:108
-msgid "SERVICES_MESSAGE_DM_ADMIN_STATS_HEADER {from_date}"
-msgstr "<b>Просмотры категорий за период с {from_date}</b>"
+#: features/services/admin.py:109
+msgid "SERVICES_MESSAGE_DM_ADMIN_STATS_HEADER_S {days} {from_date}"
+msgid_plural "SERVICES_MESSAGE_DM_ADMIN_STATS_HEADER_P {days} {from_date}"
+msgstr[0] "<b>Просмотры категорий за последний {days} день (с {from_date})</b>"
+msgstr[1] "<b>Просмотры категорий за последние {days} дня (с {from_date})</b>"
+msgstr[2] "<b>Просмотры категорий за последние {days} дней (с {from_date})</b>"
 
-#: features/services/admin.py:122
+#: features/services/admin.py:123
 msgid "SERVICES_MESSAGE_DM_ADMIN_STATS_FOOTER_ADMINISTRATORS_EXCLUDED"
 msgstr "Активность администраторов исключена из статистики."
 
-#: features/services/admin.py:136
+#: features/services/admin.py:137
 msgid "SERVICES_ADMIN_BUTTON_EXPORT_DB"
 msgstr "Выгрузить книгу услуг"
 
-#: features/services/admin.py:138
+#: features/services/admin.py:139
 msgid "SERVICES_ADMIN_BUTTON_IMPORT_DB"
 msgstr "Загрузить книгу услуг"
 
-#: features/services/admin.py:140
+#: features/services/admin.py:141
 msgid "SERVICES_ADMIN_BUTTON_STATS"
 msgstr "Статистика книги услуг"
 
@@ -683,4 +686,3 @@ msgstr "Ваши данные удалены."
 #: features/services/state.py:372
 msgid "SERVICES_CATEGORY_LIST_TITLE"
 msgstr "Список категорий"
-

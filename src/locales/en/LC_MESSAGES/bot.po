@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-03-13 23:21+0100\n"
+"POT-Creation-Date: 2026-03-15 19:32+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -369,23 +369,26 @@ msgstr[1] "{count} users"
 msgid "ADMIN_MESSAGE_DM_STATS_EMPTY"
 msgstr "No stats so far."
 
-#: features/services/admin.py:108
-msgid "SERVICES_MESSAGE_DM_ADMIN_STATS_HEADER {from_date}"
-msgstr "<b>Views of service categories from {from_date}</b>"
+#: features/services/admin.py:109
+#, fuzzy
+msgid "SERVICES_MESSAGE_DM_ADMIN_STATS_HEADER_S {days} {from_date}"
+msgid_plural "SERVICES_MESSAGE_DM_ADMIN_STATS_HEADER_P {days} {from_date}"
+msgstr[0] "<b>Views of service categories for the last {days} day (from {from_date})</b>"
+msgstr[1] "<b>Views of service categories for the last {days} days (from {from_date})</b>"
 
-#: features/services/admin.py:122
+#: features/services/admin.py:123
 msgid "SERVICES_MESSAGE_DM_ADMIN_STATS_FOOTER_ADMINISTRATORS_EXCLUDED"
 msgstr "Administrators' activity is excluded from these statistics."
 
-#: features/services/admin.py:136
+#: features/services/admin.py:137
 msgid "SERVICES_ADMIN_BUTTON_EXPORT_DB"
 msgstr "Download services"
 
-#: features/services/admin.py:138
+#: features/services/admin.py:139
 msgid "SERVICES_ADMIN_BUTTON_IMPORT_DB"
 msgstr "Upload services"
 
-#: features/services/admin.py:140
+#: features/services/admin.py:141
 msgid "SERVICES_ADMIN_BUTTON_STATS"
 msgstr "Services' statistics"
 
@@ -669,4 +672,3 @@ msgstr "Your data is removed."
 #: features/services/state.py:372
 msgid "SERVICES_CATEGORY_LIST_TITLE"
 msgstr "List of categories"
-

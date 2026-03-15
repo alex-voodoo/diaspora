@@ -105,9 +105,11 @@ async def _show_stats(update: Update) -> None:
         await reply(update, trans.gettext("ADMIN_MESSAGE_DM_STATS_EMPTY"), get_main_keyboard())
         return
 
-    stats_header = trans.gettext("SERVICES_MESSAGE_DM_ADMIN_STATS_HEADER {from_date}")
+    days = _STATS_PERIOD_DAYS
+    stats_header = trans.ngettext("SERVICES_MESSAGE_DM_ADMIN_STATS_HEADER_S {days} {from_date}",
+                                  "SERVICES_MESSAGE_DM_ADMIN_STATS_HEADER_P {days} {from_date}", days)
 
-    message = [stats_header.format(from_date=from_date.strftime("%Y-%m-%d")), ""]
+    message = [stats_header.format(days=days, from_date=from_date.strftime("%Y-%m-%d")), ""]
 
     if -1 in category_stats.keys():
         message.append(category_stats[-1])
