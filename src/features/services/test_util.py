@@ -92,7 +92,7 @@ def patch_service__do_select_query_return_nothing():
     @return: Context manager returned from a call to unittest.mock.patch()
     """
 
-    def return_no_services(query: str = "", parameters: tuple = ()) -> Iterator[dict]:
+    def return_no_services(_query: str = "", _parameters: tuple = ()) -> Iterator[dict]:
         yield from ()
 
     return patch("features.services.state.Service._do_select_query", return_no_services)

@@ -341,10 +341,6 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
         state.Service.set_bot_username("bot_username")
 
-        # When there are no services, nothing should be rendered.
-        def get_no_services() -> Iterator[dict]:
-            yield from ()
-
         with patch_service__do_select_query_return_nothing():
             for show_categories_always in (False, True):
                 mock_settings.SHOW_CATEGORIES_ALWAYS = show_categories_always

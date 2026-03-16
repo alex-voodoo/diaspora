@@ -193,7 +193,7 @@ async def process_normal_message(update: Update, context: ContextTypes.DEFAULT_T
         await self_destructing_reaction(update, context, [ReactionEmoji.EYES], settings.GLOSSARY_MAX_TRIGGER_AGE)
 
 
-async def maybe_process_command_explain(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+async def maybe_process_command_explain(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> bool:
     """Try to find the "explain" command in the message, and handle it if found
 
     Tries to find one of command terms that mean "explain the current context", and if found, renders the explanation
@@ -225,7 +225,7 @@ async def maybe_process_command_explain(update: Update, context: ContextTypes.DE
     return True
 
 
-async def maybe_process_command_whatisit(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
+async def maybe_process_command_whatisit(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> bool:
     """Try to find the "what is ..." command in the message, and handle it if found
 
     Tries to find a pattern that means "what is <word>", and if found, tries to find that term and respond with an
@@ -296,7 +296,7 @@ async def process_bot_mention(update: Update, context: ContextTypes.DEFAULT_TYPE
         await reply(update, trans.gettext("GLOSSARY_UNKNOWN_COMMAND"))
 
 
-async def handle_query_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> [None, int]:
+async def handle_query_admin(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> [None, int]:
     query = update.callback_query
     user = query.from_user
 
