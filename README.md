@@ -1,21 +1,15 @@
 # Diaspora: User Directory Bot
 
-This is a Telegram bot for communities of expats and emigrants.  Such communities typically have specific needs such as services in their native language, certain goods that are not common in that place, etc.
+This is a Telegram bot that helps to administrate a Telegram group (aka chat).
 
-The bot runs in a Telegram group (aka chat) and maintains a database of users of that chat who could address needs of the community by providing these special services.  The database is populated with data provided by these chat members, and is then available to all users of the chat.
-
-For example, some chat member might be a hairdresser that speaks the language of the chat.  Another person knows a lot about how the immigration office works in this city, and can help with advice.  They can talk to the bot and declare what they do and where they are located.  Others can then ask the bot about services available in the location, and they will see users who registered their services.
-
-The bot deletes most of its own messages some time after posting them, to keep the chat clean of automatic replies.  Users are supposed to talk to bot using private messages.  The bot does not respond to Telegram users who are not members of the chat.
-
-## Features
-
-The bot has a number of additional features, most of them are off by default, and can be enabled independently of each other.  
-
-A couple of features are very simple: 
+Features:
 
 - Greeting new users.  The bot reacts when a new user joins the group by sending a greeting message to the group.
-- Language moderation.  The bot detects language of messages posted by the users, and post a warning about preferred (or required) language if too many messages were sent in other languages.
+- Language moderation.  The bot detects language of messages posted by the users, and posts a warning about preferred (or required) language if too many messages were sent in other languages.
+- <a href="features/services/README.md">Services</a> (user directory).  Each user in the group may register their service with the bot, and browse services provided by other members.
+- <a href="features/moderation/README.md">Public moderation</a>.  The bot helps to moderate the discussion by accepting complaints and managing restrictions.
+- Antispam.  This should be self-explanatory.
+- Glossary.  The bot keeps a list of local jargon and can help when people use it too much. 
 
 See <a href="features/README.md">README</a> in the `features` module for detailed information on other features.
 
