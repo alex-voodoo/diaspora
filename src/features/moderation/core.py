@@ -272,7 +272,6 @@ def init(application: Application, group):
 
     state.init()
 
-    # TODO: handle images
     application.add_handler(
         MessageHandler((filters.TEXT | filters.PHOTO) & (~ filters.COMMAND), _handle_message), group=group)
 
