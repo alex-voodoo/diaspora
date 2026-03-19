@@ -640,6 +640,21 @@ async def _check_providers(context: ContextTypes.DEFAULT_TYPE) -> None:
         state.Provider.delete(provider_id)
 
 
+async def _handle_message(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle an incoming message.  This is the single entry point for all normal messages."""
+
+    chat = update.effective_chat
+
+    if chat is None or chat.id != settings.MAIN_CHAT_ID:
+        return
+
+    user = update.effective_user
+    if state.Provider.exists(user.id):
+        provider = state.Provider.get_by_tg_id(user.id)
+        if user.username != provider.tg_username:
+            logging.info(f"User {provider} seems to have changed their username to {user.username}")
+
+
 def post_init(application: Application) -> None:
     # noinspection PyUnresolvedReferences
     state.Service.set_bot_username(application.bot.username)
@@ -678,9 +693,12 @@ def init(application: Application, group: int) -> None:
 
     application.add_handler(CallbackQueryHandler(_handle_pong, pattern=re.compile(
         "^({confirm}|{edit}|{delete}):[0-9]+$".format(confirm=const.PING_CONFIRM_ALL, edit=const.PING_CONFIRM_EDIT,
-                                                       delete=const.PING_DELETE_ALL))), group=2)
+                                                       delete=const.PING_DELETE_ALL))), group=group)
     application.add_handler(CallbackQueryHandler(_handle_pong_confirm_delete, pattern=re.compile(
-        "^({yes}|{no}):[0-9]+$".format(yes=const.PING_DELETE_ALL_YES, no=const.PING_DELETE_ALL_NO))), group=2)
+        "^({yes}|{no}):[0-9]+$".format(yes=const.PING_DELETE_ALL_YES, no=const.PING_DELETE_ALL_NO))), group=group)
+
+    application.add_handler(
+        MessageHandler((filters.TEXT | filters.PHOTO), _handle_message), group=group)
 
     admin.register_handlers(application, group)
 

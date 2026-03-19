@@ -258,14 +258,13 @@ def main() -> None:
     # The services feature has stateful conversation handlers, and they should go first, to act correctly if the user
     # does something unexpected during the conversation.
 
-    services.init(application, group=0)
-
     application.add_handler(CommandHandler(COMMAND_START, handle_command_start))
     application.add_handler(CommandHandler(COMMAND_HELP, handle_command_help))
     application.add_handler(CommandHandler(COMMAND_ADMIN, handle_command_admin))
 
-    if settings.GREETING_ENABLED:
-        application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, greet_new_member))
+    antispam.init(application, group=1)
+
+    services.init(application, group=2)
 
     if settings.LANGUAGE_MODERATION_ENABLED:
         global message_languages
@@ -273,9 +272,11 @@ def main() -> None:
 
         application.add_handler(MessageHandler(filters.TEXT & (~ filters.COMMAND), detect_language), group=3)
 
-    antispam.init(application, 1)
-    glossary.init(application, 4)
-    moderation.init(application, 6)
+    glossary.init(application, group=4)
+    moderation.init(application, group=6)
+
+    if settings.GREETING_ENABLED:
+        application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, greet_new_member), group=5)
 
     application.add_error_handler(handle_error)
 
