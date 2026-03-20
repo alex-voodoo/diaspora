@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-03-19 21:27+0100\n"
+"POT-Creation-Date: 2026-03-20 22:35+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -680,6 +680,13 @@ msgstr "Хорошо. Пожалуйста, проверьте, что данн�
 #: features/services/render.py:157
 msgid "SERVICES_DM_PING_DELETE_ALL_COMPLETED"
 msgstr "Ваши данные удалены."
+
+#: features/services/render.py:161
+msgid "SERVICES_DM_NOTIFY_USERNAME_CHANGE {new_username} {old_username}"
+msgstr ""
+"Похоже, вы изменили ваше имя пользователя Telegram! Раньше было <code>{old_username}</code>, а теперь <code>{new_username}</code>.\n"
+"\n"
+"Ваши данные обновлены, и люди смогут связаться с вами по вашему новому имени. Если вы хотели начать сначала и удалить все свои данные, сделайте это самостоятельно."
 
 #: features/services/state.py:372
 msgid "SERVICES_CATEGORY_LIST_TITLE"

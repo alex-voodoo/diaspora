@@ -149,9 +149,14 @@ def ping_confirm_delete_all(trans: gettext.GNUTranslations) -> str:
     return trans.gettext("SERVICES_DM_PING_CONFIRM_DELETE_ALL")
 
 
-def ping_delete_all_cancelled(trans) -> str:
+def ping_delete_all_cancelled(trans: gettext.GNUTranslations) -> str:
     return trans.gettext("SERVICES_DM_PING_DELETE_ALL_CANCELLED")
 
 
-def ping_delete_all_completed(trans) -> str:
+def ping_delete_all_completed(trans: gettext.GNUTranslations) -> str:
     return trans.gettext("SERVICES_DM_PING_DELETE_ALL_COMPLETED")
+
+
+def notify_username_change(trans: gettext.GNUTranslations, old_username: str, new_username: str) -> str:
+    return trans.gettext("SERVICES_DM_NOTIFY_USERNAME_CHANGE {new_username} {old_username}").format(
+        new_username=new_username, old_username=old_username)

@@ -550,7 +550,9 @@ async def _ping_provider(context: ContextTypes.DEFAULT_TYPE, provider: state.Pro
 
     provider.consume_ping_attempt_and_schedule_next_attempt()
 
-    await send(context, provider.tg_id, render.ping(trans, records, provider.remaining_ping_count == 0, settings.SERVICES_PROVIDER_PING_PERIOD_DAYS), keyboards.ping(trans, provider.tg_id))
+    await send(context, provider.tg_id, render.ping(trans, records, provider.remaining_ping_count == 0,
+                                                    settings.SERVICES_PROVIDER_PING_PERIOD_DAYS),
+               keyboards.ping(trans, provider.tg_id))
 
 
 async def _handle_pong(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -640,7 +642,7 @@ async def _check_providers(context: ContextTypes.DEFAULT_TYPE) -> None:
         state.Provider.delete(provider_id)
 
 
-async def _handle_message(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> None:
+async def _handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle an incoming message.  This is the single entry point for all normal messages."""
 
     chat = update.effective_chat
@@ -653,6 +655,13 @@ async def _handle_message(update: Update, _context: ContextTypes.DEFAULT_TYPE) -
         provider = state.Provider.get_by_tg_id(user.id)
         if user.username != provider.tg_username:
             logging.info(f"User {provider} seems to have changed their username to {user.username}")
+
+            old_username = provider.tg_username
+            provider.tg_username = user.username
+
+            await send(context, user.id,
+                       render.notify_username_change(i18n.trans(user), old_username, user.username),
+                       keyboards.standard(user))
 
 
 def post_init(application: Application) -> None:
@@ -693,7 +702,7 @@ def init(application: Application, group: int) -> None:
 
     application.add_handler(CallbackQueryHandler(_handle_pong, pattern=re.compile(
         "^({confirm}|{edit}|{delete}):[0-9]+$".format(confirm=const.PING_CONFIRM_ALL, edit=const.PING_CONFIRM_EDIT,
-                                                       delete=const.PING_DELETE_ALL))), group=group)
+                                                      delete=const.PING_DELETE_ALL))), group=group)
     application.add_handler(CallbackQueryHandler(_handle_pong_confirm_delete, pattern=re.compile(
         "^({yes}|{no}):[0-9]+$".format(yes=const.PING_DELETE_ALL_YES, no=const.PING_DELETE_ALL_NO))), group=group)
 
