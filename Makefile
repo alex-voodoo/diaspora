@@ -19,11 +19,28 @@ service_dir=/etc/systemd/system
 
 venv=${lib_dir}/venv
 
+# was_active will be equal to 0 if the service is active at the moment of running this
+was_active=$(shell systemctl is-active $(unit_name) > /dev/null 2>&1; echo $$?)
+
 install:
 	echo "Installing the service files..."
 	cp diaspora.service $(service_dir)
 	chown root:root $(service_dir)/diaspora.service
 	chmod 644 $(service_dir)/diaspora.service
+
+	-systemctl daemon-reload
+
+ifeq ($(was_active), 0)
+	echo "The service is running, stopping it before updating library files..."
+	-systemctl stop $(unit_name)
+	echo "Backing up the database..."
+	cp $(data_dir)/people.db $(data_dir)/people.db.bck
+else
+	echo "The service is not running."
+endif
+
+	echo "Cleaning up library files before installing the new version..."
+	-rm -r $(lib_dir)
 
 	echo "Installing library files..."
 	cd src; find . -name '*.json' | cpio -pdm $(lib_dir)
@@ -50,15 +67,24 @@ install:
 	echo "Creating the initial configuration..."
 	DIASPORA_SERVICE_MODE=1 $(venv)/bin/python $(lib_dir)/setup.py
 
+ifeq ($(was_active), 0)
+	echo "Starting the service again (we stopped it before updating library files)..."
+	-systemctl start $(unit_name)
+else
+	echo "The service was not running when installation started, keeping it stopped."
+endif
+
+	echo "----------------------------------------------------------------"
 	echo "Installation complete."
-	echo "run 'systemctl start diaspora' to start the service"
-	echo "run 'systemctl status diaspora' to view status"
-	echo "run 'systemctl stop diaspora' to stop the service"
+	echo "run 'systemctl start $(unit_name)' to start the service"
+	echo "run 'systemctl status $(unit_name)' to view status"
+	echo "run 'systemctl stop $(unit_name)' to stop the service"
+	echo "----------------------------------------------------------------"
 
 uninstall:
 	echo "Stopping and disabling the service..."
-	-systemctl stop diaspora
-	-systemctl disable diaspora
+	-systemctl stop $(unit_name)
+	-systemctl disable $(unit_name)
 	echo "Deleting library files..."
 	-rm -r $(lib_dir)
 	echo "Deleting service files..."
