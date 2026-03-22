@@ -25,7 +25,7 @@ Now you have two options to run the bot: either direct mode or system service mo
 
 The bot runs in direct mode if the `DIASPORA_SERVICE_MODE` environment variable is not set or not equal to "1".
 
-Create a virtual Python environment with Python version 3.12.  (Older versions may work too but that is not tested.) Install `requirements.txt` in the virtual environment.
+Create a virtual Python environment with Python version 3.12.  (Older versions may work too but that is not tested.)  Install `requirements.txt` in the virtual environment.
 
 Run `python src/setup.py`.  Enter the API token of your bot when asked.
 
@@ -35,13 +35,11 @@ The bot sends log messages to the standard output.  Bot's configuration is store
 
 ### Linux system service mode
 
-The bot can be registered as a Linux service daemon in a system that runs systemd.  The bot runs in service mode if the `DIASPORA_SERVICE_MODE` environment variable is set and is equal to "1", which is provided by the systemd unit configuration.
+The bot can be registered as a Linux service in a system that runs systemd.  The bot runs in service mode if the `DIASPORA_SERVICE_MODE` environment variable is set and is equal to "1", which is provided by the systemd unit configuration.
 
 You will need superuser privileges to proceed.
 
-Run `sudo make install` to install the systemd unit.  You will be asked for the API token at this step.
-
-Start the service by running `sudo systemctl start diaspora`, stop it by running `sudo systemctl stop diaspora`.
+Run `sudo make install` to install the systemd unit.  You will be asked for the API token at this step.  Use `systemctl` to control the service.
 
 Log messages are written to `/var/log/diaspora.log`.  Bot's configuration is stored in `/usr/local/etc/diaspora/settings.yaml`, and data files are put to `/var/local/diaspora/`.
 
@@ -63,7 +61,13 @@ Finally, complete the setup from the Telegram side.
 
 ## Configuration
 
-To tune your bot, read and edit the configuration YAML file.  Restart the bot after you have changed the settings. 
+To tune your bot, read and edit the configuration YAML file.  Restart the bot after you have changed the settings.
+
+## Upgrades
+
+Pull the fresh code.
+
+If your bot is configured as a Linux service, run `sudo make install`, it will detect the running service and do a couple of extra things over the regular installation.  First, it will stop the service.  The existing database will be backed up, and after updating the program files it will start the service back. 
 
 ## Troubleshooting and error handling
 

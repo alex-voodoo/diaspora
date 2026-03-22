@@ -31,7 +31,7 @@ install:
 	-systemctl daemon-reload
 
 ifeq ($(was_active), 0)
-	echo "The service is running, stopping it before updating library files..."
+	echo "The service is running, apparently this is an upgrade.  Stopping the service before updating library files..."
 	-systemctl stop $(unit_name)
 	echo "Backing up the database..."
 	cp $(data_dir)/people.db $(data_dir)/people.db.bck
@@ -40,13 +40,13 @@ else
 endif
 
 	echo "Cleaning up library files before installing the new version..."
-	-rm -r $(lib_dir)
+	-rm -r $(lib_dir) > /dev/null 2>&1
 
 	echo "Installing library files..."
-	cd src; find . -name '*.json' | cpio -pdm $(lib_dir)
-	cd src; find . -name '*.mo' | cpio -pdm $(lib_dir)
-	cd src; find . -name '*.py' | cpio -pdm $(lib_dir)
-	cd src; find . -name '*.txt' | cpio -pdm $(lib_dir)
+	cd src; find . -name '*.json' | cpio -pdm --quiet $(lib_dir)
+	cd src; find . -name '*.mo' | cpio -pdm --quiet $(lib_dir)
+	cd src; find . -name '*.py' | cpio -pdm --quiet $(lib_dir)
+	cd src; find . -name '*.txt' | cpio -pdm --quiet $(lib_dir)
 
 	chown root:root $(lib_dir)/*
 	chmod 644 $(lib_dir)
@@ -61,8 +61,8 @@ endif
 	mkdir -p $(data_dir)
 
 	echo "Creating virtual environment for Python 3.12 and installing packages..."
-	python3.12 -m venv $(venv)
-	$(venv)/bin/pip3 install -r requirements.txt
+	python3.12 -m venv $(venv) > /dev/null
+	$(venv)/bin/pip3 install -r requirements.txt > /dev/null
 
 	echo "Creating the initial configuration..."
 	DIASPORA_SERVICE_MODE=1 $(venv)/bin/python $(lib_dir)/setup.py
@@ -76,9 +76,8 @@ endif
 
 	echo "----------------------------------------------------------------"
 	echo "Installation complete."
-	echo "run 'systemctl start $(unit_name)' to start the service"
-	echo "run 'systemctl status $(unit_name)' to view status"
-	echo "run 'systemctl stop $(unit_name)' to stop the service"
+	echo "- Run 'systemctl {start|stop|restart|status} $(unit_name)' to control the service."
+	echo "- The service configuration file is $(conf_dir)/settings.yaml.  Restart the service after editing it."
 	echo "----------------------------------------------------------------"
 
 uninstall:
