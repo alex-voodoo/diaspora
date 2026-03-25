@@ -10,7 +10,7 @@ import string
 import joblib
 import numpy as np
 import telegram
-from openai import OpenAI
+from openai import AsyncOpenAI, OpenAI
 from telegram import InlineKeyboardButton, Update
 from telegram.ext import Application, CallbackQueryHandler, ConversationHandler, ContextTypes, filters, MessageHandler
 
@@ -107,6 +107,64 @@ def detect_openai(text: str) -> float:
 
     return prediction[0][1]
 
+async def detect_prompt(text: str) -> bool:
+    """Detect spam using an LLM prompt (reasoning model)
+
+    Returns True if the model classifies the message as spam.
+    """
+
+    client = AsyncOpenAI(api_key=settings.ANTISPAM_OPENAI_API_KEY)
+
+    completion = await client.chat.completions.create(
+        model="gpt-5.2",
+        reasoning_effort="low",
+        response_format={"type": "json_object"},
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are a spam detector for a Telegram group dedicated to expat life in Galicia, Spain. "
+                    "You will receive the first message of a new group member. "
+                    "Classify whether it is spam.\n\n"
+                    "The following content counts as spam:\n"
+                    "- Promotion of easy money earning (e.g. work-from-home schemes, passive income, MLM)\n"
+                    "- Promotion of services obviously irrelevant to Galicia or Spain\n"
+                    "- Promotion of cryptocurrency exchange or investment\n\n"
+                    "Reply ONLY with valid JSON in the form: "
+                    '{"reasoning": "<brief explanation>", "value": true or false}'
+                ),
+            },
+            {
+                "role": "user",
+                "content": text,
+            },
+        ],
+    )
+
+    raw = completion.choices[0].message.content
+    try:
+        result = json.loads(raw)
+        value = result.get("value")
+        if isinstance(value, bool):
+            is_spam_flag = value
+        elif isinstance(value, str) and value.lower() in ("true", "false"):
+            is_spam_flag = value.lower() == "true"
+        else:
+            raise ValueError("Invalid or missing 'value' field in antispam response")
+        logger.info(
+            "Prompt detection result: reasoning={r}, value={v}".format(
+                r=result.get("reasoning", ""), v=is_spam_flag
+            )
+        )
+        return is_spam_flag
+
+    except (json.JSONDecodeError, AttributeError, TypeError, ValueError) as e:
+        logger.error(
+            "Could not parse prompt detection response: {raw}".format(raw=raw),
+            exc_info=e,
+        )
+        return False
+
 
 def save_new_openai(data: io.BytesIO) -> bool:
     """Tries to load the new OpenAI model from `data`
@@ -132,7 +190,7 @@ def save_new_openai(data: io.BytesIO) -> bool:
     return True
 
 
-def is_spam(message: telegram.Message) -> bool:
+async def is_spam(message: telegram.Message) -> bool:
     """Evaluates `text` and returns whether it looks like spam
 
     The evaluation is two-step: first the keywords are looked for, and if there were any, the OpenAI model is called.
@@ -161,6 +219,10 @@ def is_spam(message: telegram.Message) -> bool:
         confidence = detect_openai(message.text)
         if confidence > settings.ANTISPAM_OPENAI_CONFIDENCE_THRESHOLD:
             layers.append('openai')
+
+    if 'prompt' in settings.ANTISPAM_ENABLED and await detect_prompt(message.text):
+        confidence = 1
+        layers.append('prompt')
 
     if len(layers) == 0:
         return False
@@ -193,7 +255,7 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         return
 
     try:
-        if not is_spam(message):
+        if not await is_spam(message):
             logger.info("The first message from user {full_name} (ID {id}) looks good".format(full_name=user.full_name,
                                                                                               id=user.id))
             db.register_good_member(user.id)
@@ -303,18 +365,20 @@ def init(application: Application, group):
                            InlineKeyboardButton(trans.gettext("ANTISPAM_BUTTON_UPLOAD_ANTISPAM_KEYWORDS"),
                                                 callback_data=ADMIN_UPLOAD_KEYWORDS)),))
 
+    if 'openai' in settings.ANTISPAM_ENABLED or 'prompt' in settings.ANTISPAM_ENABLED:
+        application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=ADMIN_DOWNLOAD_SPAM))
+
+        register_buttons(((InlineKeyboardButton(trans.gettext("ANTISPAM_BUTTON_DOWNLOAD_SPAM"),
+                                                callback_data=ADMIN_DOWNLOAD_SPAM),),))
+
     if 'openai' in settings.ANTISPAM_ENABLED:
         application.add_handler(
             ConversationHandler(entry_points=[CallbackQueryHandler(handle_query_admin, pattern=ADMIN_UPLOAD_OPENAI)],
                                 states={ADMIN_UPLOADING_OPENAI: [
                                     MessageHandler(filters.ATTACHMENT, handle_received_openai)]}, fallbacks=[]))
 
-        application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=ADMIN_DOWNLOAD_SPAM))
-
-        register_buttons(((InlineKeyboardButton(trans.gettext("ANTISPAM_BUTTON_DOWNLOAD_SPAM"),
-                                                callback_data=ADMIN_DOWNLOAD_SPAM),
-                           InlineKeyboardButton(trans.gettext("ANTISPAM_BUTTON_UPLOAD_ANTISPAM_OPENAI"),
-                                                callback_data=ADMIN_UPLOAD_OPENAI)),))
+        register_buttons(((InlineKeyboardButton(trans.gettext("ANTISPAM_BUTTON_UPLOAD_ANTISPAM_OPENAI"),
+                                                callback_data=ADMIN_UPLOAD_OPENAI),),))
 
     application.add_handler(MessageHandler(filters.TEXT & (~ filters.COMMAND), detect_spam), group=group)
 

@@ -155,10 +155,13 @@ class Settings:
         # the good user before sending spam.  Therefore, to eliminate most spam, it should be enough to evaluate the
         # first message a new user sends to the group.
 
-        # Enabled layers of spam detection.  Can be any combination of: emojis, keywords, openai.  Order does not make
-        # any difference.  Example:
+        # Enabled layers of spam detection.  Can be any combination of: emojis, keywords, openai, prompt.  Order does
+        # not make any difference.  The `prompt` layer uses an LLM prompt (reasoning model) to classify the first
+        # message of a new user as spam or not.  The `openai` layer uses an embedding-based SVM model.  Both layers
+        # require ANTISPAM_OPENAI_API_KEY to be set.  Example:
         #
         # ANTISPAM_ENABLED:
+        # - prompt
         # - openai
         # - emojis
         # - keywords
@@ -361,4 +364,3 @@ def update_settings_yaml(bot_token) -> None:
             os.remove(backup_backup_path)
     except OSError as e:
         logging.error(e)
-
