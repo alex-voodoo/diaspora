@@ -144,14 +144,20 @@ def detect_prompt(text: str) -> bool:
     raw = completion.choices[0].message.content
     try:
         result = json.loads(raw)
-        is_spam_flag = bool(result.get("value", False))
+        value = result.get("value")
+        if isinstance(value, bool):
+            is_spam_flag = value
+        elif isinstance(value, str) and value.lower() in ("true", "false"):
+            is_spam_flag = value.lower() == "true"
+        else:
+            raise ValueError("Invalid or missing 'value' field in antispam response")
         logger.info(
             "Prompt detection result: reasoning={r}, value={v}".format(
                 r=result.get("reasoning", ""), v=is_spam_flag
             )
         )
         return is_spam_flag
-    except (json.JSONDecodeError, AttributeError) as e:
+    except (json.JSONDecodeError, AttributeError, ValueError) as e:
         logger.error(
             "Could not parse prompt detection response: {raw}".format(raw=raw),
             exc_info=e,
