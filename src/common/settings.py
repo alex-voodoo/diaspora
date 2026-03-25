@@ -233,12 +233,10 @@ class Settings:
         self.MODERATION_IS_REAL = False
         # Ladder of restrictions.  Defines how a participant would progress if they keep violating rules of the chat and
         # do not let their most recent restriction to cool down (see README for the detailed explanation).
-        self.MODERATION_RESTRICTION_LADDER = [
-            {"action": "warn", "cooldown": 60},
-            {"action": "restrict", "duration": 60, "cooldown": 60},
-            {"action": "restrict", "duration": 180, "cooldown": 180},
-            {"action": "ban"},
-        ]
+        self.MODERATION_RESTRICTION_LADDER = [{"action": "warn", "cooldown": 60},
+                                              {"action": "restrict", "duration": 60, "cooldown": 60},
+                                              {"action": "restrict", "duration": 180, "cooldown": 180},
+                                              {"action": "ban"}]
 
         # YAML_SETTINGS
 
@@ -252,9 +250,7 @@ class Settings:
         # Try to load settings.
         config_path = self.conf_dir / "settings.yaml"
         if not config_path.is_file():
-            logging.warning(
-                f"{config_path} does not exist (yet?), cannot load settings."
-            )
+            logging.warning(f"{config_path} does not exist (yet?), cannot load settings.")
             return
 
         logging.info(f"Loading settings from {config_path}")
@@ -264,7 +260,7 @@ class Settings:
             if hasattr(self, k):
                 setattr(self, k, v)
             else:
-                logging.warning(f'Unknown setting "{k}"')
+                logging.warning(f"Unknown setting \"{k}\"")
 
         # TODO: Move this out of settings to some better place?
         self._start_timestamp = util.rounded_now()
@@ -297,29 +293,20 @@ def update_settings_yaml(bot_token) -> None:
     """Renders a new settings.yaml, preserving the existing settings and adding new ones"""
 
     target_yaml_path = settings.conf_dir / _SETTINGS_FILENAME
-    existing_user_settings = (
-        yaml.safe_load(open(target_yaml_path)) if target_yaml_path.is_file() else dict()
-    )
-    assert bot_token != "" or (
-        settings.BOT_TOKEN != "" and settings.BOT_TOKEN != INVALID_BOT_TOKEN
-    )
+    existing_user_settings = yaml.safe_load(open(target_yaml_path)) if target_yaml_path.is_file() else dict()
+    assert bot_token != "" or (settings.BOT_TOKEN != "" and settings.BOT_TOKEN != INVALID_BOT_TOKEN)
 
     new_path = target_yaml_path.with_suffix(".yaml.new")
 
     with open(__file__, "r") as inp:
-        yaml_settings = (
-            inp.read()
-            .split("# YAML_SETTINGS\n")[1]
-            .replace(INVALID_BOT_TOKEN, bot_token.replace('"', '\\"'))
-        )
+        yaml_settings = inp.read().split("# YAML_SETTINGS\n")[1].replace(INVALID_BOT_TOKEN,
+                                                                         bot_token.replace("\"", "\\\""))
 
         with open(new_path, "w") as new_settings:
-            new_settings.write(
-                "%YAML 1.2\n"
-                "---\n"
-                "# Configuration for the Diaspora Telegram bot\n"
-                "\n"
-            )
+            new_settings.write("%YAML 1.2\n"
+                               "---\n"
+                               "# Configuration for the Diaspora Telegram bot\n"
+                               "\n")
 
             lines = []
 
@@ -335,20 +322,9 @@ def update_settings_yaml(bot_token) -> None:
                 assert current_name and current_value
 
                 overridden = current_name in existing_user_settings.keys()
-                mandatory = current_name in (
-                    "BOT_TOKEN",
-                    "DEVELOPER_CHAT_ID",
-                    "MAIN_CHAT_ID",
-                )
-                for l in yaml.dump(
-                    {
-                        current_name: (
-                            existing_user_settings[current_name]
-                            if overridden
-                            else eval(current_value)
-                        )
-                    }
-                ).splitlines():
+                mandatory = current_name in ("BOT_TOKEN", "DEVELOPER_CHAT_ID", "MAIN_CHAT_ID")
+                for l in yaml.dump({current_name: existing_user_settings[current_name] if overridden else eval(
+                        current_value)}).splitlines():
                     if overridden or mandatory:
                         lines.append(l)
                     else:
@@ -364,7 +340,7 @@ def update_settings_yaml(bot_token) -> None:
                     continue
                 if line.startswith("self."):
                     commit()
-                    line = line[len("self.") :]
+                    line = line[len("self."):]
                     current_name, current_value = [p.strip() for p in line.split("=")]
                 else:
                     current_value += line
