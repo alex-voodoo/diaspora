@@ -358,25 +358,20 @@ def init(application: Application, group):
                            InlineKeyboardButton(trans.gettext("ANTISPAM_BUTTON_UPLOAD_ANTISPAM_KEYWORDS"),
                                                 callback_data=ADMIN_UPLOAD_KEYWORDS)),))
 
+    if 'openai' in settings.ANTISPAM_ENABLED or 'prompt' in settings.ANTISPAM_ENABLED:
+        application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=ADMIN_DOWNLOAD_SPAM))
+
+        register_buttons(((InlineKeyboardButton(trans.gettext("ANTISPAM_BUTTON_DOWNLOAD_SPAM"),
+                                                callback_data=ADMIN_DOWNLOAD_SPAM),),))
+
     if 'openai' in settings.ANTISPAM_ENABLED:
         application.add_handler(
             ConversationHandler(entry_points=[CallbackQueryHandler(handle_query_admin, pattern=ADMIN_UPLOAD_OPENAI)],
                                 states={ADMIN_UPLOADING_OPENAI: [
                                     MessageHandler(filters.ATTACHMENT, handle_received_openai)]}, fallbacks=[]))
 
-        application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=ADMIN_DOWNLOAD_SPAM))
-
-        register_buttons(((InlineKeyboardButton(trans.gettext("ANTISPAM_BUTTON_DOWNLOAD_SPAM"),
-                                                callback_data=ADMIN_DOWNLOAD_SPAM),
-                           InlineKeyboardButton(trans.gettext("ANTISPAM_BUTTON_UPLOAD_ANTISPAM_OPENAI"),
-                                                callback_data=ADMIN_UPLOAD_OPENAI)),))
-
-    if 'prompt' in settings.ANTISPAM_ENABLED and 'openai' not in settings.ANTISPAM_ENABLED:
-        # Register spam download button only if openai layer hasn't already done so
-        application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=ADMIN_DOWNLOAD_SPAM))
-
-        register_buttons(((InlineKeyboardButton(trans.gettext("ANTISPAM_BUTTON_DOWNLOAD_SPAM"),
-                                                callback_data=ADMIN_DOWNLOAD_SPAM),),))
+        register_buttons(((InlineKeyboardButton(trans.gettext("ANTISPAM_BUTTON_UPLOAD_ANTISPAM_OPENAI"),
+                                                callback_data=ADMIN_UPLOAD_OPENAI),),))
 
     application.add_handler(MessageHandler(filters.TEXT & (~ filters.COMMAND), detect_spam), group=group)
 
