@@ -10,7 +10,7 @@ import string
 import joblib
 import numpy as np
 import telegram
-from openai import OpenAI
+from openai import AsyncOpenAI, OpenAI
 from telegram import InlineKeyboardButton, Update
 from telegram.ext import Application, CallbackQueryHandler, ConversationHandler, ContextTypes, filters, MessageHandler
 
@@ -107,15 +107,15 @@ def detect_openai(text: str) -> float:
 
     return prediction[0][1]
 
-def detect_prompt(text: str) -> bool:
+async def detect_prompt(text: str) -> bool:
     """Detect spam using an LLM prompt (reasoning model)
 
     Returns True if the model classifies the message as spam.
     """
 
-    client = OpenAI(api_key=settings.ANTISPAM_OPENAI_API_KEY)
+    client = AsyncOpenAI(api_key=settings.ANTISPAM_OPENAI_API_KEY)
 
-    completion = client.chat.completions.create(
+    completion = await client.chat.completions.create(
         model="gpt-5.2",
         reasoning_effort="low",
         response_format={"type": "json_object"},
@@ -190,7 +190,7 @@ def save_new_openai(data: io.BytesIO) -> bool:
     return True
 
 
-def is_spam(message: telegram.Message) -> bool:
+async def is_spam(message: telegram.Message) -> bool:
     """Evaluates `text` and returns whether it looks like spam
 
     The evaluation is two-step: first the keywords are looked for, and if there were any, the OpenAI model is called.
@@ -220,7 +220,7 @@ def is_spam(message: telegram.Message) -> bool:
         if confidence > settings.ANTISPAM_OPENAI_CONFIDENCE_THRESHOLD:
             layers.append('openai')
 
-    if 'prompt' in settings.ANTISPAM_ENABLED and detect_prompt(message.text):
+    if 'prompt' in settings.ANTISPAM_ENABLED and await detect_prompt(message.text):
         confidence = 1
         layers.append('prompt')
 
@@ -255,7 +255,7 @@ async def detect_spam(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         return
 
     try:
-        if not is_spam(message):
+        if not await is_spam(message):
             logger.info("The first message from user {full_name} (ID {id}) looks good".format(full_name=user.full_name,
                                                                                               id=user.id))
             db.register_good_member(user.id)
