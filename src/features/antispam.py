@@ -151,7 +151,7 @@ def detect_prompt(text: str) -> bool:
             )
         )
         return is_spam_flag
-    except (json.JSONDecodeError, AttributeError) as e:
+    except (json.JSONDecodeError, AttributeError, TypeError) as e:
         logger.error(
             "Could not parse prompt detection response: {raw}".format(raw=raw),
             exc_info=e,
