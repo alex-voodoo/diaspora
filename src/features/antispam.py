@@ -107,6 +107,57 @@ def detect_openai(text: str) -> float:
 
     return prediction[0][1]
 
+def detect_prompt(text: str) -> bool:
+    """Detect spam using an LLM prompt (reasoning model)
+
+    Returns True if the model classifies the message as spam.
+    """
+
+    client = OpenAI(api_key=settings.ANTISPAM_OPENAI_API_KEY)
+
+    completion = client.chat.completions.create(
+        model="gpt-5.2",
+        reasoning_effort="low",
+        response_format={"type": "json_object"},
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are a spam detector for a Telegram group dedicated to expat life in Galicia, Spain. "
+                    "You will receive the first message of a new group member. "
+                    "Classify whether it is spam.\n\n"
+                    "The following content counts as spam:\n"
+                    "- Promotion of easy money earning (e.g. work-from-home schemes, passive income, MLM)\n"
+                    "- Promotion of services obviously irrelevant to Galicia or Spain\n"
+                    "- Promotion of cryptocurrency exchange or investment\n\n"
+                    "Reply ONLY with valid JSON in the form: "
+                    '{"reasoning": "<brief explanation>", "value": true or false}'
+                ),
+            },
+            {
+                "role": "user",
+                "content": text,
+            },
+        ],
+    )
+
+    raw = completion.choices[0].message.content
+    try:
+        result = json.loads(raw)
+        is_spam_flag = bool(result.get("value", False))
+        logger.info(
+            "Prompt detection result: reasoning={r}, value={v}".format(
+                r=result.get("reasoning", ""), v=is_spam_flag
+            )
+        )
+        return is_spam_flag
+    except (json.JSONDecodeError, AttributeError) as e:
+        logger.error(
+            "Could not parse prompt detection response: {raw}".format(raw=raw),
+            exc_info=e,
+        )
+        return False
+
 
 def save_new_openai(data: io.BytesIO) -> bool:
     """Tries to load the new OpenAI model from `data`
@@ -161,6 +212,10 @@ def is_spam(message: telegram.Message) -> bool:
         confidence = detect_openai(message.text)
         if confidence > settings.ANTISPAM_OPENAI_CONFIDENCE_THRESHOLD:
             layers.append('openai')
+
+    if 'prompt' in settings.ANTISPAM_ENABLED and detect_prompt(message.text):
+        confidence = 1
+        layers.append('prompt')
 
     if len(layers) == 0:
         return False
@@ -315,6 +370,13 @@ def init(application: Application, group):
                                                 callback_data=ADMIN_DOWNLOAD_SPAM),
                            InlineKeyboardButton(trans.gettext("ANTISPAM_BUTTON_UPLOAD_ANTISPAM_OPENAI"),
                                                 callback_data=ADMIN_UPLOAD_OPENAI)),))
+
+    if 'prompt' in settings.ANTISPAM_ENABLED and 'openai' not in settings.ANTISPAM_ENABLED:
+        # Register spam download button only if openai layer hasn't already done so
+        application.add_handler(CallbackQueryHandler(handle_query_admin, pattern=ADMIN_DOWNLOAD_SPAM))
+
+        register_buttons(((InlineKeyboardButton(trans.gettext("ANTISPAM_BUTTON_DOWNLOAD_SPAM"),
+                                                callback_data=ADMIN_DOWNLOAD_SPAM),),))
 
     application.add_handler(MessageHandler(filters.TEXT & (~ filters.COMMAND), detect_spam), group=group)
 
