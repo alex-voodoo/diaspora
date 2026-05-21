@@ -149,9 +149,13 @@ class Provider:
     def delete(cls, tg_id: int) -> None:
         db.sql_exec(f"DELETE FROM {_PROVIDERS} WHERE tg_id=?", (tg_id,))
 
-        existing_provider = cls._id_index[tg_id]
-        del cls._username_index[existing_provider.tg_username]
-        del cls._id_index[tg_id]
+        try:
+            existing_provider = cls._id_index[tg_id]
+            del cls._username_index[existing_provider.tg_username]
+            del cls._id_index[tg_id]
+        except KeyError:
+            # This may happen if the user did not have any record but said that their service is not legal.
+            pass
 
     @classmethod
     def _cache(cls, data):

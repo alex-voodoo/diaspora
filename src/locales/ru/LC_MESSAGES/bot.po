@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-03-20 22:35+0100\n"
+"POT-Creation-Date: 2026-05-21 11:48+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -135,47 +135,47 @@ msgstr ""
 "Случилось страшное:\n"
 "{error}"
 
-#: features/antispam.py:210
+#: features/antispam.py:272
 msgid "ANTISPAM_MESSAGE_MC_SPAM_DETECTED_M {username}"
 msgstr "⛔️ Я удалил сообщение пользователя {username}, похожее на спам. Если я ошибся, напишите администраторам."
 
-#: features/antispam.py:212
+#: features/antispam.py:274
 msgid "ANTISPAM_MESSAGE_MC_SPAM_DETECTED_F {username}"
 msgstr "⛔️ Я удалила сообщение пользователя {username}, похожее на спам. Если я ошиблась, напишите администраторам."
 
-#: features/antispam.py:238
+#: features/antispam.py:300
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_REQUEST_KEYWORDS"
 msgstr "Ожидаю текстовый файл с ключевыми словами."
 
-#: features/antispam.py:242
+#: features/antispam.py:304
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_REQUEST_OPENAI"
 msgstr "Ожидаю файл .joblib, содержащий модель OpenAI."
 
-#: features/antispam.py:256
+#: features/antispam.py:318
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_KEYWORDS_UPDATED"
 msgstr "Принято."
 
-#: features/antispam.py:277
+#: features/antispam.py:339
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_OPENAI_UPDATED"
 msgstr "Принято."
 
-#: features/antispam.py:279
+#: features/antispam.py:341
 msgid "ANTISPAM_MESSAGE_DM_ADMIN_OPENAI_CANNOT_USE"
 msgstr "Не удалось загрузить новую модель."
 
-#: features/antispam.py:301
+#: features/antispam.py:363
 msgid "ANTISPAM_BUTTON_DOWNLOAD_ANTISPAM_KEYWORDS"
 msgstr "Выгрузить стоп-слова"
 
-#: features/antispam.py:303
+#: features/antispam.py:365
 msgid "ANTISPAM_BUTTON_UPLOAD_ANTISPAM_KEYWORDS"
 msgstr "Загрузить стоп-слова"
 
-#: features/antispam.py:314
+#: features/antispam.py:371
 msgid "ANTISPAM_BUTTON_DOWNLOAD_SPAM"
 msgstr "Выгрузить спам"
 
-#: features/antispam.py:316
+#: features/antispam.py:380
 msgid "ANTISPAM_BUTTON_UPLOAD_ANTISPAM_OPENAI"
 msgstr "Загрузить модель OpenAI"
 
@@ -560,7 +560,7 @@ msgstr "Я кое-что исправлю"
 msgid "SERVICES_PING_BUTTON_DELETE_ALL"
 msgstr "🗑️ Удалить всё"
 
-#: features/services/keyboards_test.py:117 features/services/state.py:204
+#: features/services/keyboards_test.py:117 features/services/state.py:208
 #: features/services/state_test.py:134 features/services/state_test.py:143
 msgid "SERVICES_CATEGORY_OTHER_TITLE"
 msgstr "Другое"
@@ -688,7 +688,7 @@ msgstr ""
 "\n"
 "Ваши данные обновлены, и люди смогут связаться с вами по вашему новому имени. Если вы хотели начать сначала и удалить все свои данные, сделайте это самостоятельно."
 
-#: features/services/state.py:372
+#: features/services/state.py:376
 msgid "SERVICES_CATEGORY_LIST_TITLE"
 msgstr "Список категорий"
 
