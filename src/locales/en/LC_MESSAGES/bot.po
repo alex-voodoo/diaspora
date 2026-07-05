@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-05-21 11:48+0200\n"
+"POT-Creation-Date: 2026-07-05 15:54+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -241,6 +241,30 @@ msgstr "Download glossary"
 msgid "GLOSSARY_BUTTON_UPLOAD_TERMS"
 msgstr "Upload glossary"
 
+#: features/moderation/admin.py:42
+msgid "MODERATION_MESSAGE_DM_ADMIN_REQUEST_COMPLAINT_REASONS"
+msgstr "Awaiting a JSON file."
+
+#: features/moderation/admin.py:71
+msgid "MODERATION_MESSAGE_DM_ADMIN_COMPLAINT_REASONS_IMPORTED"
+msgstr "Accepted."
+
+#: features/moderation/admin.py:74
+msgid "MODERATION_MESSAGE_DM_ADMIN_INVALID_JSON"
+msgstr "File format error."
+
+#: features/moderation/admin.py:77 features/services/admin.py:79
+msgid "ADMIN_MESSAGE_DM_INTERNAL_ERROR"
+msgstr "An internal error occurred.  See details in the log."
+
+#: features/moderation/admin.py:91
+msgid "MODERATION_ADMIN_BUTTON_EXPORT_COMPLAINT_REASONS"
+msgstr "Export complaint reasons"
+
+#: features/moderation/admin.py:93
+msgid "MODERATION_ADMIN_BUTTON_IMPORT_COMPLAINT_REASONS"
+msgstr "Import complaint reasons"
+
 #: features/moderation/core.py:21
 msgid "MODERATION_ACCEPT_COMPLAINT_ANSWER_ACCEPT"
 msgstr "Accept"
@@ -348,10 +372,6 @@ msgstr "Accepted."
 #: features/services/admin.py:76
 msgid "SERVICES_MESSAGE_DM_ADMIN_INVALID_JSON"
 msgstr "File format error."
-
-#: features/services/admin.py:79
-msgid "ADMIN_MESSAGE_DM_INTERNAL_ERROR"
-msgstr "An internal error occurred.  See details in the log."
 
 #: features/services/admin.py:90
 msgid "SERVICES_VIEW_COUNT_S {count}"

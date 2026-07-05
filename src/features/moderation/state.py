@@ -351,5 +351,16 @@ class Restriction:
         return Restriction(restriction._user_tg_id, new_level, new_until_timestamp, new_cooldown_until_timestamp)
 
 
+def export_complaint_reasons() -> list:
+    return [reason for reason in db.sql_query("SELECT * FROM moderation_complaint_reasons")]
+
+
+def import_complaint_reasons(data: list):
+    db.sql_exec("DELETE FROM moderation_complaint_reasons")
+    for reason in data:
+        db.sql_exec("INSERT INTO moderation_complaint_reasons(id, title) VALUES(?, ?)",
+                    (reason["id"], reason["title"]))
+
+
 def init() -> None:
     MainChatMessage.maybe_delete_old_messages()

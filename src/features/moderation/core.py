@@ -14,7 +14,7 @@ from telegram.ext import Application, CallbackQueryHandler, ContextTypes, filter
 from common import checks, i18n
 from common.bot import forward_message, reply, send, send_poll, stop_poll, get_chat_member_count, restrict_chat_member
 from common.settings import settings
-from . import const, keyboards, state
+from . import admin, const, keyboards, state
 
 
 def _accept_complaint_option() -> str:
@@ -279,5 +279,7 @@ def init(application: Application, group):
         CallbackQueryHandler(_accept_complaint_reason, pattern=re.compile("^[0-9]+:[-0-9]+:[0-9]+$")), group=group)
 
     application.add_handler(PollHandler(_handle_complaint_poll))
+
+    admin.register_handlers(application, group)
 
     state.ComplaintReason.load()

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-05-21 11:48+0200\n"
+"POT-Creation-Date: 2026-07-05 15:54+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -243,6 +243,30 @@ msgstr "Выгрузить глоссарий"
 msgid "GLOSSARY_BUTTON_UPLOAD_TERMS"
 msgstr "Загрузить глоссарий"
 
+#: features/moderation/admin.py:42
+msgid "MODERATION_MESSAGE_DM_ADMIN_REQUEST_COMPLAINT_REASONS"
+msgstr "Ожидаю JSON-файл."
+
+#: features/moderation/admin.py:71
+msgid "MODERATION_MESSAGE_DM_ADMIN_COMPLAINT_REASONS_IMPORTED"
+msgstr "Принято."
+
+#: features/moderation/admin.py:74
+msgid "MODERATION_MESSAGE_DM_ADMIN_INVALID_JSON"
+msgstr "Неверный формат файла."
+
+#: features/moderation/admin.py:77 features/services/admin.py:79
+msgid "ADMIN_MESSAGE_DM_INTERNAL_ERROR"
+msgstr "Произошла внутренняя ошибка. Подробности должны быть в журнале."
+
+#: features/moderation/admin.py:91
+msgid "MODERATION_ADMIN_BUTTON_EXPORT_COMPLAINT_REASONS"
+msgstr "Выгрузить причины жалоб"
+
+#: features/moderation/admin.py:93
+msgid "MODERATION_ADMIN_BUTTON_IMPORT_COMPLAINT_REASONS"
+msgstr "Загрузить причины жалоб"
+
 #: features/moderation/core.py:21
 msgid "MODERATION_ACCEPT_COMPLAINT_ANSWER_ACCEPT"
 msgstr "Принять"
@@ -352,10 +376,6 @@ msgstr "Принято."
 #: features/services/admin.py:76
 msgid "SERVICES_MESSAGE_DM_ADMIN_INVALID_JSON"
 msgstr "Неверный формат файла."
-
-#: features/services/admin.py:79
-msgid "ADMIN_MESSAGE_DM_INTERNAL_ERROR"
-msgstr "Произошла внутренняя ошибка. Подробности должны быть в журнале."
 
 #: features/services/admin.py:90
 msgid "SERVICES_VIEW_COUNT_S {count}"
