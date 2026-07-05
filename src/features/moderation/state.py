@@ -361,6 +361,8 @@ def import_complaint_reasons(data: list):
         db.sql_exec("INSERT INTO moderation_complaint_reasons(id, title) VALUES(?, ?)",
                     (reason["id"], reason["title"]))
 
+    ComplaintReason.load()
+
 
 def init() -> None:
     MainChatMessage.maybe_delete_old_messages()
