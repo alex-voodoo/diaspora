@@ -138,9 +138,9 @@ async def _handle_complaint_poll(update: Update, context: ContextTypes.DEFAULT_T
     closes the poll and calls `_handle_poll_outcome()`.
     """
 
-    chat_id = settings.MODERATION_CHAT_ID
     # TODO: move setting the moderator count to init()?  Maybe add handler for people joining the group and recalculate?
-    moderator_count = await get_chat_member_count(context, chat_id) - settings.MODERATION_CHAT_BOT_COUNT
+    moderator_count = await get_chat_member_count(context,
+                                                  settings.MODERATION_CHAT_ID) - settings.MODERATION_CHAT_BOT_COUNT
     poll = update.poll
 
     if poll.is_closed:
