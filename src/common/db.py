@@ -62,6 +62,15 @@ def _apply_migrations() -> None:
     _db_connection.commit()
 
 
+def _format_log_query(query: str, parameters: tuple):
+    if not parameters:
+        return query
+    params = []
+    for p in parameters:
+        fixed_p = p if not (type(p) == str and len(p) > 20) else p[:20]
+        params.append(f"\"{fixed_p}\"" if type(fixed_p) == str else str(fixed_p))
+    return f"{query} ({", ".join(params)})"
+
 def connect(path: pathlib.Path = None) -> None:
     """Initialise the DB connection
 
@@ -149,7 +158,7 @@ def sql_exec(query: str, parameters: tuple = ()) -> None:
     Commits the transaction immediately after executing the query.
     """
 
-    with LogTime(query):
+    with LogTime(_format_log_query(query, parameters)):
         cursor().execute(query, parameters)
         commit()
 
@@ -163,7 +172,7 @@ def sql_query(query: str, parameters: tuple = ()) -> Iterator[dict]:
     `query` and `parameters` are passed directly to `sqlite3.Cursor.execute()` method.
     """
 
-    with LogTime(query):
+    with LogTime(_format_log_query(query, parameters)):
         c = cursor()
         for record in c.execute(query, parameters):
             yield {key: value for (key, value) in zip((i[0] for i in c.description), record)}

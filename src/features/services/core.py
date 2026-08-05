@@ -624,7 +624,7 @@ async def _check_providers(context: ContextTypes.DEFAULT_TYPE) -> None:
         try:
             chat_member = await context.bot.get_chat_member(settings.MAIN_CHAT_ID, provider.tg_id)
             if isinstance(chat_member, ChatMemberLeft) or isinstance(chat_member, ChatMemberBanned):
-                logging.info(f"User {provider} is not found in the main chat")
+                logging.info(f"User {provider} is not found in the main chat, will delete them")
                 provider_ids_to_remove.append(provider.tg_id)
                 continue
 
@@ -632,10 +632,11 @@ async def _check_providers(context: ContextTypes.DEFAULT_TYPE) -> None:
                 if provider.remaining_ping_count > 0:
                     await _ping_provider(context, provider)
                 else:
+                    logging.info(f"User {provider} has no pings remaining, will delete them")
                     provider_ids_to_remove.append(provider.tg_id)
 
         except BadRequest as e:
-            logging.info(f"Exception when checking provider {provider}: {e}")
+            logging.info(f"Exception when checking provider {provider}, will delete them: {e}")
             provider_ids_to_remove.append(provider.tg_id)
 
     for provider_id in provider_ids_to_remove:
