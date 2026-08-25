@@ -9,7 +9,7 @@ import re
 from collections.abc import Awaitable, Callable
 
 from telegram import ChatMemberBanned, ChatMemberLeft, Update
-from telegram.error import BadRequest
+from telegram.error import BadRequest, Forbidden
 from telegram.ext import Application, CallbackQueryHandler, ContextTypes, ConversationHandler, filters, MessageHandler
 
 from common import i18n
@@ -634,9 +634,13 @@ async def _check_providers(context: ContextTypes.DEFAULT_TYPE) -> None:
                 else:
                     logging.info(f"User {provider} has no pings remaining, will delete them")
                     provider_ids_to_remove.append(provider.tg_id)
-
+        except Forbidden as e:
+            logging.info(f"Forbidden exception {e} when checking provider {provider}.  "
+                         f"Likely the user has blocked the bot, will delete them.")
+            provider_ids_to_remove.append(provider.tg_id)
         except BadRequest as e:
-            logging.info(f"Exception when checking provider {provider}, will delete them: {e}")
+            logging.info(f"BadRequest exception {e} when checking provider {provider}.  "
+                         f"Likely the user has left the group, will delete them.")
             provider_ids_to_remove.append(provider.tg_id)
 
     for provider_id in provider_ids_to_remove:
