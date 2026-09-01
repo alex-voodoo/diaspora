@@ -1,0 +1,24 @@
+CREATE TABLE "new_services_services" (
+    "provider_tg_id"    INTEGER NOT NULL,
+    "category_id"       INTEGER NOT NULL DEFAULT 0,
+    "is_suspended"      INTEGER NOT NULL DEFAULT 0,
+    "last_modified"     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "occupation"        TEXT NOT NULL,
+    "description"       TEXT NOT NULL,
+    "location"          TEXT NOT NULL,
+	PRIMARY KEY ("provider_tg_id", "category_id"),
+    FOREIGN KEY ("provider_tg_id")
+        REFERENCES "services_providers" ("tg_id")
+        ON DELETE CASCADE,
+    FOREIGN KEY ("category_id")
+        REFERENCES "services_categories" ("id")
+        ON DELETE SET DEFAULT
+);
+
+INSERT OR REPLACE INTO "new_services_services" ("provider_tg_id","category_id","is_suspended","last_modified","occupation","description","location")
+SELECT "provider_tg_id","category_id","is_suspended","last_modified","occupation","description","location" FROM "services_services" ORDER BY "last_modified";
+
+DROP TABLE "services_services";
+
+ALTER TABLE "new_services_services"
+RENAME TO "services_services";
