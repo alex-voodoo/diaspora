@@ -258,10 +258,6 @@ async def _handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         _maybe_log_message(update)
     elif chat.type == ChatType.PRIVATE and update.effective_message.forward_origin is not None:
         await _maybe_start_complaint(update, context)
-    elif chat.id == settings.MODERATION_CHAT_ID:
-        pass
-    else:
-        logging.error("This should not come here!")
 
 
 def init(application: Application, group):
