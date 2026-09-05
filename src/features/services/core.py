@@ -93,6 +93,13 @@ async def show_main_status(update: Update, context: ContextTypes.DEFAULT_TYPE, p
     user = update.effective_user
 
     records = [r for r in state.Service.get_all_by_user(user.id)]
+    try:
+        state.Provider.get_by_tg_id(user.id)
+    except state.Provider.NotFound:
+        logging.error(
+            "This is {username} (ID {id}) that has records already, but their Provider record is not found".format(
+                id=user.id, username=user.username))
+        records = None
 
     trans = i18n.trans(user)
 

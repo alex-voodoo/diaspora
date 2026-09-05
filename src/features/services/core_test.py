@@ -29,11 +29,11 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
     def tearDown(self):
         load_test_categories(0)
 
-    def _create_chat_user_context(self, username=None) -> tuple[Chat, User, CallbackContext]:
+    def _create_chat_user_context(self, user_id=None, username=None) -> tuple[Chat, User, CallbackContext]:
         """Create a set of objects needed in many test cases"""
 
         chat = Chat(id=12345, type=Chat.PRIVATE)
-        user = User(id=67890, first_name="Joe", is_bot=False, username=username)
+        user = User(id=user_id or 67890, first_name="Joe", is_bot=False, username=username)
 
         return chat, user, CallbackContext(application=self.application, chat_id=chat.id, user_id=user.id)
 
@@ -161,7 +161,7 @@ class TestCore(unittest.IsolatedAsyncioTestCase):
 
         state.Service.set_bot_username("bot_username")
 
-        chat, user, context = self._create_chat_user_context()
+        chat, user, context = self._create_chat_user_context(user_id=tg_id)
         update = self._create_update_with_message(chat, from_user=user)
 
         main_chat = await context.bot.get_chat(1)
