@@ -178,7 +178,7 @@ def init(application: Application, group):
 
     application.add_handler(CallbackQueryHandler(_handle_query_admin, pattern=_ADMIN_DOWNLOAD), group=group)
 
-    application.add_handler(CommandHandler(_COMMAND_MACRO, _handle_command_macro))
+    application.add_handler(CommandHandler(_COMMAND_MACRO, _handle_command_macro), group=group)
     application.add_handler(CallbackQueryHandler(_handle_macro_exec, pattern=re.compile(_COMMAND_MACRO_EXEC_RE)),
                             group=group)
 
