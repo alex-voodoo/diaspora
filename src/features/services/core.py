@@ -669,7 +669,7 @@ async def _handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                        keyboards.standard(user))
 
 
-def post_init(application: Application) -> None:
+def post_init(application: Application, _group: int) -> None:
     # noinspection PyUnresolvedReferences
     state.Service.set_bot_username(application.bot.username)
 

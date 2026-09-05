@@ -28,13 +28,14 @@ logging.basicConfig(format="[%(asctime)s %(levelname)s %(name)s %(filename)s:%(l
                     level=logging.INFO)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
-from common import db, i18n
-from common.admin import get_main_keyboard
+from common import admin, db, i18n
 from common.checks import is_admin, is_member_of_chat
 from common.messaging_helpers import safe_delete_message, self_destructing_reply
 from common.settings import settings
-from features import antispam, glossary, moderation, services
+from features import antispam, glossary, macros, moderation, services
 
+# Groups for handlers
+_GROUP_ANTISPAM, _GROUP_SERVICES, _GROUP_LANGUAGE_MODERATION, _GROUP_GLOSSARY, _GROUP_MACROS, _GROUP_MODERATION, _GROUP_GREETING = range(7)
 # Commands, sequences, and responses
 COMMAND_START, COMMAND_HELP, COMMAND_ADMIN = ("start", "help", "admin")
 
@@ -170,7 +171,7 @@ async def handle_command_admin(update: Update, context: ContextTypes.DEFAULT_TYP
         await safe_delete_message(context, message.id, message.chat.id)
 
     await send(context, user.id, text=i18n.trans(user).gettext("MESSAGE_DM_ADMIN {since} {uptime}").format(
-        since=settings.start_timestamp, uptime=settings.uptime), reply_markup=get_main_keyboard())
+        since=settings.start_timestamp, uptime=settings.uptime), reply_markup=admin.get_main_keyboard())
 
 
 async def handle_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -225,16 +226,18 @@ async def post_init(application: Application) -> None:
 
     trans = i18n.default()
 
-    await bot.set_my_commands(
-        [BotCommand(command=COMMAND_START, description=trans.gettext("COMMAND_DESCRIPTION_START")),
-         BotCommand(command=COMMAND_ADMIN, description=trans.gettext("COMMAND_DESCRIPTION_ADMIN"))])
+    services.post_init(application, _GROUP_SERVICES)
+    antispam.post_init(application, _GROUP_ANTISPAM)
+    glossary.post_init(application, _GROUP_GLOSSARY)
+    macros.post_init(application, _GROUP_MACROS)
+
+    commands = [BotCommand(command=COMMAND_START, description=trans.gettext("COMMAND_DESCRIPTION_START")),
+                BotCommand(command=COMMAND_ADMIN, description=trans.gettext("COMMAND_DESCRIPTION_ADMIN"))]
+    commands += admin.feature_commands
+    await bot.set_my_commands(commands)
 
     for administrator in settings.ADMINISTRATORS:
         await bot.set_chat_menu_button(administrator["id"], MenuButtonCommands())
-
-    services.post_init(application)
-    antispam.post_init(application, 1)
-    glossary.post_init(application, 4)
 
     if settings.DEVELOPER_CHAT_ID:
         await send(application, settings.DEVELOPER_CHAT_ID, i18n.default().gettext("MESSAGE_ADMIN_HELLO_ON_STARTUP"))
@@ -262,21 +265,22 @@ def main() -> None:
     application.add_handler(CommandHandler(COMMAND_HELP, handle_command_help))
     application.add_handler(CommandHandler(COMMAND_ADMIN, handle_command_admin))
 
-    antispam.init(application, group=1)
+    antispam.init(application, _GROUP_ANTISPAM)
 
-    services.init(application, group=2)
+    services.init(application, _GROUP_SERVICES)
 
     if settings.LANGUAGE_MODERATION_ENABLED:
         global message_languages
         message_languages = deque()
 
-        application.add_handler(MessageHandler(filters.TEXT & (~ filters.COMMAND), detect_language), group=3)
+        application.add_handler(MessageHandler(filters.TEXT & (~ filters.COMMAND), detect_language), _GROUP_LANGUAGE_MODERATION)
 
-    glossary.init(application, group=4)
-    moderation.init(application, group=6)
+    glossary.init(application, _GROUP_GLOSSARY)
+    macros.init(application, _GROUP_MACROS)
+    moderation.init(application, _GROUP_MODERATION)
 
     if settings.GREETING_ENABLED:
-        application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, greet_new_member), group=5)
+        application.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, greet_new_member), _GROUP_GREETING)
 
     application.add_error_handler(handle_error)
 

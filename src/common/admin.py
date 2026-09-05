@@ -8,14 +8,14 @@ import shutil
 from collections.abc import Callable
 from pathlib import Path
 
-from telegram import InlineKeyboardMarkup, Update
+from telegram import BotCommand, InlineKeyboardMarkup, Update
 
 from . import i18n
 from .bot import reply
 from .checks import is_admin
 
 buttons = None
-
+feature_commands = None
 
 def register_buttons(row) -> None:
     """Register one or more rows of buttons in the main administrator's keyboard"""

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-07-05 15:54+0200\n"
+"POT-Creation-Date: 2026-09-05 19:28+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -20,11 +20,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.16.0\n"
 
-#: bot.py:55
+#: bot.py:56
 msgid "MESSAGE_MC_LET_US_TALK_PRIVATE"
 msgstr "Let's talk private!"
 
-#: bot.py:70
+#: bot.py:71
 msgid "MESSAGE_MC_GREETING_M {user_first_name} {bot_first_name}"
 msgstr ""
 "Welcome, {user_first_name}!\n"
@@ -35,7 +35,7 @@ msgstr ""
 "\n"
 "<em>I will delete this message in five minutes.</em>"
 
-#: bot.py:72
+#: bot.py:73
 msgid "MESSAGE_MC_GREETING_F {user_first_name} {bot_first_name}"
 msgstr ""
 "Welcome, {user_first_name}!\n"
@@ -46,11 +46,11 @@ msgstr ""
 "\n"
 "<em>I will delete this message in five minutes.</em>"
 
-#: bot.py:103
+#: bot.py:104
 msgid "MESSAGE_MC_SPEAK_DEFAULT_LANGUAGE"
 msgstr "❗ Please follow the rules of this group and write in English, so that every other member would understand you."
 
-#: bot.py:115
+#: bot.py:116
 msgid "MESSAGE_MC_HELP"
 msgstr ""
 "I keep records of users who would like to offer something to others, and provide that information to everyone in this chat.\n"
@@ -59,7 +59,7 @@ msgstr ""
 "\n"
 "<em>Soon I will delete this message to keep this chat clean.</em>"
 
-#: bot.py:121
+#: bot.py:122
 msgid "MESSAGE_DM_HELP"
 msgstr ""
 "I keep records of users of the chat who would like to offer something to others, and provide that information to everyone in the chat.\n"
@@ -68,15 +68,15 @@ msgstr ""
 "\n"
 "Use the buttons below to see the records, to add yourself or update your data, and to remove your record (of course if you have one)."
 
-#: bot.py:136
+#: bot.py:137
 msgid "MESSAGE_ADMIN_MAIN_CHAT_ID {title} {id}"
 msgstr "The ID of the \"{title}\" group is {id}"
 
-#: bot.py:172
+#: bot.py:173
 msgid "MESSAGE_DM_ADMIN {since} {uptime}"
 msgstr "Online since {since} ({uptime})."
 
-#: bot.py:199
+#: bot.py:200
 msgid "ERROR_REPORT_BODY {error_uuid} {traceback} {update} {chat_data} {user_data}"
 msgstr ""
 "Error UUID {error_uuid}\n"
@@ -95,23 +95,23 @@ msgstr ""
 "\n"
 "context.user_data = {user_data}"
 
-#: bot.py:206
+#: bot.py:207
 msgid "ERROR_REPORT_CAPTION {error_uuid}"
 msgstr "Report for error <code>{error_uuid}</code>"
 
-#: bot.py:218
+#: bot.py:219
 msgid "MESSAGE_DM_INTERNAL_ERROR {error_uuid}"
 msgstr "Something went wrong (in me).  The error is registered with code <code>{error_uuid}</code>.  I will notify my administrator."
 
-#: bot.py:229
+#: bot.py:234
 msgid "COMMAND_DESCRIPTION_START"
 msgstr "Main menu"
 
-#: bot.py:230
+#: bot.py:235
 msgid "COMMAND_DESCRIPTION_ADMIN"
 msgstr "Administrator's menu"
 
-#: bot.py:240
+#: bot.py:243
 msgid "MESSAGE_ADMIN_HELLO_ON_STARTUP"
 msgstr "I am online."
 
@@ -240,6 +240,42 @@ msgstr "Download glossary"
 #: features/glossary.py:363
 msgid "GLOSSARY_BUTTON_UPLOAD_TERMS"
 msgstr "Upload glossary"
+
+#: features/macros.py:87
+msgid "MACROS_MESSAGE_DM_ADMIN_FILE_UPDATED"
+msgstr "Accepted."
+
+#: features/macros.py:107
+msgid "MACROS_MESSAGE_DM_ADMIN_REQUEST_FILE"
+msgstr "Awaiting a text file."
+
+#: features/macros.py:129
+msgid "MACROS_MESSAGE_DM_ADMIN_WAIT"
+msgstr "Please wait a little…"
+
+#: features/macros.py:135
+msgid "MACROS_MESSAGE_DM_ADMIN_NO_MACROS_DEFINED"
+msgstr "No macros defined."
+
+#: features/macros.py:138
+msgid "MACROS_MESSAGE_DM_ADMIN_SELECT_MACRO"
+msgstr "Select a macro."
+
+#: features/macros.py:157
+msgid "MACROS_MESSAGE_DM_ADMIN_MACRO_SENT {caption}"
+msgstr "Sent a macro: \"{caption}\"."
+
+#: features/macros.py:185
+msgid "MACROS_BUTTON_DOWNLOAD"
+msgstr "Download macros"
+
+#: features/macros.py:186
+msgid "MACROS_BUTTON_UPLOAD"
+msgstr "Upload macros"
+
+#: features/macros.py:203
+msgid "MACRO_COMMAND_DESCRIPTION"
+msgstr "Send a macro (a standard message)"
 
 #: features/moderation/admin.py:42
 msgid "MODERATION_MESSAGE_DM_ADMIN_REQUEST_COMPLAINT_REASONS"

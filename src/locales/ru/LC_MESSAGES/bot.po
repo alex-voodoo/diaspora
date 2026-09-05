@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-07-05 15:54+0200\n"
+"POT-Creation-Date: 2026-09-05 19:28+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -20,11 +20,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.16.0\n"
 
-#: bot.py:55
+#: bot.py:56
 msgid "MESSAGE_MC_LET_US_TALK_PRIVATE"
 msgstr "Напишите мне личное сообщение"
 
-#: bot.py:70
+#: bot.py:71
 msgid "MESSAGE_MC_GREETING_M {user_first_name} {bot_first_name}"
 msgstr ""
 "Добро пожаловать, {user_first_name}!\n"
@@ -35,7 +35,7 @@ msgstr ""
 "\n"
 "<em>Я удалю это сообщение через пять минут.</em>"
 
-#: bot.py:72
+#: bot.py:73
 msgid "MESSAGE_MC_GREETING_F {user_first_name} {bot_first_name}"
 msgstr ""
 "Добро пожаловать, {user_first_name}!\n"
@@ -46,11 +46,11 @@ msgstr ""
 "\n"
 "<em>Я удалю это сообщение через пять минут.</em>"
 
-#: bot.py:103
+#: bot.py:104
 msgid "MESSAGE_MC_SPEAK_DEFAULT_LANGUAGE"
 msgstr "❗ Пожалуйста, следуйте правилам группы и пишите по-русски, чтобы вас понимали все участники."
 
-#: bot.py:115
+#: bot.py:116
 msgid "MESSAGE_MC_HELP"
 msgstr ""
 "Я записываю пользователей, которые предлагают услуги, и показываю их список всем участникам чата.\n"
@@ -59,7 +59,7 @@ msgstr ""
 "\n"
 "<em>Я скоро удалю это сообщение, чтобы не засорять чат.</em>"
 
-#: bot.py:121
+#: bot.py:122
 msgid "MESSAGE_DM_HELP"
 msgstr ""
 "Я записываю пользователей, которые предлагают услуги, и показываю их список всем участникам чата.\n"
@@ -68,15 +68,15 @@ msgstr ""
 "\n"
 "С помощью кнопок ниже можно посмотреть список контактов, добавиться в него, изменить или удалить свою запись."
 
-#: bot.py:136
+#: bot.py:137
 msgid "MESSAGE_ADMIN_MAIN_CHAT_ID {title} {id}"
 msgstr "ID группы «{title}»: {id}"
 
-#: bot.py:172
+#: bot.py:173
 msgid "MESSAGE_DM_ADMIN {since} {uptime}"
 msgstr "На связи с {since} ({uptime})"
 
-#: bot.py:199
+#: bot.py:200
 msgid "ERROR_REPORT_BODY {error_uuid} {traceback} {update} {chat_data} {user_data}"
 msgstr ""
 "UUID ошибки {error_uuid}\n"
@@ -95,23 +95,23 @@ msgstr ""
 "\n"
 "context.user_data = {user_data}"
 
-#: bot.py:206
+#: bot.py:207
 msgid "ERROR_REPORT_CAPTION {error_uuid}"
 msgstr "Отчёт об ошибке <code>{error_uuid}</code>"
 
-#: bot.py:218
+#: bot.py:219
 msgid "MESSAGE_DM_INTERNAL_ERROR {error_uuid}"
 msgstr "Что-то сломалось (во мне). Ошибка зарегистрирована с кодом <code>{error_uuid}</code>. Я сообщу моему администратору."
 
-#: bot.py:229
+#: bot.py:234
 msgid "COMMAND_DESCRIPTION_START"
 msgstr "Главное меню"
 
-#: bot.py:230
+#: bot.py:235
 msgid "COMMAND_DESCRIPTION_ADMIN"
 msgstr "Меню администратора"
 
-#: bot.py:240
+#: bot.py:243
 msgid "MESSAGE_ADMIN_HELLO_ON_STARTUP"
 msgstr "Я на связи."
 
@@ -242,6 +242,42 @@ msgstr "Выгрузить глоссарий"
 #: features/glossary.py:363
 msgid "GLOSSARY_BUTTON_UPLOAD_TERMS"
 msgstr "Загрузить глоссарий"
+
+#: features/macros.py:87
+msgid "MACROS_MESSAGE_DM_ADMIN_FILE_UPDATED"
+msgstr "Принято."
+
+#: features/macros.py:107
+msgid "MACROS_MESSAGE_DM_ADMIN_REQUEST_FILE"
+msgstr "Ожидаю текстовый файл."
+
+#: features/macros.py:129
+msgid "MACROS_MESSAGE_DM_ADMIN_WAIT"
+msgstr "Подождите немного…"
+
+#: features/macros.py:135
+msgid "MACROS_MESSAGE_DM_ADMIN_NO_MACROS_DEFINED"
+msgstr "Не задано ни одного макроса."
+
+#: features/macros.py:138
+msgid "MACROS_MESSAGE_DM_ADMIN_SELECT_MACRO"
+msgstr "Выберите макрос."
+
+#: features/macros.py:157
+msgid "MACROS_MESSAGE_DM_ADMIN_MACRO_SENT {caption}"
+msgstr "Отправлен макрос «{caption}»."
+
+#: features/macros.py:185
+msgid "MACROS_BUTTON_DOWNLOAD"
+msgstr "Выгрузить макросы"
+
+#: features/macros.py:186
+msgid "MACROS_BUTTON_UPLOAD"
+msgstr "Загрузить макросы"
+
+#: features/macros.py:203
+msgid "MACRO_COMMAND_DESCRIPTION"
+msgstr "Отправить макрос (стандартное сообщение)"
 
 #: features/moderation/admin.py:42
 msgid "MODERATION_MESSAGE_DM_ADMIN_REQUEST_COMPLAINT_REASONS"

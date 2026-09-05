@@ -238,6 +238,16 @@ class Settings:
                                               {"action": "restrict", "duration": 180, "cooldown": 180},
                                               {"action": "ban"}]
 
+        # --------------------------------------------------------------------------------------------------------------
+        # Macros
+        #
+        # Template responses that administrators can send on behalf of the bot by pressing a button.
+
+        # Whether macros are enabled.  Default is false.
+        self.MACROS_ENABLED = False
+        # Minimum interval between sending macros, in minutes.  Default is 1.
+        self.MACROS_INTERVAL_MINUTES = 1
+
         # YAML_SETTINGS
 
         # Working mode.
