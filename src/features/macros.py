@@ -29,6 +29,8 @@ _COMMAND_MACRO_EXEC_RE = "^macros-exec:[0-9]+$"
 (_ADMIN_DOWNLOAD, _ADMIN_UPLOAD) = ("macros-download", "macros-upload")
 _ADMIN_UPLOADING = 1
 
+(_MACRO_CAPTION, _MACRO_BODY) = ("caption", "body")
+
 _macros = []
 _last_macro_timestamp = datetime.datetime.now() - datetime.timedelta(minutes=settings.MACROS_INTERVAL_MINUTES)
 
@@ -39,30 +41,52 @@ def _load_macros():
     global _macros
     _macros = []
 
-    with open(_FILE_PATH, encoding="utf-8") as f:
-        current_macro = []
-        current_caption = ""
-
-        def submit_current_macro() -> None:
-            global _macros
-            nonlocal current_macro
-            nonlocal current_caption
-
-            if current_caption:
-                # noinspection PyUnresolvedReferences
-                _macros.append({"caption": current_caption, "body": "\n".join(current_macro)})
+    try:
+        with open(_FILE_PATH, encoding="utf-8") as f:
             current_macro = []
             current_caption = ""
 
-        for line in f.readlines():
-            if line.startswith("#"):
-                submit_current_macro()
-                current_caption = line.strip("# \n")
-                continue
+            def submit_current_macro() -> None:
+                global _macros
+                nonlocal current_macro
+                nonlocal current_caption
 
-            current_macro.append(line)
+                if current_caption:
+                    # noinspection PyUnresolvedReferences
+                    _macros.append({_MACRO_CAPTION: current_caption, _MACRO_BODY: "\n".join(current_macro)})
+                current_macro = []
+                current_caption = ""
 
-        submit_current_macro()
+            for line in f.readlines():
+                if line.startswith("#"):
+                    submit_current_macro()
+                    current_caption = line.strip("# \n")
+                    continue
+
+                current_macro.append(line)
+
+            submit_current_macro()
+    except FileNotFoundError:
+        logging.info(f"{_FILE_PATH} was not found, trying to create it")
+        with open(_FILE_PATH, "w") as f:
+            f.write("This file defines macros that the bot can send.\n"
+                    "\n"
+                    "A definition of a macro starts with a line that begins with #, that line is used as a title of "
+                    "the button that will send the macro. Everything that goes below the header is the body of the "
+                    "macro.\n"
+                    "\n"
+                    "The macros are sent verbatim using HTML parse mode, and support limited subset of HTML tags: <a>, "
+                    "<b>, <strong>, <i>, <em>, <u>, <ins>, <s>, <strike>, <code>, <pre>.\n"
+                    "\n"
+                    "This text goes before the first macro header and is ignored by the bot. See an example of a "
+                    "macro just below this line.\n"
+                    "\n"
+                    "# Say hello\n"
+                    "\n"
+                    "Hello everyone!  I help people in this group. Talk to me in private to see what I can do, and "
+                    "also check out <a href=\"https://github.com/alex-voodoo/diaspora\">my source code</a>, it is open "
+                    "and free!")
+        _load_macros()
 
     logging.info(f"Loaded {len(_macros)} macros")
 
@@ -76,6 +100,8 @@ def _get_macros() -> io.BytesIO:
 
 
 async def _handle_received_macros(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Save a macros definition file received from the user"""
+
     trans = i18n.trans(update.effective_user)
 
     if await save_file_with_backup(update, _FILE_PATH, "text/plain"):
@@ -94,7 +120,7 @@ async def _handle_query_admin(update: Update, _context: ContextTypes.DEFAULT_TYP
     user = query.from_user
 
     if not is_admin(user):
-        logging.error("User {username} is not listed as administrator!".format(username=user.username))
+        logging.error("fUser {username=user.username} is not listed as administrator!")
         return
 
     await query.answer()
@@ -116,7 +142,7 @@ async def _handle_command_macro(update: Update, context: ContextTypes.DEFAULT_TY
     user = message.from_user
 
     if not is_admin(user):
-        logging.info("User {username} tried to run the /macro command".format(username=user.username))
+        logging.info(f"User {user.username} tried to run the /macro command")
         return
 
     if not await talking_private(update, context):
@@ -129,8 +155,8 @@ async def _handle_command_macro(update: Update, context: ContextTypes.DEFAULT_TY
         await send(context, user.id, text=trans.gettext("MACROS_MESSAGE_DM_ADMIN_WAIT"))
         return
 
-    buttons = [(InlineKeyboardButton(_macros[index]["caption"], callback_data=_COMMAND_MACRO_EXEC.format(index)),) for
-               index in range(0, len(_macros))]
+    buttons = [(InlineKeyboardButton(_macros[index][_MACRO_CAPTION], callback_data=_COMMAND_MACRO_EXEC.format(index)),)
+               for index in range(0, len(_macros))]
     if not buttons:
         await send(context, user.id, text=trans.gettext("MACROS_MESSAGE_DM_ADMIN_NO_MACROS_DEFINED"))
         return
@@ -153,9 +179,9 @@ async def _handle_macro_exec(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     trans = i18n.trans(update.effective_user)
 
-    await send(context, settings.MAIN_CHAT_ID, _macros[index]["body"])
+    await send(context, settings.MAIN_CHAT_ID, _macros[index][_MACRO_BODY])
     await reply(update, text=trans.gettext("MACROS_MESSAGE_DM_ADMIN_MACRO_SENT {caption}").format(
-        caption=_macros[index]["caption"]))
+        caption=_macros[index][_MACRO_CAPTION]))
 
     global _last_macro_timestamp
     _last_macro_timestamp = datetime.datetime.now()

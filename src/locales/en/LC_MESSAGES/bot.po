@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-09-05 20:10+0200\n"
+"POT-Creation-Date: 2026-09-06 22:55+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -241,39 +241,39 @@ msgstr "Download glossary"
 msgid "GLOSSARY_BUTTON_UPLOAD_TERMS"
 msgstr "Upload glossary"
 
-#: features/macros.py:87
+#: features/macros.py:113
 msgid "MACROS_MESSAGE_DM_ADMIN_FILE_UPDATED"
 msgstr "Accepted."
 
-#: features/macros.py:107
+#: features/macros.py:133
 msgid "MACROS_MESSAGE_DM_ADMIN_REQUEST_FILE"
 msgstr "Awaiting a text file."
 
-#: features/macros.py:129
+#: features/macros.py:155
 msgid "MACROS_MESSAGE_DM_ADMIN_WAIT"
 msgstr "Please wait a little…"
 
-#: features/macros.py:135
+#: features/macros.py:161
 msgid "MACROS_MESSAGE_DM_ADMIN_NO_MACROS_DEFINED"
 msgstr "No macros defined."
 
-#: features/macros.py:138
+#: features/macros.py:164
 msgid "MACROS_MESSAGE_DM_ADMIN_SELECT_MACRO"
 msgstr "Select a macro."
 
-#: features/macros.py:157
+#: features/macros.py:183
 msgid "MACROS_MESSAGE_DM_ADMIN_MACRO_SENT {caption}"
 msgstr "Sent a macro: \"{caption}\"."
 
-#: features/macros.py:185
+#: features/macros.py:211
 msgid "MACROS_BUTTON_DOWNLOAD"
 msgstr "Download macros"
 
-#: features/macros.py:186
+#: features/macros.py:212
 msgid "MACROS_BUTTON_UPLOAD"
 msgstr "Upload macros"
 
-#: features/macros.py:203
+#: features/macros.py:229
 msgid "MACRO_COMMAND_DESCRIPTION"
 msgstr "Send a macro (a standard message)"
 

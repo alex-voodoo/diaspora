@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-09-05 20:10+0200\n"
+"POT-Creation-Date: 2026-09-06 22:55+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -243,39 +243,39 @@ msgstr "Выгрузить глоссарий"
 msgid "GLOSSARY_BUTTON_UPLOAD_TERMS"
 msgstr "Загрузить глоссарий"
 
-#: features/macros.py:87
+#: features/macros.py:113
 msgid "MACROS_MESSAGE_DM_ADMIN_FILE_UPDATED"
 msgstr "Принято."
 
-#: features/macros.py:107
+#: features/macros.py:133
 msgid "MACROS_MESSAGE_DM_ADMIN_REQUEST_FILE"
 msgstr "Ожидаю текстовый файл."
 
-#: features/macros.py:129
+#: features/macros.py:155
 msgid "MACROS_MESSAGE_DM_ADMIN_WAIT"
 msgstr "Подождите немного…"
 
-#: features/macros.py:135
+#: features/macros.py:161
 msgid "MACROS_MESSAGE_DM_ADMIN_NO_MACROS_DEFINED"
 msgstr "Не задано ни одного макроса."
 
-#: features/macros.py:138
+#: features/macros.py:164
 msgid "MACROS_MESSAGE_DM_ADMIN_SELECT_MACRO"
 msgstr "Выберите макрос."
 
-#: features/macros.py:157
+#: features/macros.py:183
 msgid "MACROS_MESSAGE_DM_ADMIN_MACRO_SENT {caption}"
 msgstr "Отправлен макрос «{caption}»."
 
-#: features/macros.py:185
+#: features/macros.py:211
 msgid "MACROS_BUTTON_DOWNLOAD"
 msgstr "Выгрузить макросы"
 
-#: features/macros.py:186
+#: features/macros.py:212
 msgid "MACROS_BUTTON_UPLOAD"
 msgstr "Загрузить макросы"
 
-#: features/macros.py:203
+#: features/macros.py:229
 msgid "MACRO_COMMAND_DESCRIPTION"
 msgstr "Отправить макрос (стандартное сообщение)"
 
