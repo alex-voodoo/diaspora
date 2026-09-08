@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-09-06 22:55+0200\n"
+"POT-Creation-Date: 2026-09-08 11:37+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -488,72 +488,72 @@ msgstr ""
 msgid "SERVICES_DM_WHO_CATEGORY_LIST"
 msgstr "Какую категорию показать?"
 
-#: features/services/core.py:212 features/services/core_test.py:353
+#: features/services/core.py:218 features/services/core_test.py:353
 msgid "SERVICES_DM_WHO_EMPTY"
 msgstr "Пока никто не записался, будьте первым!"
 
-#: features/services/core.py:245 features/services/core_test.py:437
+#: features/services/core.py:251 features/services/core_test.py:437
 msgid "SERVICES_DM_ENROLL_USERNAME_REQUIRED"
 msgstr ""
 "В вашем профиле Телеграм не задано имя пользователя. Добавьте его в настройках, чтобы другие участники могли написать вам, не зная вашего номера.\n"
 "\n"
 "После этого я смогу добавить вас в список."
 
-#: features/services/core.py:248 features/services/core_test.py:453
+#: features/services/core.py:254 features/services/core_test.py:453
 #: features/services/core_test.py:467
 msgid "SERVICES_DM_ENROLL_START"
 msgstr "Давайте знакомиться!"
 
-#: features/services/core.py:256 features/services/core_test.py:468
+#: features/services/core.py:262 features/services/core_test.py:468
 msgid "SERVICES_DM_ENROLL_ASK_CATEGORY"
 msgstr "Выберите категорию, к которой можно отнести вашу услугу."
 
-#: features/services/core.py:276 features/services/core_test.py:498
+#: features/services/core.py:282 features/services/core_test.py:498
 msgid "SERVICES_DM_SELECT_CATEGORY_FOR_UPDATE"
 msgstr "Выберите категорию для редактирования."
 
-#: features/services/core.py:329 features/services/core_test.py:62
+#: features/services/core.py:340 features/services/core_test.py:62
 #: features/services/core_test.py:115
 msgid "SERVICES_DM_ENROLL_ASK_DESCRIPTION"
 msgstr "Опишите вашу услугу подробно."
 
-#: features/services/core.py:330 features/services/core_test.py:63
+#: features/services/core.py:341 features/services/core_test.py:63
 #: features/services/core_test.py:116
 msgid "SERVICES_DM_UPDATE_DESCRIPTION {title} {current_value}"
 msgstr ""
 "Введите новое подробное описание вашей услуги в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:347
+#: features/services/core.py:358
 msgid "SERVICES_DM_ENROLL_ASK_LOCATION"
 msgstr ""
 "Где вы оказываете услуги?\n"
 "\n"
 "Укажите город по-русски: Сантьяго, Корунья, Виго и др. Если городов несколько, пишите «Галисия»."
 
-#: features/services/core.py:348
+#: features/services/core.py:359
 msgid "SERVICES_DM_UPDATE_LOCATION {title} {current_value}"
 msgstr ""
 "Введите новое описание места, где вы оказываете услугу в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:363
+#: features/services/core.py:374
 msgid "SERVICES_DM_ENROLL_CONFIRM_LEGALITY"
 msgstr ""
 "И последнее: подтвердите, что не нарушаете местные законы и правила.\n"
 "\n"
 "Ваша услуга легальна?"
 
-#: features/services/core.py:506 features/services/core_test.py:828
+#: features/services/core.py:524 features/services/core_test.py:828
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Начнём сначала."
 
-#: features/services/core.py:529 features/services/core.py:532
+#: features/services/core.py:547 features/services/core.py:550
 #: features/services/core_test.py:904 features/services/core_test.py:929
 msgid "SERVICES_DM_SERVICE_NOT_FOUND"
 msgstr "Услуга не найдена."
 
-#: features/services/core.py:538 features/services/core_test.py:874
+#: features/services/core.py:556 features/services/core_test.py:874
 #: features/services/core_test.py:916
 msgid "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}"
 msgstr ""
@@ -564,7 +564,7 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/core.py:543 features/services/core_test.py:888
+#: features/services/core.py:561 features/services/core_test.py:888
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "Услуга @{username} в категории <b>{category_title}</b>\n"
@@ -622,17 +622,120 @@ msgid "SERVICES_CATEGORY_OTHER_TITLE"
 msgstr "Другое"
 
 #: features/services/render.py:12
+msgid "SERVICES_DM_ABORT_SCRAMBLED_CONVERSATIONS"
+msgstr "Разговоры перепутались! Давайте начнём сначала."
+
+#: features/services/render.py:16
+msgid "SERVICES_ADMIN_USER_RECORD_APPROVED"
+msgstr "Одобрено."
+
+#: features/services/render.py:20
+msgid "SERVICES_ADMIN_USER_RECORD_SUSPENDED"
+msgstr "Запись скрыта."
+
+#: features/services/render.py:24 features/services/render.py:141
+msgid "SERVICES_DM_WHO_DISCLAIMER"
+msgstr "❗Объявления размещают участники группы. Администрация не отвечает за качество их услуг."
+
+#: features/services/render.py:28
+msgid "SERVICES_DM_WHO_LIST_HEADING"
+msgstr "Вот кого я знаю:"
+
+#: features/services/render.py:46
+msgid "SERVICES_DM_DATA_FIELD_LIMIT_S {limit}"
+msgid_plural "SERVICES_DM_DATA_FIELD_LIMIT_P {limit}"
+msgstr[0] "(Не более {limit} символа.)"
+msgstr[1] "(Не более {limit} символов.)"
+msgstr[2] "(Не более {limit} символов.)"
+
+#: features/services/render.py:51
 msgid "DAYS_S {count}"
 msgid_plural "DAYS_P {count}"
 msgstr[0] "{count} день"
 msgstr[1] "{count} дня"
 msgstr[2] "{count} дней"
 
-#: features/services/render.py:34 features/services/render.py:38
-msgid "SERVICES_DM_WHO_DISCLAIMER"
-msgstr "❗Объявления размещают участники группы. Администрация не отвечает за качество их услуг."
+#: features/services/render.py:55
+msgid "SERVICES_DM_ENROLL_COMPLETED"
+msgstr "Готово, вы добавлены в список!"
 
-#: features/services/render.py:44
+#: features/services/render.py:59
+msgid "SERVICES_DM_ENROLL_COMPLETED_POST_MODERATION"
+msgstr "Готово, вы добавлены в список! Обратите внимание, модераторы могут скрыть вашу запись, если она нарушает правила группы."
+
+#: features/services/render.py:63
+msgid "SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION"
+msgstr "Готово! Я добавлю вас в список после проверки модераторами."
+
+#: features/services/render.py:67
+msgid "SERVICES_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"
+msgstr "Извините, я не могу добавлять нелегальные услуги."
+
+#: features/services/render.py:71
+msgid "SERVICES_DM_NOTIFY_USERNAME_CHANGE {new_username} {old_username}"
+msgstr ""
+"Похоже, вы изменили ваше имя пользователя Telegram! Раньше было <code>{old_username}</code>, а теперь <code>{new_username}</code>.\n"
+"\n"
+"Ваши данные обновлены, и люди смогут связаться с вами по вашему новому имени. Если вы хотели начать сначала и удалить все свои данные, сделайте это самостоятельно."
+
+#: features/services/render.py:76
+msgid "SERVICES_DM_ENROLL_ASK_OCCUPATION"
+msgstr "Сформулируйте коротко, кто вы или что вы делаете. Например, «Парикмахер», «Няня», «Учу сёрфингу», «Помогаю с уборкой»."
+
+#: features/services/render.py:84
+msgid "SERVICES_DM_UPDATE_OCCUPATION {title} {current_value}"
+msgstr ""
+"Введите новое краткое описание вашей услуги в категории «{title}». Сейчас оно выглядит так:\n"
+"<b>{current_value}</b>"
+
+#: features/services/render.py:95
+msgid "SERVICES_DM_PING"
+msgstr "Здравствуйте! В моей книге услуг есть ваша запись."
+
+#: features/services/render.py:99
+msgid "SERVICES_DM_PING_S {record_count}"
+msgid_plural "SERVICES_DM_PING_P {record_count}"
+msgstr[0] "Здравствуйте! В моей книге услуг есть {record_count} ваша запись."
+msgstr[1] "Здравствуйте! В моей книге услуг есть {record_count} ваши записи."
+msgstr[2] "Здравствуйте! В моей книге услуг есть {record_count} ваших записей."
+
+#: features/services/render.py:108
+msgid "SERVICES_DM_PING_QUESTION"
+msgstr "Эта информация до сих пор актуальна?"
+
+#: features/services/render.py:112
+msgid "SERVICES_DM_LAST_PING {days_remaining}"
+msgstr "Это последнее напоминание. Через {days_remaining} все ваши данные будут удалены."
+
+#: features/services/render.py:119
+msgid "SERVICES_DM_PING_CONFIRM_DELETE_ALL"
+msgstr "Это действие нельзя будет отменить. Вы уверены, что хотите удалить все ваши услуги?"
+
+#: features/services/render.py:123
+msgid "SERVICES_DM_PING_CONFIRMED_ALL {days_to_next_check}"
+msgstr "Спасибо, что подтвердили. В следующий раз я задам этот вопрос через {days_to_next_check}."
+
+#: features/services/render.py:128
+msgid "SERVICES_DM_PING_NEED_EDIT {days_to_next_check}"
+msgstr "Спасибо, что подтвердили. В следующий раз я задам этот вопрос через {days_to_next_check}."
+
+#: features/services/render.py:133
+msgid "SERVICES_DM_PING_DELETE_ALL_CANCELLED"
+msgstr "Хорошо. Пожалуйста, проверьте, что данные по-прежнему актуальны."
+
+#: features/services/render.py:137
+msgid "SERVICES_DM_PING_DELETE_ALL_COMPLETED"
+msgstr "Ваши данные удалены."
+
+#: features/services/render.py:145
+msgid "SERVICES_DM_RETIRE"
+msgstr "Запись удалена."
+
+#: features/services/render.py:149
+msgid "SERVICES_DM_SELECT_CATEGORY_FOR_RETIRE"
+msgstr "Выберите категорию для удаления."
+
+#: features/services/render.py:165
 msgid "SERVICES_DM_TEXT_TOO_LONG_S {limit} {text}"
 msgid_plural "SERVICES_DM_TEXT_TOO_LONG_P {limit} {text}"
 msgstr[0] ""
@@ -644,105 +747,6 @@ msgstr[1] ""
 msgstr[2] ""
 "Слишком длинно! В этом поле я могу сохранить не более {limit} символов. Жирным выделено то, что входит:\n"
 "{text}"
-
-#: features/services/render.py:49
-msgid "SERVICES_DM_DATA_FIELD_LIMIT_S {limit}"
-msgid_plural "SERVICES_DM_DATA_FIELD_LIMIT_P {limit}"
-msgstr[0] "(Не более {limit} символа.)"
-msgstr[1] "(Не более {limit} символов.)"
-msgstr[2] "(Не более {limit} символов.)"
-
-#: features/services/render.py:54
-msgid "SERVICES_DM_WHO_LIST_HEADING"
-msgstr "Вот кого я знаю:"
-
-#: features/services/render.py:64
-msgid "SERVICES_DM_ENROLL_ASK_OCCUPATION"
-msgstr "Сформулируйте коротко, кто вы или что вы делаете. Например, «Парикмахер», «Няня», «Учу сёрфингу», «Помогаю с уборкой»."
-
-#: features/services/render.py:72
-msgid "SERVICES_DM_UPDATE_OCCUPATION {title} {current_value}"
-msgstr ""
-"Введите новое краткое описание вашей услуги в категории «{title}». Сейчас оно выглядит так:\n"
-"<b>{current_value}</b>"
-
-#: features/services/render.py:80
-msgid "SERVICES_DM_SELECT_CATEGORY_FOR_RETIRE"
-msgstr "Выберите категорию для удаления."
-
-#: features/services/render.py:84
-msgid "SERVICES_DM_RETIRE"
-msgstr "Запись удалена."
-
-#: features/services/render.py:88
-msgid "SERVICES_ADMIN_USER_RECORD_APPROVED"
-msgstr "Одобрено."
-
-#: features/services/render.py:92
-msgid "SERVICES_ADMIN_USER_RECORD_SUSPENDED"
-msgstr "Запись скрыта."
-
-#: features/services/render.py:96
-msgid "SERVICES_DM_ENROLL_DECLINED_ILLEGAL_SERVICE"
-msgstr "Извините, я не могу добавлять нелегальные услуги."
-
-#: features/services/render.py:100
-msgid "SERVICES_DM_ENROLL_COMPLETED"
-msgstr "Готово, вы добавлены в список!"
-
-#: features/services/render.py:104
-msgid "SERVICES_DM_ENROLL_COMPLETED_POST_MODERATION"
-msgstr "Готово, вы добавлены в список! Обратите внимание, модераторы могут скрыть вашу запись, если она нарушает правила группы."
-
-#: features/services/render.py:108
-msgid "SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION"
-msgstr "Готово! Я добавлю вас в список после проверки модераторами."
-
-#: features/services/render.py:115
-msgid "SERVICES_DM_PING"
-msgstr "Здравствуйте! В моей книге услуг есть ваша запись."
-
-#: features/services/render.py:119
-msgid "SERVICES_DM_PING_S {record_count}"
-msgid_plural "SERVICES_DM_PING_P {record_count}"
-msgstr[0] "Здравствуйте! В моей книге услуг есть {record_count} ваша запись."
-msgstr[1] "Здравствуйте! В моей книге услуг есть {record_count} ваши записи."
-msgstr[2] "Здравствуйте! В моей книге услуг есть {record_count} ваших записей."
-
-#: features/services/render.py:128
-msgid "SERVICES_DM_PING_QUESTION"
-msgstr "Эта информация до сих пор актуальна?"
-
-#: features/services/render.py:132
-msgid "SERVICES_DM_LAST_PING {days_remaining}"
-msgstr "Это последнее напоминание. Через {days_remaining} все ваши данные будут удалены."
-
-#: features/services/render.py:139
-msgid "SERVICES_DM_PING_CONFIRMED_ALL {days_to_next_check}"
-msgstr "Спасибо, что подтвердили. В следующий раз я задам этот вопрос через {days_to_next_check}."
-
-#: features/services/render.py:144
-msgid "SERVICES_DM_PING_NEED_EDIT {days_to_next_check}"
-msgstr "Спасибо, что подтвердили. В следующий раз я задам этот вопрос через {days_to_next_check}."
-
-#: features/services/render.py:149
-msgid "SERVICES_DM_PING_CONFIRM_DELETE_ALL"
-msgstr "Это действие нельзя будет отменить. Вы уверены, что хотите удалить все ваши услуги?"
-
-#: features/services/render.py:153
-msgid "SERVICES_DM_PING_DELETE_ALL_CANCELLED"
-msgstr "Хорошо. Пожалуйста, проверьте, что данные по-прежнему актуальны."
-
-#: features/services/render.py:157
-msgid "SERVICES_DM_PING_DELETE_ALL_COMPLETED"
-msgstr "Ваши данные удалены."
-
-#: features/services/render.py:161
-msgid "SERVICES_DM_NOTIFY_USERNAME_CHANGE {new_username} {old_username}"
-msgstr ""
-"Похоже, вы изменили ваше имя пользователя Telegram! Раньше было <code>{old_username}</code>, а теперь <code>{new_username}</code>.\n"
-"\n"
-"Ваши данные обновлены, и люди смогут связаться с вами по вашему новому имени. Если вы хотели начать сначала и удалить все свои данные, сделайте это самостоятельно."
 
 #: features/services/state.py:376
 msgid "SERVICES_CATEGORY_LIST_TITLE"

@@ -8,46 +8,20 @@ from collections.abc import Iterable
 from . import state
 
 
-def days(trans: gettext.GNUTranslations, count: int) -> str:
-    return trans.ngettext("DAYS_S {count}", "DAYS_P {count}", count).format(count=count)
+def abort_scrambled_conversations(trans: gettext.GNUTranslations):
+    return trans.gettext("SERVICES_DM_ABORT_SCRAMBLED_CONVERSATIONS")
 
 
-def service_description_for_owner(service: state.Service) -> str:
-    return (f"<b>{service.category.title}:</b> <a href=\"{service.deep_link}\">{service.occupation}</a> ("
-            f"{service.location})")
+def admin_user_record_approved(trans: gettext.GNUTranslations) -> str:
+    return trans.gettext("SERVICES_ADMIN_USER_RECORD_APPROVED")
 
 
-def service_description_for_public(service: state.Service) -> str:
-    return (f"- @{service.provider.tg_username} ({service.location}): <a href=\"{service.deep_link}\">"
-            f"{service.occupation}</a>")
-
-
-def category_with_services(category: state.ServiceCategory, services: Iterable[state.Service],
-                           show_category_title: bool) -> str:
-    if show_category_title:
-        return "\n".join(
-            [f"<b>{category.title}</b>", *[service_description_for_public(service) for service in services]])
-    return "\n".join([service_description_for_public(service) for service in services])
+def admin_user_record_suspended(trans: gettext.GNUTranslations) -> str:
+    return trans.gettext("SERVICES_ADMIN_USER_RECORD_SUSPENDED")
 
 
 def append_disclaimer(trans: gettext.GNUTranslations, message: str) -> str:
     return "\n\n".join([message, trans.gettext("SERVICES_DM_WHO_DISCLAIMER")])
-
-
-def prepend_disclaimer(trans: gettext.GNUTranslations, message: str) -> str:
-    return "\n\n".join([trans.gettext("SERVICES_DM_WHO_DISCLAIMER"), message])
-
-
-def text_too_long(trans: gettext.GNUTranslations, text: str, limit: int) -> str:
-    new_text = f"<b>{text[:limit]}</b>{text[limit:limit + 10]}…"
-
-    return trans.ngettext("SERVICES_DM_TEXT_TOO_LONG_S {limit} {text}", "SERVICES_DM_TEXT_TOO_LONG_P {limit} {text}",
-                          limit).format(limit=limit, text=new_text)
-
-
-def data_field_limit(trans: gettext.GNUTranslations, limit: int) -> str:
-    return trans.ngettext("SERVICES_DM_DATA_FIELD_LIMIT_S {limit}", "SERVICES_DM_DATA_FIELD_LIMIT_P {limit}",
-                          limit).format(limit=limit)
 
 
 def categories_with_services(trans: gettext.GNUTranslations, services: dict) -> str:
@@ -58,6 +32,44 @@ def categories_with_services(trans: gettext.GNUTranslations, services: dict) -> 
         user_list.append("")
         user_list.append(category_with_services(category, services[category.id], len(services) > 1))
     return append_disclaimer(trans, "\n".join(user_list))
+
+
+def category_with_services(category: state.ServiceCategory, services: Iterable[state.Service],
+                           show_category_title: bool) -> str:
+    if show_category_title:
+        return "\n".join(
+            [f"<b>{category.title}</b>", *[service_description_for_public(service) for service in services]])
+    return "\n".join([service_description_for_public(service) for service in services])
+
+
+def data_field_limit(trans: gettext.GNUTranslations, limit: int) -> str:
+    return trans.ngettext("SERVICES_DM_DATA_FIELD_LIMIT_S {limit}", "SERVICES_DM_DATA_FIELD_LIMIT_P {limit}",
+                          limit).format(limit=limit)
+
+
+def days(trans: gettext.GNUTranslations, count: int) -> str:
+    return trans.ngettext("DAYS_S {count}", "DAYS_P {count}", count).format(count=count)
+
+
+def enroll_completed(trans: gettext.GNUTranslations) -> str:
+    return trans.gettext("SERVICES_DM_ENROLL_COMPLETED")
+
+
+def enroll_completed_post_moderation(trans: gettext.GNUTranslations) -> str:
+    return trans.gettext("SERVICES_DM_ENROLL_COMPLETED_POST_MODERATION")
+
+
+def enroll_completed_pre_moderation(trans: gettext.GNUTranslations) -> str:
+    return trans.gettext("SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION")
+
+
+def enroll_declined_illegal_service(trans: gettext.GNUTranslations) -> str:
+    return trans.gettext("SERVICES_DM_ENROLL_DECLINED_ILLEGAL_SERVICE")
+
+
+def notify_username_change(trans: gettext.GNUTranslations, old_username: str, new_username: str) -> str:
+    return trans.gettext("SERVICES_DM_NOTIFY_USERNAME_CHANGE {new_username} {old_username}").format(
+        new_username=new_username, old_username=old_username)
 
 
 def occupation_request_new_with_limit(trans: gettext.GNUTranslations, limit: int) -> str:
@@ -74,38 +86,6 @@ def occupation_request_update_with_limit(trans: gettext.GNUTranslations, categor
     if limit > 0:
         lines.append(data_field_limit(trans, limit))
     return "\n".join(lines)
-
-
-def select_category_to_retire(trans: gettext.GNUTranslations) -> str:
-    return trans.gettext("SERVICES_DM_SELECT_CATEGORY_FOR_RETIRE")
-
-
-def retired_confirmation(trans: gettext.GNUTranslations) -> str:
-    return trans.gettext("SERVICES_DM_RETIRE")
-
-
-def admin_user_record_approved(trans: gettext.GNUTranslations) -> str:
-    return trans.gettext("SERVICES_ADMIN_USER_RECORD_APPROVED")
-
-
-def admin_user_record_suspended(trans: gettext.GNUTranslations) -> str:
-    return trans.gettext("SERVICES_ADMIN_USER_RECORD_SUSPENDED")
-
-
-def enroll_declined_illegal_service(trans: gettext.GNUTranslations) -> str:
-    return trans.gettext("SERVICES_DM_ENROLL_DECLINED_ILLEGAL_SERVICE")
-
-
-def enroll_completed(trans: gettext.GNUTranslations) -> str:
-    return trans.gettext("SERVICES_DM_ENROLL_COMPLETED")
-
-
-def enroll_completed_post_moderation(trans: gettext.GNUTranslations) -> str:
-    return trans.gettext("SERVICES_DM_ENROLL_COMPLETED_POST_MODERATION")
-
-
-def enroll_completed_pre_moderation(trans: gettext.GNUTranslations) -> str:
-    return trans.gettext("SERVICES_DM_ENROLL_COMPLETED_PRE_MODERATION")
 
 
 def ping(trans: gettext.GNUTranslations, services: list[state.Service], last_reminder: bool,
@@ -135,6 +115,10 @@ def ping(trans: gettext.GNUTranslations, services: list[state.Service], last_rem
     return "\n".join(lines)
 
 
+def ping_confirm_delete_all(trans: gettext.GNUTranslations) -> str:
+    return trans.gettext("SERVICES_DM_PING_CONFIRM_DELETE_ALL")
+
+
 def ping_confirmed_all(trans: gettext.GNUTranslations, day_count: int) -> str:
     return trans.gettext("SERVICES_DM_PING_CONFIRMED_ALL {days_to_next_check}").format(
         days_to_next_check=days(trans, day_count))
@@ -145,10 +129,6 @@ def ping_confirmed_all_with_edits(trans: gettext.GNUTranslations, day_count: int
         days_to_next_check=days(trans, day_count))
 
 
-def ping_confirm_delete_all(trans: gettext.GNUTranslations) -> str:
-    return trans.gettext("SERVICES_DM_PING_CONFIRM_DELETE_ALL")
-
-
 def ping_delete_all_cancelled(trans: gettext.GNUTranslations) -> str:
     return trans.gettext("SERVICES_DM_PING_DELETE_ALL_CANCELLED")
 
@@ -157,6 +137,30 @@ def ping_delete_all_completed(trans: gettext.GNUTranslations) -> str:
     return trans.gettext("SERVICES_DM_PING_DELETE_ALL_COMPLETED")
 
 
-def notify_username_change(trans: gettext.GNUTranslations, old_username: str, new_username: str) -> str:
-    return trans.gettext("SERVICES_DM_NOTIFY_USERNAME_CHANGE {new_username} {old_username}").format(
-        new_username=new_username, old_username=old_username)
+def prepend_disclaimer(trans: gettext.GNUTranslations, message: str) -> str:
+    return "\n\n".join([trans.gettext("SERVICES_DM_WHO_DISCLAIMER"), message])
+
+
+def retired_confirmation(trans: gettext.GNUTranslations) -> str:
+    return trans.gettext("SERVICES_DM_RETIRE")
+
+
+def select_category_to_retire(trans: gettext.GNUTranslations) -> str:
+    return trans.gettext("SERVICES_DM_SELECT_CATEGORY_FOR_RETIRE")
+
+
+def service_description_for_owner(service: state.Service) -> str:
+    return (f"<b>{service.category.title}:</b> <a href=\"{service.deep_link}\">{service.occupation}</a> ("
+            f"{service.location})")
+
+
+def service_description_for_public(service: state.Service) -> str:
+    return (f"- @{service.provider.tg_username} ({service.location}): <a href=\"{service.deep_link}\">"
+            f"{service.occupation}</a>")
+
+
+def text_too_long(trans: gettext.GNUTranslations, text: str, limit: int) -> str:
+    new_text = f"<b>{text[:limit]}</b>{text[limit:limit + 10]}…"
+
+    return trans.ngettext("SERVICES_DM_TEXT_TOO_LONG_S {limit} {text}", "SERVICES_DM_TEXT_TOO_LONG_P {limit} {text}",
+                          limit).format(limit=limit, text=new_text)

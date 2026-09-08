@@ -166,12 +166,12 @@ async def _who_request_category(update: Update, context: ContextTypes.DEFAULT_TY
         categories.append(category)
 
     trans = i18n.trans(query.from_user)
-    await reply(update, render.prepend_disclaimer(trans, trans.gettext("SERVICES_DM_WHO_CATEGORY_LIST")),
-                keyboards.select_category(categories))
+    keyboard = keyboards.select_category(categories)
+    await reply(update, render.prepend_disclaimer(trans, trans.gettext("SERVICES_DM_WHO_CATEGORY_LIST")), keyboard)
 
     context.user_data["who_request_category"] = categorised_people
 
-    return const.SELECTING_CATEGORY
+    return const.SELECTING_CATEGORY if keyboard else ConversationHandler.END
 
 
 async def _who_received_category(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -182,7 +182,13 @@ async def _who_received_category(update: Update, context: ContextTypes.DEFAULT_T
     await query.edit_message_reply_markup(None)
 
     categorised_people = context.user_data["who_request_category"]
-    category_id = int(query.data)
+    try:
+        category_id = int(query.data)
+    except ValueError:
+        logging.error("The conversation went async!")
+        await reply(update, render.abort_scrambled_conversations())
+        return ConversationHandler.END
+
     if category_id not in categorised_people:
         raise RuntimeError(f"No category {category_id}")
 
@@ -214,6 +220,8 @@ async def _handle_command_who(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     state.ServiceCategoryStats.register(query.from_user.id, -1)
 
+    await query.edit_message_reply_markup(None)
+
     if len(categorised_services) == 1:
         united_message = render.categories_with_services(trans, categorised_services)
         await reply(update, united_message, keyboards.standard(query.from_user))
@@ -225,7 +233,6 @@ async def _handle_command_who(update: Update, context: ContextTypes.DEFAULT_TYPE
         united_message = render.categories_with_services(trans, categorised_services)
 
         if len(united_message) < settings.MAX_MESSAGE_LENGTH:
-            await query.edit_message_reply_markup(None)
             await reply(update, united_message, keyboards.standard(query.from_user))
             return ConversationHandler.END
         else:
@@ -290,7 +297,12 @@ async def _accept_category_and_request_occupation(update: Update, context: Conte
     trans = i18n.trans(user)
 
     user_data = context.user_data
-    category_id = int(query.data)
+    try:
+        category_id = int(query.data)
+    except ValueError:
+        logging.error("The conversation went async!")
+        await reply(update, render.abort_scrambled_conversations())
+        return ConversationHandler.END
 
     user_data["category_id"] = category_id
 
@@ -483,7 +495,14 @@ async def _retire_received_category(update: Update, context: ContextTypes.DEFAUL
 
     tg_id = query.from_user.id
 
-    state.Service.delete(tg_id, int(query.data))
+    try:
+        category_id = int(query.data)
+    except ValueError:
+        logging.error("The conversation went async!")
+        await reply(update, render.abort_scrambled_conversations())
+        return ConversationHandler.END
+
+    state.Service.delete(tg_id, category_id)
     if state.Service.get_count_by_user(tg_id) == 0:
         provider = state.Provider.get_by_tg_id(tg_id)
         logging.info(f"User {provider} has just deleted their last service")
@@ -687,30 +706,34 @@ def init(application: Application, group: int) -> None:
     """Prepare the feature as defined in the configuration"""
 
     # Enrolling
-    application.add_handler(ConversationHandler(
-        entry_points=[CallbackQueryHandler(_handle_command_enroll, pattern=const.COMMAND_ENROLL),
-                      CallbackQueryHandler(_handle_command_update, pattern=const.COMMAND_UPDATE)],
-        states={const.SELECTING_CATEGORY: [CallbackQueryHandler(_accept_category_and_request_occupation)],
-                const.TYPING_OCCUPATION: [
-                    MessageHandler(filters.TEXT & (~ filters.COMMAND), _verify_occupation_and_request_description)],
-                const.TYPING_DESCRIPTION: [
-                    MessageHandler(filters.TEXT & (~ filters.COMMAND), _verify_description_and_request_location)],
-                const.TYPING_LOCATION: [
-                    MessageHandler(filters.TEXT & (~ filters.COMMAND), _verify_location_and_request_legality)],
-                const.CONFIRMING_LEGALITY: [CallbackQueryHandler(_verify_legality_and_finalise_data_collection)]},
-        fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]), group=group)
+    application.add_handler(
+        ConversationHandler(
+            entry_points=[CallbackQueryHandler(_handle_command_enroll, pattern=const.COMMAND_ENROLL),
+                          CallbackQueryHandler(_handle_command_update, pattern=const.COMMAND_UPDATE)],
+            states={const.SELECTING_CATEGORY: [CallbackQueryHandler(_accept_category_and_request_occupation)],
+                    const.TYPING_OCCUPATION: [
+                        MessageHandler(filters.TEXT & (~ filters.COMMAND), _verify_occupation_and_request_description)],
+                    const.TYPING_DESCRIPTION: [
+                        MessageHandler(filters.TEXT & (~ filters.COMMAND), _verify_description_and_request_location)],
+                    const.TYPING_LOCATION: [
+                        MessageHandler(filters.TEXT & (~ filters.COMMAND), _verify_location_and_request_legality)],
+                    const.CONFIRMING_LEGALITY: [CallbackQueryHandler(_verify_legality_and_finalise_data_collection)]},
+            fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]),
+        group=group)
 
     application.add_handler(
         ConversationHandler(entry_points=[CallbackQueryHandler(_handle_command_who, pattern=const.COMMAND_WHO)],
-                            states={const.SELECTING_CATEGORY: [
-                                CallbackQueryHandler(_who_received_category)]},
-                            fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]),
+                            states={const.SELECTING_CATEGORY: [CallbackQueryHandler(_who_received_category)]},
+                            fallbacks=[MessageHandler(filters.ALL, _abort_conversation)],
+                            per_message=True),
         group=group)
 
     application.add_handler(
         ConversationHandler(entry_points=[CallbackQueryHandler(_handle_command_retire, pattern=const.COMMAND_RETIRE)],
                             states={const.SELECTING_CATEGORY: [CallbackQueryHandler(_retire_received_category)]},
-                            fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]), group=group)
+                            fallbacks=[MessageHandler(filters.ALL, _abort_conversation)],
+                            per_message=True),
+        group=group)
 
     application.add_handler(CallbackQueryHandler(_handle_pong, pattern=re.compile(
         "^({confirm}|{edit}|{delete}):[0-9]+$".format(confirm=const.PING_CONFIRM_ALL, edit=const.PING_CONFIRM_EDIT,
@@ -718,8 +741,7 @@ def init(application: Application, group: int) -> None:
     application.add_handler(CallbackQueryHandler(_handle_pong_confirm_delete, pattern=re.compile(
         "^({yes}|{no}):[0-9]+$".format(yes=const.PING_DELETE_ALL_YES, no=const.PING_DELETE_ALL_NO))), group=group)
 
-    application.add_handler(
-        MessageHandler((filters.TEXT | filters.PHOTO), _handle_message), group=group)
+    application.add_handler(MessageHandler((filters.TEXT | filters.PHOTO), _handle_message), group=group)
 
     admin.register_handlers(application, group)
 
