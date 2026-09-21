@@ -5,7 +5,9 @@ Database stuff
 import logging
 import os
 import pathlib
+import shutil
 import sqlite3
+import subprocess
 from collections.abc import Iterator
 from sqlite3 import Connection, Cursor
 
@@ -13,9 +15,6 @@ from .log import LogTime
 from .settings import settings
 
 _db_connection: Connection
-
-_DB_FILENAME = "people.db"
-
 
 def _apply_migrations() -> None:
     """Apply pending migrations
@@ -71,15 +70,54 @@ def _format_log_query(query: str, parameters: tuple):
         params.append(f"\"{fixed_p}\"" if type(fixed_p) == str else str(fixed_p))
     return f"{query} ({", ".join(params)})"
 
+
 def connect(path: pathlib.Path = None) -> None:
     """Initialise the DB connection
 
-    @param path: optional path to the SQLite3 database file.  If omitted, the standard path is used.
+    @param path: optional path to the SQLite3 database file.  If omitted, the standard path is used (see below).
+
+    During development, to ease switching between branches that may be using different DB schemas, separate database
+    files are used for each distinct branch or snapshot. The main branch uses the standard filename, for other branches
+    it is modified by adding a suffix to the name. The algorithm is as follows:
+    - If git cannot be executed, or the current branch is "main", the modifier is empty. The default name is used, and
+      the database either already exists or is created empty.
+    - Else if the branch name is "HEAD", then we are in the "detached head" state, and the short commit hash is used.
+      This may be any arbitrary position in the commit history, so the only safe way is using a unique database created
+      for this particular snapshot.
+    - Else the name of the branch is used, and in this case a copy of the existing "main" database can be used initially
+      when the program is started at this branch the first time.
     """
 
     global _db_connection
 
-    _db_connection = sqlite3.connect(path if path is not None else settings.data_dir / _DB_FILENAME)
+    standard_filename = "people.db"
+
+    if path:
+        effective_path = path
+    else:
+        copy_existing_db = False
+        try:
+            branch_name = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]).decode("utf-8").strip()
+            if branch_name == "HEAD":
+                filename_mod = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"]).decode("utf-8").strip()
+            elif branch_name == "main":
+                filename_mod = ""
+            else:
+                filename_mod = branch_name.replace("/", "_")
+                copy_existing_db = True
+        except FileNotFoundError:
+            logging.info("Could not run git, assuming this is a production deployment, using the standard DB filename")
+            filename_mod= ""
+
+        standard_path = settings.data_dir / standard_filename
+        effective_path = settings.data_dir / ".".join(filter(None, ["people", filename_mod, "db"]))
+
+        if copy_existing_db and os.path.exists(standard_path) and not os.path.exists(effective_path):
+            logging.info("Running on a branch the first time, copying an existing DB")
+            shutil.copy(standard_path, effective_path)
+
+    logging.info(f"Will use the database: {effective_path}")
+    _db_connection = sqlite3.connect(effective_path)
 
     _apply_migrations()
 
