@@ -220,7 +220,10 @@ async def _handle_command_who(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     state.ServiceCategoryStats.register(query.from_user.id, -1)
 
-    await query.edit_message_reply_markup(None)
+    try:
+        await query.edit_message_reply_markup(None)
+    except BadRequest:
+        logging.error("Could not reset markup")
 
     if len(categorised_services) == 1:
         united_message = render.categories_with_services(trans, categorised_services)

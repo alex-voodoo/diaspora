@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-09-08 11:37+0200\n"
+"POT-Creation-Date: 2026-09-28 18:57+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -484,7 +484,7 @@ msgstr ""
 "\n"
 "Принять изменения?"
 
-#: features/services/core.py:169 features/services/core_test.py:277
+#: features/services/core.py:170 features/services/core_test.py:277
 msgid "SERVICES_DM_WHO_CATEGORY_LIST"
 msgstr "Какую категорию показать?"
 
@@ -492,68 +492,68 @@ msgstr "Какую категорию показать?"
 msgid "SERVICES_DM_WHO_EMPTY"
 msgstr "Пока никто не записался, будьте первым!"
 
-#: features/services/core.py:251 features/services/core_test.py:437
+#: features/services/core.py:255 features/services/core_test.py:437
 msgid "SERVICES_DM_ENROLL_USERNAME_REQUIRED"
 msgstr ""
 "В вашем профиле Телеграм не задано имя пользователя. Добавьте его в настройках, чтобы другие участники могли написать вам, не зная вашего номера.\n"
 "\n"
 "После этого я смогу добавить вас в список."
 
-#: features/services/core.py:254 features/services/core_test.py:453
+#: features/services/core.py:258 features/services/core_test.py:453
 #: features/services/core_test.py:467
 msgid "SERVICES_DM_ENROLL_START"
 msgstr "Давайте знакомиться!"
 
-#: features/services/core.py:262 features/services/core_test.py:468
+#: features/services/core.py:266 features/services/core_test.py:468
 msgid "SERVICES_DM_ENROLL_ASK_CATEGORY"
 msgstr "Выберите категорию, к которой можно отнести вашу услугу."
 
-#: features/services/core.py:282 features/services/core_test.py:498
+#: features/services/core.py:286 features/services/core_test.py:498
 msgid "SERVICES_DM_SELECT_CATEGORY_FOR_UPDATE"
 msgstr "Выберите категорию для редактирования."
 
-#: features/services/core.py:340 features/services/core_test.py:62
+#: features/services/core.py:344 features/services/core_test.py:62
 #: features/services/core_test.py:115
 msgid "SERVICES_DM_ENROLL_ASK_DESCRIPTION"
 msgstr "Опишите вашу услугу подробно."
 
-#: features/services/core.py:341 features/services/core_test.py:63
+#: features/services/core.py:345 features/services/core_test.py:63
 #: features/services/core_test.py:116
 msgid "SERVICES_DM_UPDATE_DESCRIPTION {title} {current_value}"
 msgstr ""
 "Введите новое подробное описание вашей услуги в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:358
+#: features/services/core.py:362
 msgid "SERVICES_DM_ENROLL_ASK_LOCATION"
 msgstr ""
 "Где вы оказываете услуги?\n"
 "\n"
 "Укажите город по-русски: Сантьяго, Корунья, Виго и др. Если городов несколько, пишите «Галисия»."
 
-#: features/services/core.py:359
+#: features/services/core.py:363
 msgid "SERVICES_DM_UPDATE_LOCATION {title} {current_value}"
 msgstr ""
 "Введите новое описание места, где вы оказываете услугу в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:374
+#: features/services/core.py:378
 msgid "SERVICES_DM_ENROLL_CONFIRM_LEGALITY"
 msgstr ""
 "И последнее: подтвердите, что не нарушаете местные законы и правила.\n"
 "\n"
 "Ваша услуга легальна?"
 
-#: features/services/core.py:524 features/services/core_test.py:828
+#: features/services/core.py:528 features/services/core_test.py:828
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Начнём сначала."
 
-#: features/services/core.py:547 features/services/core.py:550
+#: features/services/core.py:551 features/services/core.py:554
 #: features/services/core_test.py:904 features/services/core_test.py:929
 msgid "SERVICES_DM_SERVICE_NOT_FOUND"
 msgstr "Услуга не найдена."
 
-#: features/services/core.py:556 features/services/core_test.py:874
+#: features/services/core.py:560 features/services/core_test.py:874
 #: features/services/core_test.py:916
 msgid "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}"
 msgstr ""
@@ -564,7 +564,7 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/core.py:561 features/services/core_test.py:888
+#: features/services/core.py:565 features/services/core_test.py:888
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "Услуга @{username} в категории <b>{category_title}</b>\n"
