@@ -108,6 +108,9 @@ def connect(path: pathlib.Path = None) -> None:
         except FileNotFoundError:
             logging.info("Could not run git, assuming this is a production deployment, using the standard DB filename")
             filename_mod= ""
+        except subprocess.CalledProcessError:
+            logging.info("Error calling git, using the standard DB filename")
+            filename_mod= ""
 
         standard_path = settings.data_dir / standard_filename
         effective_path = settings.data_dir / ".".join(filter(None, ["people", filename_mod, "db"]))
