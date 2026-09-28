@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-09-28 18:57+0200\n"
+"POT-Creation-Date: 2026-09-28 19:55+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -76,7 +76,7 @@ msgstr "ID группы «{title}»: {id}"
 msgid "MESSAGE_DM_ADMIN {since} {uptime}"
 msgstr "На связи с {since} ({uptime})"
 
-#: bot.py:200
+#: bot.py:201
 msgid "ERROR_REPORT_BODY {error_uuid} {traceback} {update} {chat_data} {user_data}"
 msgstr ""
 "UUID ошибки {error_uuid}\n"
@@ -95,23 +95,23 @@ msgstr ""
 "\n"
 "context.user_data = {user_data}"
 
-#: bot.py:207
+#: bot.py:208
 msgid "ERROR_REPORT_CAPTION {error_uuid}"
 msgstr "Отчёт об ошибке <code>{error_uuid}</code>"
 
-#: bot.py:219
+#: bot.py:220
 msgid "MESSAGE_DM_INTERNAL_ERROR {error_uuid}"
 msgstr "Что-то сломалось (во мне). Ошибка зарегистрирована с кодом <code>{error_uuid}</code>. Я сообщу моему администратору."
 
-#: bot.py:234
+#: bot.py:235
 msgid "COMMAND_DESCRIPTION_START"
 msgstr "Главное меню"
 
-#: bot.py:235
+#: bot.py:236
 msgid "COMMAND_DESCRIPTION_ADMIN"
 msgstr "Меню администратора"
 
-#: bot.py:243
+#: bot.py:244
 msgid "MESSAGE_ADMIN_HELLO_ON_STARTUP"
 msgstr "Я на связи."
 
@@ -484,76 +484,76 @@ msgstr ""
 "\n"
 "Принять изменения?"
 
-#: features/services/core.py:170 features/services/core_test.py:277
+#: features/services/core.py:168 features/services/core_test.py:277
 msgid "SERVICES_DM_WHO_CATEGORY_LIST"
 msgstr "Какую категорию показать?"
 
-#: features/services/core.py:218 features/services/core_test.py:353
+#: features/services/core.py:216 features/services/core_test.py:353
 msgid "SERVICES_DM_WHO_EMPTY"
 msgstr "Пока никто не записался, будьте первым!"
 
-#: features/services/core.py:255 features/services/core_test.py:437
+#: features/services/core.py:250 features/services/core_test.py:437
 msgid "SERVICES_DM_ENROLL_USERNAME_REQUIRED"
 msgstr ""
 "В вашем профиле Телеграм не задано имя пользователя. Добавьте его в настройках, чтобы другие участники могли написать вам, не зная вашего номера.\n"
 "\n"
 "После этого я смогу добавить вас в список."
 
-#: features/services/core.py:258 features/services/core_test.py:453
+#: features/services/core.py:253 features/services/core_test.py:453
 #: features/services/core_test.py:467
 msgid "SERVICES_DM_ENROLL_START"
 msgstr "Давайте знакомиться!"
 
-#: features/services/core.py:266 features/services/core_test.py:468
+#: features/services/core.py:261 features/services/core_test.py:468
 msgid "SERVICES_DM_ENROLL_ASK_CATEGORY"
 msgstr "Выберите категорию, к которой можно отнести вашу услугу."
 
-#: features/services/core.py:286 features/services/core_test.py:498
+#: features/services/core.py:281 features/services/core_test.py:498
 msgid "SERVICES_DM_SELECT_CATEGORY_FOR_UPDATE"
 msgstr "Выберите категорию для редактирования."
 
-#: features/services/core.py:344 features/services/core_test.py:62
+#: features/services/core.py:339 features/services/core_test.py:62
 #: features/services/core_test.py:115
 msgid "SERVICES_DM_ENROLL_ASK_DESCRIPTION"
 msgstr "Опишите вашу услугу подробно."
 
-#: features/services/core.py:345 features/services/core_test.py:63
+#: features/services/core.py:340 features/services/core_test.py:63
 #: features/services/core_test.py:116
 msgid "SERVICES_DM_UPDATE_DESCRIPTION {title} {current_value}"
 msgstr ""
 "Введите новое подробное описание вашей услуги в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:362
+#: features/services/core.py:357
 msgid "SERVICES_DM_ENROLL_ASK_LOCATION"
 msgstr ""
 "Где вы оказываете услуги?\n"
 "\n"
 "Укажите город по-русски: Сантьяго, Корунья, Виго и др. Если городов несколько, пишите «Галисия»."
 
-#: features/services/core.py:363
+#: features/services/core.py:358
 msgid "SERVICES_DM_UPDATE_LOCATION {title} {current_value}"
 msgstr ""
 "Введите новое описание места, где вы оказываете услугу в категории «{title}». Сейчас оно выглядит так:\n"
 "<b>{current_value}</b>"
 
-#: features/services/core.py:378
+#: features/services/core.py:373
 msgid "SERVICES_DM_ENROLL_CONFIRM_LEGALITY"
 msgstr ""
 "И последнее: подтвердите, что не нарушаете местные законы и правила.\n"
 "\n"
 "Ваша услуга легальна?"
 
-#: features/services/core.py:528 features/services/core_test.py:828
+#: features/services/core.py:523 features/services/core_test.py:828
 msgid "SERVICES_DM_CONVERSATION_CANCELLED"
 msgstr "Начнём сначала."
 
-#: features/services/core.py:551 features/services/core.py:554
+#: features/services/core.py:546 features/services/core.py:549
 #: features/services/core_test.py:904 features/services/core_test.py:929
 msgid "SERVICES_DM_SERVICE_NOT_FOUND"
 msgstr "Услуга не найдена."
 
-#: features/services/core.py:560 features/services/core_test.py:874
+#: features/services/core.py:555 features/services/core_test.py:874
 #: features/services/core_test.py:916
 msgid "SERVICES_DM_YOUR_SERVICE_INFO {category_title} {description} {location} {occupation}"
 msgstr ""
@@ -564,7 +564,7 @@ msgstr ""
 "\n"
 "{description}"
 
-#: features/services/core.py:565 features/services/core_test.py:888
+#: features/services/core.py:560 features/services/core_test.py:888
 msgid "SERVICES_DM_SERVICE_INFO {category_title} {description} {location} {occupation} {username}"
 msgstr ""
 "Услуга @{username} в категории <b>{category_title}</b>\n"
