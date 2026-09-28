@@ -722,15 +722,13 @@ def init(application: Application, group: int) -> None:
     application.add_handler(
         ConversationHandler(entry_points=[CallbackQueryHandler(_handle_command_who, pattern=const.COMMAND_WHO)],
                             states={const.SELECTING_CATEGORY: [CallbackQueryHandler(_who_received_category)]},
-                            fallbacks=[MessageHandler(filters.ALL, _abort_conversation)],
-                            per_message=True),
+                            fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]),
         group=group)
 
     application.add_handler(
         ConversationHandler(entry_points=[CallbackQueryHandler(_handle_command_retire, pattern=const.COMMAND_RETIRE)],
                             states={const.SELECTING_CATEGORY: [CallbackQueryHandler(_retire_received_category)]},
-                            fallbacks=[MessageHandler(filters.ALL, _abort_conversation)],
-                            per_message=True),
+                            fallbacks=[MessageHandler(filters.ALL, _abort_conversation)]),
         group=group)
 
     application.add_handler(CallbackQueryHandler(_handle_pong, pattern=re.compile(
