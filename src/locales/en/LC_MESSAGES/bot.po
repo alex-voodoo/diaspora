@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-09-28 19:55+0200\n"
+"POT-Creation-Date: 2026-10-31 16:07+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: en\n"
@@ -241,39 +241,77 @@ msgstr "Download glossary"
 msgid "GLOSSARY_BUTTON_UPLOAD_TERMS"
 msgstr "Upload glossary"
 
-#: features/macros.py:113
+#: features/macros.py:92
+msgid "MACROS_FILE_TEMPLATE"
+msgstr ""
+"This file defines macros.\n"
+"\n"
+"A macro consists of a header and a body. The header is a line that begins with # (hash character), that line is used as a title of the button that will send the macro. Everything that goes below the header till the next header is the body of the macro.\n"
+"\n"
+"Macros are sent verbatim using HTML parse mode. A limited subset of HTML tags is supported: <a>, <b>, <strong>, <i>, <em>, <u>, <ins>, <s>, <strike>, <code>, <pre>.\n"
+"\n"
+"This text goes before the first macro header and is ignored by the bot. Below you can see one sample macro.\n"
+"\n"
+"# Hello everyone!\n"
+"\n"
+"Hello everyone! I help people in this group. Talk to me in private to see what I can do, and also check out <a href=\"https://github.com/alex-voodoo/diaspora\">my source code</a>, it is open and free!"
+
+#: features/macros.py:119 features/macros.py:243
+msgid "GENERIC_BUTTON_CANCEL"
+msgstr "❌ Cancel"
+
+#: features/macros.py:136
 msgid "MACROS_MESSAGE_DM_ADMIN_FILE_UPDATED"
 msgstr "Accepted."
 
-#: features/macros.py:133
+#: features/macros.py:159
 msgid "MACROS_MESSAGE_DM_ADMIN_REQUEST_FILE"
 msgstr "Awaiting a text file."
 
-#: features/macros.py:155
-msgid "MACROS_MESSAGE_DM_ADMIN_WAIT"
-msgstr "Please wait a little…"
-
-#: features/macros.py:161
+#: features/macros.py:185
 msgid "MACROS_MESSAGE_DM_ADMIN_NO_MACROS_DEFINED"
 msgstr "No macros defined."
 
-#: features/macros.py:164
+#: features/macros.py:188
+msgid "MACROS_MESSAGE_DM_ADMIN_WAIT"
+msgstr "Please wait a little…"
+
+#: features/macros.py:191 features/macros.py:213
 msgid "MACROS_MESSAGE_DM_ADMIN_SELECT_MACRO"
 msgstr "Select a macro."
 
-#: features/macros.py:183
+#: features/macros.py:202
+msgid "MACROS_MESSAGE_DM_ADMIN_CANCELLED"
+msgstr "Cancelled."
+
+#: features/macros.py:234
+msgid "MACROS_MESSAGE_DM_ADMIN_INDEX_ERROR"
+msgstr "Macro not found. Probably another administrator changed the set or macros."
+
+#: features/macros.py:240
+msgid "MACROS_MESSAGE_DM_ADMIN_MACRO_PREVIEW {body} {caption}"
+msgstr ""
+"You are about to send a macro \"{caption}\":\n"
+"\n"
+"{body}"
+
+#: features/macros.py:245
+msgid "GENERIC_BUTTON_OK"
+msgstr "✅ OK"
+
+#: features/macros.py:252
 msgid "MACROS_MESSAGE_DM_ADMIN_MACRO_SENT {caption}"
 msgstr "Sent a macro: \"{caption}\"."
 
-#: features/macros.py:211
+#: features/macros.py:287
 msgid "MACROS_BUTTON_DOWNLOAD"
 msgstr "Download macros"
 
-#: features/macros.py:212
+#: features/macros.py:288
 msgid "MACROS_BUTTON_UPLOAD"
 msgstr "Upload macros"
 
-#: features/macros.py:229
+#: features/macros.py:305
 msgid "MACRO_COMMAND_DESCRIPTION"
 msgstr "Send a macro (a standard message)"
 

@@ -12,7 +12,7 @@ This module contains isolated bot features.
 
 **Glossary** maintains an explanatory dictionary for a set of specific words that are used in the community but can be confusing to newcomers.  The feature detects such words in the discussion, highlights messages where these words are found, and can provide explanations.
 
-**Macros** allows to configure a set of pre-defined messages (macros) that the bot will send to the chat.
+**Macros** allows administrators to configure a set of pre-defined messages (macros) and send them to the chat on behalf of the bot.
 
 **<a href="moderation/README.md">Moderation</a>** implements public-driven moderation that aims at making the community self-regulated
 

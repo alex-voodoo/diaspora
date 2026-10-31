@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version:  beta\n"
 "Report-Msgid-Bugs-To: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
-"POT-Creation-Date: 2026-09-28 19:55+0200\n"
+"POT-Creation-Date: 2026-10-31 16:07+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Alexander Dunaev <alexander.dunaev@gmail.com>\n"
 "Language: ru\n"
@@ -243,39 +243,77 @@ msgstr "Выгрузить глоссарий"
 msgid "GLOSSARY_BUTTON_UPLOAD_TERMS"
 msgstr "Загрузить глоссарий"
 
-#: features/macros.py:113
+#: features/macros.py:92
+msgid "MACROS_FILE_TEMPLATE"
+msgstr ""
+"В этом файле заданы макросы.\n"
+"\n"
+"Макрос состоит из заголовка и тела. Заголовок — это строка, которая начинается с # (символ решётки) и используется в качестве названия кнопки, которая отправляет этот макрос. Всё, что идёт ниже, до следующего заголовка — это тело макроса, которое будет отправлено в группу.\n"
+"\n"
+"Макросы отправляются без изменений в режиме HTML. Поддерживаются следующие теги: <a>, <b>, <strong>, <i>, <em>, <u>, <ins>, <s>, <strike>, <code>, <pre>.\n"
+"\n"
+"Этот текст расположен до первой строки-заголовка и игнорируется ботом. Ниже определён один макрос в качестве примера.\n"
+"\n"
+"# Всем привет!\n"
+"\n"
+"Всем привет! Я помогаю людям в этой группе. Отправьте мне личное сообщение, и я расскажу, что я умею. Также взгляните на мой <a href=\"https://github.com/alex-voodoo/diaspora\">свободный и открытый исходный код</a>!"
+
+#: features/macros.py:119 features/macros.py:243
+msgid "GENERIC_BUTTON_CANCEL"
+msgstr "❌ Отмена"
+
+#: features/macros.py:136
 msgid "MACROS_MESSAGE_DM_ADMIN_FILE_UPDATED"
 msgstr "Принято."
 
-#: features/macros.py:133
+#: features/macros.py:159
 msgid "MACROS_MESSAGE_DM_ADMIN_REQUEST_FILE"
 msgstr "Ожидаю текстовый файл."
 
-#: features/macros.py:155
-msgid "MACROS_MESSAGE_DM_ADMIN_WAIT"
-msgstr "Подождите немного…"
-
-#: features/macros.py:161
+#: features/macros.py:185
 msgid "MACROS_MESSAGE_DM_ADMIN_NO_MACROS_DEFINED"
 msgstr "Не задано ни одного макроса."
 
-#: features/macros.py:164
+#: features/macros.py:188
+msgid "MACROS_MESSAGE_DM_ADMIN_WAIT"
+msgstr "Подождите немного…"
+
+#: features/macros.py:191 features/macros.py:213
 msgid "MACROS_MESSAGE_DM_ADMIN_SELECT_MACRO"
 msgstr "Выберите макрос."
 
-#: features/macros.py:183
+#: features/macros.py:202
+msgid "MACROS_MESSAGE_DM_ADMIN_CANCELLED"
+msgstr "Отменено."
+
+#: features/macros.py:234
+msgid "MACROS_MESSAGE_DM_ADMIN_INDEX_ERROR"
+msgstr "Макрос не найден. Вероятно, набор макросов был изменён другим администратором."
+
+#: features/macros.py:240
+msgid "MACROS_MESSAGE_DM_ADMIN_MACRO_PREVIEW {body} {caption}"
+msgstr ""
+"Вы собираетесь отправить макрос «{caption}»:\n"
+"\n"
+"{body}"
+
+#: features/macros.py:245
+msgid "GENERIC_BUTTON_OK"
+msgstr "✅ OK"
+
+#: features/macros.py:252
 msgid "MACROS_MESSAGE_DM_ADMIN_MACRO_SENT {caption}"
 msgstr "Отправлен макрос «{caption}»."
 
-#: features/macros.py:211
+#: features/macros.py:287
 msgid "MACROS_BUTTON_DOWNLOAD"
 msgstr "Выгрузить макросы"
 
-#: features/macros.py:212
+#: features/macros.py:288
 msgid "MACROS_BUTTON_UPLOAD"
 msgstr "Загрузить макросы"
 
-#: features/macros.py:229
+#: features/macros.py:305
 msgid "MACRO_COMMAND_DESCRIPTION"
 msgstr "Отправить макрос (стандартное сообщение)"
 

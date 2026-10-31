@@ -1,8 +1,24 @@
 """
-Standard responses
+Send pre-defined messages (macros) to the main chat
+
+Administrator only.
+
+Adds a /macro command.
+
+Sending a macro is a three-step process:
+1. Issue the /macro command. The bot displays a list of available macros as a set of buttons.
+2. Select a macro by pressing its button. The bot shows the message that is going to be sent and buttons to cancel or
+   confirm sending it.
+3. Confirm sending the macro by pressing the OK button. The bot will send the message to the main chat and report
+   success, removing the buttons and thus terminating the command sequence.
+
+After a macro is sent, MACROS_INTERVAL_MINUTES must pass before sending the next one.
+
+The list of macros is configured via the administrator's interface (/admin command).
 """
 
 import datetime
+import gettext
 import io
 import logging
 import re
@@ -23,8 +39,13 @@ _FILENAME = "macros.txt"
 _FILE_PATH = settings.data_dir / _FILENAME
 
 _COMMAND_MACRO = "macro"
-_COMMAND_MACRO_EXEC = "macros-exec:{}"
-_COMMAND_MACRO_EXEC_RE = "^macros-exec:[0-9]+$"
+_COMMAND_MACRO_CANCEL = "macro-cancel"
+_COMMAND_MACRO_SELECT = "macro-select"
+_COMMAND_MACRO_SELECT_CANCEL = "macro-select-cancel"
+_COMMAND_MACRO_SEND = "macro-send"
+
+_QUERY_FORMAT = "{command}:{index}"
+_QUERY_RE = re.compile("^([-\\w]+):(\\d+)$")
 
 (_ADMIN_DOWNLOAD, _ADMIN_UPLOAD) = ("macros-download", "macros-upload")
 _ADMIN_UPLOADING = 1
@@ -36,7 +57,7 @@ _last_macro_timestamp = datetime.datetime.now() - datetime.timedelta(minutes=set
 
 
 def _load_macros():
-    """Loads macros if they are not yet loaded"""
+    """Load macros from the file"""
 
     global _macros
     _macros = []
@@ -52,8 +73,7 @@ def _load_macros():
                 nonlocal current_caption
 
                 if current_caption:
-                    # noinspection PyUnresolvedReferences
-                    _macros.append({_MACRO_CAPTION: current_caption, _MACRO_BODY: "\n".join(current_macro)})
+                    _macros.append({_MACRO_CAPTION: current_caption, _MACRO_BODY: "\n".join(current_macro).strip()})
                 current_macro = []
                 current_caption = ""
 
@@ -67,36 +87,39 @@ def _load_macros():
 
             submit_current_macro()
     except FileNotFoundError:
-        logging.info(f"{_FILE_PATH} was not found, trying to create it")
+        logging.info(f"{_FILE_PATH} was not found, creating a fresh file")
         with open(_FILE_PATH, "w") as f:
-            f.write("This file defines macros that the bot can send.\n"
-                    "\n"
-                    "A definition of a macro starts with a line that begins with #, that line is used as a title of "
-                    "the button that will send the macro. Everything that goes below the header is the body of the "
-                    "macro.\n"
-                    "\n"
-                    "The macros are sent verbatim using HTML parse mode, and support limited subset of HTML tags: <a>, "
-                    "<b>, <strong>, <i>, <em>, <u>, <ins>, <s>, <strike>, <code>, <pre>.\n"
-                    "\n"
-                    "This text goes before the first macro header and is ignored by the bot. See an example of a "
-                    "macro just below this line.\n"
-                    "\n"
-                    "# Say hello\n"
-                    "\n"
-                    "Hello everyone!  I help people in this group. Talk to me in private to see what I can do, and "
-                    "also check out <a href=\"https://github.com/alex-voodoo/diaspora\">my source code</a>, it is open "
-                    "and free!")
+            f.write(i18n.default().gettext("MACROS_FILE_TEMPLATE"))
         _load_macros()
 
     logging.info(f"Loaded {len(_macros)} macros")
 
 
 def _get_macros() -> io.BytesIO:
-    """Return contents of the actual keywords file"""
+    """Return contents of the actual keywords file as a byte stream"""
 
     with open(_FILE_PATH, "rb") as inp:
         data = io.BytesIO(inp.read())
         return data
+
+
+def _build_macros_keyboard(trans: gettext.GNUTranslations, cancel_command: str) -> InlineKeyboardMarkup | None:
+    """Create a vertical keyboard with buttons for each defined macro and a cancel button in the bottom
+
+    Each macro button uses caption of its macro as caption, and carries index of the macro in the global array as its
+    callback data. The cancel button has generic Cancel caption and carries `cancel_command` as its callback data.
+    """
+
+    buttons = [(InlineKeyboardButton(_macros[index][_MACRO_CAPTION],
+                                     callback_data=_QUERY_FORMAT.format(command=_COMMAND_MACRO_SELECT, index=index)),)
+               for index in range(0, len(_macros))]
+    if not buttons:
+        return None
+
+    buttons.append((InlineKeyboardButton(trans.gettext("GENERIC_BUTTON_CANCEL"),
+                                         callback_data=cancel_command),))
+
+    return InlineKeyboardMarkup(buttons)
 
 
 async def _handle_received_macros(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -116,14 +139,17 @@ async def _handle_received_macros(update: Update, _context: ContextTypes.DEFAULT
 
 
 async def _handle_query_admin(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> [None, int]:
+    """Handle a query sent by buttons of the feature admin menu
+
+    Admin menu buttons are "Upload macros" and "Download macros". Both are handled by this function.
+    """
+
     query = update.callback_query
     user = query.from_user
 
     if not is_admin(user):
         logging.error("fUser {username=user.username} is not listed as administrator!")
         return
-
-    await query.answer()
 
     trans = i18n.trans(user)
 
@@ -136,7 +162,12 @@ async def _handle_query_admin(update: Update, _context: ContextTypes.DEFAULT_TYP
 
 
 async def _handle_command_macro(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Show the admin menu"""
+    """Show the list of macros
+
+    This is the main entry point of the feature: it handles the command that will display the selection of available
+    macros. The command must be issued by an administrator in the private channel. The list of macros must be non-empty,
+    and enough time should have passed since a macro had been sent previously (see `MACROS_INTERVAL_MINUTES` setting).
+    """
 
     message = update.effective_message
     user = message.from_user
@@ -148,43 +179,84 @@ async def _handle_command_macro(update: Update, context: ContextTypes.DEFAULT_TY
     if not await talking_private(update, context):
         await safe_delete_message(context, message.id, message.chat.id)
 
-    global _macros, _last_macro_timestamp
     trans = i18n.trans(update.effective_user)
 
+    if not _macros:
+        await send(context, user.id, text=trans.gettext("MACROS_MESSAGE_DM_ADMIN_NO_MACROS_DEFINED"))
+        return
     if _last_macro_timestamp + datetime.timedelta(minutes=settings.MACROS_INTERVAL_MINUTES) > datetime.datetime.now():
         await send(context, user.id, text=trans.gettext("MACROS_MESSAGE_DM_ADMIN_WAIT"))
         return
 
-    buttons = [(InlineKeyboardButton(_macros[index][_MACRO_CAPTION], callback_data=_COMMAND_MACRO_EXEC.format(index)),)
-               for index in range(0, len(_macros))]
-    if not buttons:
-        await send(context, user.id, text=trans.gettext("MACROS_MESSAGE_DM_ADMIN_NO_MACROS_DEFINED"))
-        return
-
     await send(context, user.id, text=trans.gettext("MACROS_MESSAGE_DM_ADMIN_SELECT_MACRO"),
-               reply_markup=InlineKeyboardMarkup(buttons))
+               reply_markup=_build_macros_keyboard(trans, _COMMAND_MACRO_CANCEL))
 
 
-async def _handle_macro_exec(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def _handle_command_macro_cancel(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Cancel the /macro command sequence at the first step (selecting a macro to send)
+
+    Edits the message to "Cancelled" and removes the buttons keyboard, thus terminating the command.
+    """
+
+    await update.callback_query.edit_message_text(
+        i18n.trans(update.effective_user).gettext("MACROS_MESSAGE_DM_ADMIN_CANCELLED"))
+
+
+async def _handle_macro_select_cancel(update: Update, _context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Cancel the /macro command sequence at the second step (confirming sending a macro selected previously)
+
+    Edits the message to "Select macro" and shows the buttons for selecting macros, thus returning to step 1.
+    """
+
     query = update.callback_query
-    await query.edit_message_reply_markup(None)
+    trans = i18n.trans(update.effective_user)
+    await query.edit_message_text(trans.gettext("MACROS_MESSAGE_DM_ADMIN_SELECT_MACRO"))
+    await query.edit_message_reply_markup(_build_macros_keyboard(trans, _COMMAND_MACRO_CANCEL))
 
-    command, index = query.data.split(":")
-    index = int(index)
 
-    global _macros
-    if index not in range(0, len(_macros)):
-        logging.error("Index out of range")
-        return
+async def _handle_macro_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle queries emerging in process of selecting and sending a macro
+
+    The /macro command initiates a sequence of steps (see feature description in the file comment) where each step shows
+    a menu, and buttons that proceed with previewing and sending a macro use the same pattern for callback data and are
+    handled in this function. Cancel buttons have separate handlers.
+    """
+
+    query = update.callback_query
+
+    command, index_str = _QUERY_RE.match(query.data).groups()
+    index = int(index_str)
 
     trans = i18n.trans(update.effective_user)
 
-    await send(context, settings.MAIN_CHAT_ID, _macros[index][_MACRO_BODY])
-    await reply(update, text=trans.gettext("MACROS_MESSAGE_DM_ADMIN_MACRO_SENT {caption}").format(
-        caption=_macros[index][_MACRO_CAPTION]))
+    assert str(index) == index_str
+    if index not in range(0, len(_macros)):
+        await query.edit_message_text(trans.gettext("MACROS_MESSAGE_DM_ADMIN_INDEX_ERROR"))
+        return
 
-    global _last_macro_timestamp
-    _last_macro_timestamp = datetime.datetime.now()
+    if command == _COMMAND_MACRO_SELECT:
+        context.user_data["admin-macros-current-selection"] = {"index": index, "macro": _macros[index]}
+
+        await query.edit_message_text(trans.gettext("MACROS_MESSAGE_DM_ADMIN_MACRO_PREVIEW {body} {caption}").format(
+            body=_macros[index][_MACRO_BODY], caption=_macros[index][_MACRO_CAPTION]))
+        await query.edit_message_reply_markup(
+            InlineKeyboardMarkup([(InlineKeyboardButton(trans.gettext("GENERIC_BUTTON_CANCEL"),
+                                                        callback_data=_COMMAND_MACRO_SELECT_CANCEL),
+                                   InlineKeyboardButton(trans.gettext("GENERIC_BUTTON_OK"),
+                                                        callback_data=_QUERY_FORMAT.format(
+                                                            command=_COMMAND_MACRO_SEND, index=index)))]))
+    elif command == _COMMAND_MACRO_SEND:
+        assert index == context.user_data["admin-macros-current-selection"]["index"]
+        macro = context.user_data["admin-macros-current-selection"]["macro"]
+        await send(context, settings.MAIN_CHAT_ID, macro[_MACRO_BODY])
+        await query.edit_message_text(trans.gettext("MACROS_MESSAGE_DM_ADMIN_MACRO_SENT {caption}").format(
+            caption=macro[_MACRO_CAPTION]))
+
+        del context.user_data["admin-macros-current-selection"]
+        global _last_macro_timestamp
+        _last_macro_timestamp = datetime.datetime.now()
+    else:
+        raise RuntimeError(f"Unknown command {command}")
 
 
 def init(application: Application, group):
@@ -205,8 +277,12 @@ def init(application: Application, group):
     application.add_handler(CallbackQueryHandler(_handle_query_admin, pattern=_ADMIN_DOWNLOAD), group=group)
 
     application.add_handler(CommandHandler(_COMMAND_MACRO, _handle_command_macro), group=group)
-    application.add_handler(CallbackQueryHandler(_handle_macro_exec, pattern=re.compile(_COMMAND_MACRO_EXEC_RE)),
+    application.add_handler(CallbackQueryHandler(_handle_command_macro_cancel, pattern=_COMMAND_MACRO_CANCEL),
                             group=group)
+
+    application.add_handler(CallbackQueryHandler(_handle_macro_query, pattern=_QUERY_RE), group=group)
+    application.add_handler(CallbackQueryHandler(_handle_macro_select_cancel,
+                                                 pattern=_COMMAND_MACRO_SELECT_CANCEL), group=group)
 
     register_buttons(((InlineKeyboardButton(trans.gettext("MACROS_BUTTON_DOWNLOAD"), callback_data=_ADMIN_DOWNLOAD),
                        InlineKeyboardButton(trans.gettext("MACROS_BUTTON_UPLOAD"), callback_data=_ADMIN_UPLOAD)),))
