@@ -45,7 +45,7 @@ _COMMAND_MACRO_SELECT_CANCEL = "macro-select-cancel"
 _COMMAND_MACRO_SEND = "macro-send"
 
 _QUERY_FORMAT = "{command}:{index}"
-_QUERY_RE = re.compile("^([-\\w]+):(\\d+)$")
+_QUERY_RE = re.compile("^(macro-[-\\w]+):(\\d+)$")
 
 (_ADMIN_DOWNLOAD, _ADMIN_UPLOAD) = ("macros-download", "macros-upload")
 _ADMIN_UPLOADING = 1
